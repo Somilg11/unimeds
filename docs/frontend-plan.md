@@ -36,7 +36,7 @@ Used for dynamic utility class composition and maintainable styling patterns.
   - UI preferences
 
 ### Authentication
-- **Clerk**
+- **Auth.js (NextAuth)**
   - OAuth
   - OTP authentication
   - Session management
@@ -398,7 +398,9 @@ Centralized Axios instance for authenticated requests.
 #### Authentication Flow
 
 ```ts
-const token = await window.Clerk?.session?.getToken();
+import { getSession } from "next-auth/react";
+const session = await getSession();
+const token = (session as any)?.accessToken;
 ```
 
 Attach token:

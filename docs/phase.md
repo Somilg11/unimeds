@@ -4,16 +4,17 @@
 *Objective: Establish core infrastructure, database schemas, and authentication.*
 
 - [x] **Monorepo Setup:** Initialize Next.js, Node.js (Gateway), and FastAPI (AI Engine) environments. *(Completed)*
-- [ ] **Database Schema:** Define `patients`, `records`, `appointments`, and `clinics` tables using Drizzle ORM connected to **NeonDB**.
-- [ ] **Authentication:** Integrate **Auth.js (NextAuth)** and configure RBAC (Patient, Doctor, Clinic Admin).
-- [ ] **Storage Infrastructure:** Provision **Cloudinary** for medical document storage and configure upload presets.
-- [ ] **CI/CD:** Setup GitHub Actions for automated deployment to staging.
+- [x] **Database Schema:** Define `patients`, `records`, `appointments`, and `clinics` tables using Drizzle ORM connected to **NeonDB**. *(Completed)*
+- [x] **Authentication:** Integrate **Auth.js (NextAuth)** and configure RBAC (Patient, Doctor, Clinic Admin, Super Admin). *(Completed)*
+- [x] **Storage Infrastructure:** Provision **Cloudinary** for medical document storage and configure upload presets. *(Completed)*
+- [x] **CI/CD:** Setup GitHub Actions for automated deployment to staging. *(Completed)*
 
 ---
 
 ## Phase 2: Core Healthcare Workflows (Days 7–16)
 *Objective: Deliver primary CRUD operations, UI dashboards, and booking engine.*
 
+- [ ] **Super Admin Portal:** Build tenant onboarding (`/admin/clinics`), global platform metrics, and the immutable audit log data table.
 - [ ] **Patient Portal:** Build registration, family sub-profiles, and document upload forms (dashed dropzones).
 - [ ] **Health Timeline:** Implement chronological bento-grid view for patient records.
 - [ ] **Appointment Engine:** Build real-time slot selection, booking logic, and conflict resolution APIs.
@@ -46,7 +47,7 @@
 ## Phase 5: Testing, Security & Launch (Days 29–30)
 *Objective: Finalize QA, validate security guardrails, and push to production.*
 
-- [ ] **E2E Testing:** Verify all Must-Have (P0) user stories across Patient, Doctor, and Clinic flows.
+- [ ] **E2E Testing:** Verify all Must-Have (P0) user stories across Patient, Doctor, Clinic, and Admin flows.
 - [ ] **Security Audit:** Validate Cloudinary access controls, TLS in transit, and NextAuth session isolation.
 - [ ] **Guardrail Regression:** Test 100+ AI edge cases via Groq to ensure 0% medical diagnosis rate.
 - [ ] **Production Go-Live:** Deploy to production environment and hand over UAT documentation.
