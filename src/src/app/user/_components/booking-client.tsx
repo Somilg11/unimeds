@@ -1,11 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { BentoCard } from './bento-card';
-import { Calendar, Clock, MapPin, User, Check, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Check, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { BookingWizardState, AppointmentSlot } from '@/types/user';
 import apiClient from '@/lib/api-client';
+
+interface Clinic {
+  id: string;
+  name: string;
+  address?: string;
+  settings?: {
+    timezone?: string;
+    bookingWindowDays?: number;
+  };
+}
+
+interface Doctor {
+  id: string;
+  profileData?: {
+    name?: string;
+    specialty?: string;
+  };
+}
 
 interface BookingClientProps {
   userName?: string;
@@ -19,31 +37,69 @@ export function BookingClient({ userName }: BookingClientProps) {
   const [selectedClinic, setSelectedClinic] = useState<string>('');
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | undefined>();
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
 
-  const clinics = [
-    { id: '1', name: 'City Medical Center', address: '123 Main St, Downtown' },
-    { id: '2', name: 'Westside Clinic', address: '456 Oak Ave, Westside' },
-    { id: '3', name: 'Northside Health', address: '789 Pine Rd, Northside' },
-  ];
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<AppointmentSlot[]>([]);
+  const [isLoadingClinics, setIsLoadingClinics] = useState(true);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
-  const doctors = [
-    { id: '1', name: 'Dr. Sarah Smith', specialty: 'General Practice', clinicId: '1' },
-    { id: '2', name: 'Dr. John Johnson', specialty: 'Cardiology', clinicId: '1' },
-    { id: '3', name: 'Dr. Emily Davis', specialty: 'Pediatrics', clinicId: '2' },
-    { id: '4', name: 'Dr. Michael Brown', specialty: 'Dermatology', clinicId: '3' },
-  ];
+  useEffect(() => {
+    fetchClinics();
+  }, []);
 
-  const availableSlots: AppointmentSlot[] = [
-    { id: '1', doctorId: '1', date: '2026-06-15', startTime: '09:00', endTime: '09:30', available: true, clinicId: '1' },
-    { id: '2', doctorId: '1', date: '2026-06-15', startTime: '10:00', endTime: '10:30', available: true, clinicId: '1' },
-    { id: '3', doctorId: '1', date: '2026-06-16', startTime: '14:00', endTime: '14:30', available: true, clinicId: '1' },
-    { id: '4', doctorId: '2', date: '2026-06-15', startTime: '11:00', endTime: '11:30', available: true, clinicId: '1' },
-    { id: '5', doctorId: '2', date: '2026-06-17', startTime: '15:00', endTime: '15:30', available: true, clinicId: '1' },
-  ];
+  const fetchClinics = async () => {
+    try {
+      const response = await apiClient.get('/user/clinics');
+      setClinics(response.data.clinics || []);
+    } catch (error) {
+      console.error('Failed to fetch clinics:', error);
+    } finally {
+      setIsLoadingClinics(false);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    setIsLoadingDoctors(true);
+    try {
+      const response = await apiClient.get('/user/doctors');
+      setDoctors(response.data.doctors || []);
+    } catch (error) {
+      console.error('Failed to fetch doctors:', error);
+    } finally {
+      setIsLoadingDoctors(false);
+    }
+  };
+
+  const fetchAvailableSlots = async (doctorId: string, date: string) => {
+    setIsLoadingSlots(true);
+    try {
+      const response = await apiClient.get('/user/slots', {
+        params: { doctorId, date }
+      });
+      setAvailableSlots(response.data.slots || []);
+    } catch (error) {
+      console.error('Failed to fetch available slots:', error);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
 
   const handleNext = () => {
+    if (wizardState.step === 1 && selectedClinic) {
+      fetchDoctors();
+    } else if (wizardState.step === 2 && selectedDoctor) {
+      // When doctor is selected, we need a date to fetch slots
+      // For now, default to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateStr = tomorrow.toISOString().split('T')[0];
+      fetchAvailableSlots(selectedDoctor, dateStr);
+    }
     if (wizardState.step < 4) {
       setWizardState({ ...wizardState, step: wizardState.step + 1 as 1 | 2 | 3 | 4 });
     }
@@ -167,10 +223,14 @@ export function BookingClient({ userName }: BookingClientProps) {
           {/* Step 2: Choose Doctor */}
           {wizardState.step === 2 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {doctors
-                  .filter((doctor) => doctor.clinicId === selectedClinic)
-                  .map((doctor) => (
+              {isLoadingDoctors ? (
+                <div className="text-center py-12">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-zinc-400 mb-4" />
+                  <p className="text-sm text-zinc-600">Loading doctors...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {doctors.map((doctor) => (
                     <button
                       key={doctor.id}
                       onClick={() => {
@@ -189,14 +249,15 @@ export function BookingClient({ userName }: BookingClientProps) {
                         </div>
                         <div>
                           <h3 className="text-base font-semibold text-zinc-900 tracking-tight">
-                            {doctor.name}
+                            {doctor.profileData?.name || 'Unknown Doctor'}
                           </h3>
-                          <p className="text-xs text-zinc-600">{doctor.specialty}</p>
+                          <p className="text-xs text-zinc-600">{doctor.profileData?.specialty || 'General Practice'}</p>
                         </div>
                       </div>
                     </button>
                   ))}
-              </div>
+                </div>
+              )}
               <Button
                 variant="outline"
                 onClick={handleBack}
@@ -211,10 +272,32 @@ export function BookingClient({ userName }: BookingClientProps) {
           {/* Step 3: Pick Time Slot */}
           {wizardState.step === 3 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {availableSlots
-                  .filter((slot) => slot.doctorId === selectedDoctor)
-                  .map((slot) => (
+              <div>
+                <label className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mb-2 block">
+                  Select Date
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    if (selectedDoctor && e.target.value) {
+                      fetchAvailableSlots(selectedDoctor, e.target.value);
+                    }
+                    setSelectedSlot(undefined);
+                  }}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full max-w-xs px-4 py-3 border border-zinc-300 rounded-lg bg-white text-sm focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                />
+              </div>
+              {isLoadingSlots ? (
+                <div className="text-center py-12">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-zinc-400 mb-4" />
+                  <p className="text-sm text-zinc-600">Loading available slots...</p>
+                </div>
+              ) : availableSlots.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {availableSlots.map((slot) => (
                     <button
                       key={slot.id}
                       onClick={() => setSelectedSlot(slot)}
@@ -242,7 +325,14 @@ export function BookingClient({ userName }: BookingClientProps) {
                       </div>
                     </button>
                   ))}
-              </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 border-2 border-dashed border-zinc-300 rounded-lg">
+                  <Calendar className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
+                  <p className="text-sm text-zinc-600 font-medium">No available slots for this date</p>
+                  <p className="text-xs text-zinc-500">Please select a different date</p>
+                </div>
+              )}
               <div className="flex gap-3 mt-4">
                 <Button
                   variant="outline"
@@ -309,7 +399,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                   <div className="flex justify-between">
                     <span className="text-zinc-600">Doctor:</span>
                     <span className="font-medium text-zinc-900">
-                      {doctors.find((d) => d.id === selectedDoctor)?.name}
+                      {doctors.find((d) => d.id === selectedDoctor)?.profileData?.name || 'Unknown Doctor'}
                     </span>
                   </div>
                   <div className="flex justify-between">

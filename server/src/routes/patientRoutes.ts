@@ -14,6 +14,15 @@ router.post('/auth/sync', patientController.syncUser);
 // GET /api/v1/user/timeline - Get patient timeline
 router.get('/timeline', patientController.getTimeline);
 
+// GET /api/v1/user/clinics - Get all clinics
+router.get('/clinics', patientController.getClinics);
+
+// GET /api/v1/user/doctors - Get doctors (optionally filtered by clinic)
+router.get('/doctors', patientController.getDoctors);
+
+// GET /api/v1/user/slots - Get available slots for a doctor
+router.get('/slots', patientController.getAvailableSlots);
+
 // POST /api/v1/user/records/upload - Upload medical record
 router.post('/records/upload', patientController.uploadRecord);
 
@@ -25,5 +34,8 @@ router.post('/appointments/book', patientController.bookAppointment);
 
 // PUT /api/v1/user/profile - Update patient profile
 router.put('/profile', patientController.updateProfile);
+
+// GET /api/v1/user/profile - Get patient profile
+router.get('/profile', patientController.getProfile);
 
 export default router;

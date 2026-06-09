@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BentoCard } from './bento-card';
-import { User, Save, Shield } from 'lucide-react';
+import { User, Save, Shield, Loader2 } from 'lucide-react';
 import { PatientProfile } from '@/types/user';
 import apiClient from '@/lib/api-client';
 
@@ -25,10 +25,36 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [allergyInput, setAllergyInput] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await apiClient.get('/user/profile');
+      const user = response.data.user;
+      if (user?.profileData) {
+        setProfile({
+          name: user.profileData.name || userName,
+          email: user.profileData.email || email,
+          phone: user.profileData.phone || '',
+          dateOfBirth: user.profileData.dateOfBirth || '',
+          bloodType: user.profileData.bloodType || '',
+          allergies: user.profileData.allergies || [],
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
-      await apiClient.put('/user/profile', profile);
+      await apiClient.put('/user/profile', { profileData: profile });
       alert('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
@@ -53,6 +79,14 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
       allergies: profile.allergies?.filter((a) => a !== allergy),
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-zinc-50 min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-zinc-50">

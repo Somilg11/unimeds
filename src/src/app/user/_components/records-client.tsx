@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UploadZone } from './upload-zone';
 import { BentoCard } from './bento-card';
-import { FileText, Download, Trash2, Search, Calendar } from 'lucide-react';
+import { FileText, Download, Trash2, Search, Calendar, Loader2 } from 'lucide-react';
 import { MedicalRecord } from '@/types/user';
 import apiClient from '@/lib/api-client';
 
@@ -14,9 +14,46 @@ interface RecordsClientProps {
 }
 
 export function RecordsClient({ userName }: RecordsClientProps) {
-  const [records] = useState<MedicalRecord[]>([]);
+  const [records, setRecords] = useState<MedicalRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'lab_report' | 'prescription' | 'imaging'>('all');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
+  const fetchRecords = async () => {
+    try {
+      const response = await apiClient.get('/user/timeline');
+      const timeline = response.data.timeline || [];
+      
+      const medicalRecords: MedicalRecord[] = timeline
+        .filter((item: any) => item.type === 'record')
+        .map((item: any) => ({
+          id: item.data.id,
+          fileName: item.data.fileName,
+          fileType: item.data.mimeType || 'application/octet-stream',
+          fileSize: parseInt(item.data.fileSize || '0'),
+          uploadDate: item.data.createdAt,
+          recordType: (item.data.recordType as MedicalRecord['recordType']) || 'other',
+          ocrStatus: (item.data.ocrData?.processingStatus as MedicalRecord['ocrStatus']) || 'pending',
+          ocrData: item.data.ocrData ? {
+            extractedText: item.data.ocrData.extractedText,
+            keyFindings: item.data.ocrData.keyFindings,
+            medications: item.data.ocrData.medications,
+            diagnoses: item.data.ocrData.diagnoses,
+          } : undefined,
+          s3Url: item.data.fileUrl,
+        }));
+      
+      setRecords(medicalRecords);
+    } catch (error) {
+      console.error('Failed to fetch records:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFileUpload = async (file: File) => {
     try {
@@ -28,7 +65,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
       
       await apiClient.post('/user/records/upload', formData);
       // Refresh records after upload
-      window.location.reload();
+      fetchRecords();
     } catch (error) {
       console.error('Failed to upload file:', error);
       alert('Failed to upload file. Please try again.');
@@ -144,7 +181,12 @@ export function RecordsClient({ userName }: RecordsClientProps) {
             </div>
 
             {/* Records Grid */}
-            {filteredRecords.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-zinc-400 mb-4" />
+                <p className="text-sm text-zinc-600">Loading records...</p>
+              </div>
+            ) : filteredRecords.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {filteredRecords.map((record) => (
                   <div
