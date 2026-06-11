@@ -7,6 +7,7 @@ import { BentoCard } from './bento-card';
 import { User, Save, Shield, Loader2 } from 'lucide-react';
 import { PatientProfile } from '@/types/user';
 import apiClient from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface ProfileClientProps {
   userName: string;
@@ -55,11 +56,11 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
   const handleSave = async () => {
     try {
       await apiClient.put('/user/profile', { profileData: profile });
-      alert('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
+      toast.error('Failed to update profile. Please try again.');
     }
   };
 

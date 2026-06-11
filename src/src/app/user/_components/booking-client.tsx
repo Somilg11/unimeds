@@ -6,6 +6,7 @@ import { BentoCard } from './bento-card';
 import { Calendar, Clock, MapPin, User, Check, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { BookingWizardState, AppointmentSlot } from '@/types/user';
 import apiClient from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface Clinic {
   id: string;
@@ -63,10 +64,12 @@ export function BookingClient({ userName }: BookingClientProps) {
     }
   };
 
-  const fetchDoctors = async () => {
+  const fetchDoctors = async (clinicId: string) => {
     setIsLoadingDoctors(true);
     try {
-      const response = await apiClient.get('/user/doctors');
+      const response = await apiClient.get('/user/doctors', {
+        params: { clinicId },
+      });
       setDoctors(response.data.doctors || []);
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
@@ -91,7 +94,7 @@ export function BookingClient({ userName }: BookingClientProps) {
 
   const handleNext = () => {
     if (wizardState.step === 1 && selectedClinic) {
-      fetchDoctors();
+      fetchDoctors(selectedClinic);
     } else if (wizardState.step === 2 && selectedDoctor) {
       // When doctor is selected, we need a date to fetch slots
       // For now, default to tomorrow
@@ -113,18 +116,23 @@ export function BookingClient({ userName }: BookingClientProps) {
 
   const handleSubmit = async () => {
     try {
+      // Construct the full ISO datetime from slot date + startTime
+      const slotDateTime = selectedSlot
+        ? new Date(`${selectedSlot.date}T${selectedSlot.startTime}:00`).toISOString()
+        : undefined;
+
       await apiClient.post('/user/appointments/book', {
         clinicId: selectedClinic,
         doctorId: selectedDoctor,
-        slotId: selectedSlot?.id,
+        slotTime: slotDateTime,
         reason,
         notes,
       });
-      alert('Appointment booked successfully!');
+      toast.success('Appointment booked successfully!');
       window.location.href = '/user/dashboard';
     } catch (error) {
       console.error('Failed to book appointment:', error);
-      alert('Failed to book appointment. Please try again.');
+      toast.error('Failed to book appointment. Please try again.');
     }
   };
 

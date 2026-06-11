@@ -1,13 +1,44 @@
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DoctorDashboardClient } from '@/app/doctor/_components/doctor-dashboard-client';
 
-export default async function DoctorDashboard() {
-  const session = await auth();
-  
-  if (!session?.user) {
-    redirect('/doctor');
+export default function DoctorDashboard() {
+  const router = useRouter();
+  const [userName, setUserName] = useState('Doctor');
+  const [token, setToken] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('doctor_token');
+    if (!storedToken) {
+      router.push('/doctor');
+      return;
+    }
+
+    setToken(storedToken);
+
+    try {
+      const userStr = localStorage.getItem('doctor_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setUserName(user.name || 'Doctor');
+      }
+    } catch {
+      // ignore
+    }
+
+    setChecking(false);
+  }, [router]);
+
+  if (checking || !token) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  return <DoctorDashboardClient userName={session.user.name || 'Doctor'} />;
+  return <DoctorDashboardClient userName={userName} token={token} />;
 }

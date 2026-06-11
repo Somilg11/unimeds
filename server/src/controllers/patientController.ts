@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { db } from '../db/db.js';
-import { users, records, appointments, clinics } from '../db/schema.js';
-import { eq, and, desc, or, gte, lte, isNotNull, isNull, inArray } from 'drizzle-orm';
+import { users, records, appointments, clinics, clinicDoctors, notifications } from '../db/schema.js';
+import { eq, and, desc, or, gte, lte, isNotNull, isNull, inArray, count } from 'drizzle-orm';
 import { generateSignedUploadUrl } from '../lib/cloudinary.js';
 
 export const syncUser = async (req: Request, res: Response) => {
@@ -162,18 +162,19 @@ export const processOCR = async (req: Request, res: Response) => {
 
 export const bookAppointment = async (req: Request, res: Response) => {
   try {
-    const { doctorId, clinicId, slotTime } = req.body;
+    const { doctorId, clinicId, slotTime, reason, notes } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // Check for conflicting appointments
-    const slotDate = new Date(slotTime);
-    const startOfDay = new Date(slotDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(slotDate.setHours(23, 59, 59, 999));
+    if (!doctorId || !clinicId || !slotTime) {
+      return res.status(400).json({ error: 'doctorId, clinicId, and slotTime are required' });
+    }
 
+    // Check for conflicting appointments at the same time slot
+    const slotDate = new Date(slotTime);
     const [conflict] = await db
       .select()
       .from(appointments)
@@ -181,7 +182,11 @@ export const bookAppointment = async (req: Request, res: Response) => {
         and(
           eq(appointments.doctorId, doctorId),
           eq(appointments.clinicId, clinicId),
-          eq(appointments.status, 'confirmed')
+          eq(appointments.slotTime, slotDate),
+          or(
+            eq(appointments.status, 'confirmed'),
+            eq(appointments.status, 'pending')
+          )
         )
       );
 
@@ -190,12 +195,14 @@ export const bookAppointment = async (req: Request, res: Response) => {
     }
 
     // Create appointment
+    const appointmentNotes = [reason, notes].filter(Boolean).join('\n---\n') || null;
     const [newAppointment] = await db.insert(appointments).values({
       patientId: userId,
       doctorId,
       clinicId,
-      slotTime: new Date(slotTime),
+      slotTime: slotDate,
       status: 'pending',
+      notes: appointmentNotes,
     }).returning();
 
     res.json({ success: true, appointment: newAppointment });
@@ -250,24 +257,35 @@ export const getClinics = async (req: Request, res: Response) => {
 export const getDoctors = async (req: Request, res: Response) => {
   try {
     const { clinicId } = req.query;
-    
-    const doctorConditions = [eq(users.role, 'doctor')];
-    
+
     if (clinicId && typeof clinicId === 'string') {
-      // Filter doctors by clinic through appointments or a clinic-doctor relationship
-      // For now, we'll get all doctors and let the frontend filter
-      // In a real implementation, you'd have a clinic_doctors junction table
+      const clinicDoctorsList = await db
+        .select({
+          id: users.id,
+          profileData: users.profileData,
+        })
+        .from(users)
+        .innerJoin(clinicDoctors, eq(users.id, clinicDoctors.doctorId))
+        .where(
+          and(
+            eq(users.role, 'doctor'),
+            eq(clinicDoctors.clinicId, clinicId),
+            eq(clinicDoctors.isActive, true)
+          )
+        );
+
+      res.json({ doctors: clinicDoctorsList });
+    } else {
+      const allDoctors = await db
+        .select({
+          id: users.id,
+          profileData: users.profileData,
+        })
+        .from(users)
+        .where(eq(users.role, 'doctor'));
+
+      res.json({ doctors: allDoctors });
     }
-
-    const allDoctors = await db
-      .select({
-        id: users.id,
-        profileData: users.profileData,
-      })
-      .from(users)
-      .where(eq(users.role, 'doctor'));
-
-    res.json({ doctors: allDoctors });
   } catch (error) {
     console.error('Error fetching doctors:', error);
     res.status(500).json({ error: 'Failed to fetch doctors' });
@@ -300,7 +318,10 @@ export const getAvailableSlots = async (req: Request, res: Response) => {
           eq(appointments.doctorId, doctorId),
           gte(appointments.slotTime, startOfDay),
           lte(appointments.slotTime, endOfDay),
-          eq(appointments.status, 'confirmed')
+          or(
+            eq(appointments.status, 'confirmed'),
+            eq(appointments.status, 'pending')
+          )
         )
       );
 
@@ -362,5 +383,59 @@ export const getProfile = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching profile:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+};
+
+export const getNotifications = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userNotifications = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+
+    res.json({ notifications: userNotifications });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+};
+
+export const markNotificationRead = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { notificationId } = req.body;
+    if (!notificationId) {
+      return res.status(400).json({ error: 'notificationId is required' });
+    }
+
+    const [updated] = await db
+      .update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(
+        and(
+          eq(notifications.id, notificationId),
+          eq(notifications.userId, userId)
+        )
+      )
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    res.json({ success: true, notification: updated });
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ error: 'Failed to mark notification as read' });
   }
 };

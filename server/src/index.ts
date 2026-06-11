@@ -7,6 +7,8 @@ import adminRoutes from './routes/adminRoutes.js';
 import patientRoutes from './routes/patientRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import clinicRoutes from './routes/clinicRoutes.js';
+import clinicAdminRoutes from './routes/clinicAdminRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,10 +43,12 @@ app.get('/api', (req, res) => {
 });
 
 // API Routes
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/user', patientRoutes);
 app.use('/api/v1/hospital', doctorRoutes);
 app.use('/api/v1/hospital', clinicRoutes);
+app.use('/api/v1/clinic-admin', clinicAdminRoutes);
 
 // Start server
 app.listen(PORT, () => {

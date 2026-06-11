@@ -1,10 +1,13 @@
-import { pgTable, uuid, text, timestamp, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, jsonb, pgEnum, boolean, integer } from 'drizzle-orm/pg-core';
 
 // User roles enum
 export const userRoleEnum = pgEnum('user_role', ['patient', 'doctor', 'clinic_admin', 'super_admin']);
 
 // Appointment status enum
 export const appointmentStatusEnum = pgEnum('appointment_status', ['pending', 'confirmed', 'cancelled']);
+
+// Notification types enum
+export const notificationTypeEnum = pgEnum('notification_type', ['appointment_reminder', 'appointment_booked', 'appointment_cancelled', 'record_uploaded', 'lab_result_ready', 'general']);
 
 // Users table - manages platform identities across all supported roles
 export const users = pgTable('users', {
@@ -19,6 +22,8 @@ export const users = pgTable('users', {
     gender?: string;
     address?: string;
     medicalIdentifier?: string;
+    specialization?: string;
+    licenseNumber?: string;
   }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -28,6 +33,10 @@ export const users = pgTable('users', {
 export const clinics = pgTable('clinics', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
+  email: text('email'), // Gmail account of clinic admin (used for Google OAuth login)
+  isActive: boolean('is_active').default(false), // Whether clinic has been activated via invitation
+  activationToken: text('activation_token'), // Token sent via email for activation
+  activatedAt: timestamp('activated_at'), // When the clinic activated their account
   n8nWebhookUrls: jsonb('n8n_webhook_urls').$type<{
     appointmentBooked?: string;
     appointmentCancelled?: string;
@@ -46,6 +55,30 @@ export const clinics = pgTable('clinics', {
   }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Clinic Doctors junction table - manages doctor-clinic relationships
+export const clinicDoctors = pgTable('clinic_doctors', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
+  doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  isActive: boolean('is_active').default(true),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+  invitedBy: uuid('invited_by').references(() => users.id, { onDelete: 'set null' }),
+});
+
+// Notifications table - system-wide notification management
+export const notifications = pgTable('notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  clinicId: uuid('clinic_id').references(() => clinics.id, { onDelete: 'cascade' }),
+  type: notificationTypeEnum('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  data: jsonb('data').$type<Record<string, unknown>>(),
+  isRead: boolean('is_read').default(false),
+  readAt: timestamp('read_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // Appointments table - transaction-heavy scheduling engine
@@ -114,3 +147,9 @@ export type NewMedicalRecord = typeof records.$inferInsert;
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type NewAuditLog = typeof auditLogs.$inferInsert;
+
+export type ClinicDoctor = typeof clinicDoctors.$inferSelect;
+export type NewClinicDoctor = typeof clinicDoctors.$inferInsert;
+
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;

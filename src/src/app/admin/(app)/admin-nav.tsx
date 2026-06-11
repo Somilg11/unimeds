@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Users, LayoutDashboard, FileText, Menu, X, ShieldCheck, Building2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ShieldCheck, Users, Building2, ScrollText, LayoutDashboard, Menu, X, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LogoutButton } from '@/components/logout-button';
+import { NotificationBell } from '@/components/notification-bell';
 
 const navItems = [
   {
@@ -15,19 +16,19 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    href: '/admin/audit-logs',
-    label: 'Audit Logs',
-    icon: FileText,
-  },
-  {
     href: '/admin/clinics',
     label: 'Clinics',
     icon: Building2,
   },
   {
-    href: '/admin/tenants/onboard',
-    label: 'Onboard Clinic',
+    href: '/admin/doctors',
+    label: 'Doctors',
     icon: Users,
+  },
+  {
+    href: '/admin/audit-logs',
+    label: 'Audit Logs',
+    icon: ScrollText,
   },
 ];
 
@@ -37,8 +38,15 @@ interface AdminNavProps {
 
 export function AdminNav({ userName }: AdminNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  function handleLogout() {
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    router.push('/admin');
+  }
 
   return (
     <>
@@ -148,10 +156,17 @@ export function AdminNav({ userName }: AdminNavProps) {
                 </p>
                 <p className="text-[10px] text-zinc-600">Super Admin</p>
               </div>
+              <NotificationBell apiPrefix="/admin" />
             </div>
           )}
-          <LogoutButton
-            redirectTo="/admin"
+          {isCollapsed && (
+            <div className="flex justify-center">
+              <NotificationBell apiPrefix="/admin" />
+            </div>
+          )}
+          <Button
+            variant="outline"
+            onClick={handleLogout}
             className={cn(
               'w-full transition-all duration-300',
               isCollapsed
@@ -159,8 +174,9 @@ export function AdminNav({ userName }: AdminNavProps) {
                 : 'justify-start text-sm h-10 border-dashed text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
             )}
           >
+            <LogOut className={cn('w-4 h-4 shrink-0', isCollapsed ? '' : 'mr-2')} />
             {!isCollapsed && <span>Logout</span>}
-          </LogoutButton>
+          </Button>
         </div>
       </nav>
     </>

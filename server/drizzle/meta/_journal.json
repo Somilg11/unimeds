@@ -8,6 +8,13 @@
       "when": 1781032010745,
       "tag": "0000_abnormal_garia",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781194090506,
+      "tag": "0001_damp_nova",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { Upload, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface UploadZoneProps {
   onUpload: (file: File) => void;
@@ -26,13 +27,13 @@ export function UploadZone({
     async (file: File) => {
       // Validate file size
       if (file.size > maxSize) {
-        alert(`File size exceeds ${maxSize / 1024 / 1024}MB limit`);
+        toast.error(`File size exceeds ${maxSize / 1024 / 1024}MB limit`);
         return;
       }
 
       // Validate file type
       if (accept && !file.type.match(accept.replace('*', '.*'))) {
-        alert('Invalid file type');
+        toast.error('Invalid file type');
         return;
       }
 

@@ -4,9 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Calendar, Users, LayoutDashboard, FileText, Settings, Menu, X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Calendar, Users, LayoutDashboard, FileText, Settings, Menu, X, ChevronRight, ChevronLeft, BarChart3, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LogoutButton } from '@/components/logout-button';
+import { NotificationBell } from '@/components/notification-bell';
 
 const navItems = [
   {
@@ -28,6 +29,16 @@ const navItems = [
     href: '/clinic/records',
     label: 'Records',
     icon: FileText,
+  },
+  {
+    href: '/clinic/analytics',
+    label: 'Analytics',
+    icon: BarChart3,
+  },
+  {
+    href: '/clinic/staff',
+    label: 'Manage Staff',
+    icon: UserCog,
   },
   {
     href: '/clinic/settings',
@@ -153,6 +164,12 @@ export function ClinicAdminNav({ userName }: ClinicAdminNavProps) {
                 </p>
                 <p className="text-[10px] text-zinc-600">Clinic Admin</p>
               </div>
+              <NotificationBell apiPrefix="/clinic-admin" />
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="flex justify-center">
+              <NotificationBell apiPrefix="/clinic-admin" />
             </div>
           )}
           <LogoutButton

@@ -1,21 +1,49 @@
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DoctorNav } from '@/app/doctor/_components/doctor-nav';
 
-export default async function DoctorLayout({
+export default function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  
-  if (!session?.user) {
-    redirect('/doctor');
+  const router = useRouter();
+  const [userName, setUserName] = useState('Doctor');
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('doctor_token');
+    if (!token) {
+      router.push('/doctor');
+      return;
+    }
+
+    try {
+      const userStr = localStorage.getItem('doctor_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setUserName(user.name || 'Doctor');
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    setChecking(false);
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen bg-zinc-50 items-center justify-center">
+        <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div className="flex min-h-screen bg-zinc-50">
-      <DoctorNav userName={session.user.name || 'Doctor'} />
+      <DoctorNav userName={userName} />
       <div className="flex-1 min-w-0">
         {children}
       </div>

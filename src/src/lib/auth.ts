@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     GoogleProvider({
@@ -11,7 +13,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: 'jwt',
   },
-  secret: process.env.AUTH_SECRET || 'dev-secret-change-in-production',
+  secret: process.env.AUTH_SECRET || 'dev-secret',
   pages: {
     signIn: '/auth/signin',
   },
@@ -20,20 +22,46 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user && account) {
         token.id = user.id;
         token.authId = account.providerAccountId;
-        // Store the access token in the token right after signin
-        token.accessToken = account.access_token;
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = user.image;
+
+        // Call our backend to get a JWT that the backend can verify
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/v1/auth/oauth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              picture: user.image,
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            token.accessToken = data.token;
+            token.dbUserId = data.user?.id;
+            token.userRole = data.user?.role;
+          }
+        } catch (error) {
+          console.error('Failed to authenticate with backend:', error);
+        }
       }
-      // Persist the access token across sign in
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string;
+        session.user.id = (token.dbUserId as string) || (token.id as string);
         session.user.authId = token.authId as string;
-        // Send the access token to the client
         session.accessToken = token.accessToken as string;
+        (session.user as any).email = token.email as string;
+        (session.user as any).role = token.userRole as string;
       }
       return session;
+    },
+    async signIn({ user, account }) {
+      return true;
     },
   },
 });

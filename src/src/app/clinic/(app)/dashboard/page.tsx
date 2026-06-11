@@ -1,238 +1,225 @@
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+'use client';
 
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import apiClient from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
 import {
   Calendar,
   Users,
   TrendingDown,
   Activity,
-  Settings,
-  BarChart3,
+  FileText,
+  Clock,
 } from 'lucide-react';
-import { LogoutButton } from '@/components/logout-button';
+import Link from 'next/link';
 
-export default async function ClinicDashboard() {
-  const session = await auth();
+interface DashboardMetrics {
+  totalPatients: number;
+  totalDoctors: number;
+  totalAppointments: number;
+  totalRecords: number;
+  todayAppointments: number;
+  weekAppointments: number;
+}
 
-  if (!session?.user) {
-    redirect('/clinic');
+interface Appointment {
+  id: string;
+  slotTime: string;
+  status: string;
+  patientName?: string;
+  doctorName?: string;
+}
+
+export default function ClinicDashboard() {
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  async function fetchDashboard() {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [metricsRes, appointmentsRes] = await Promise.allSettled([
+        apiClient.get('/clinic-admin/dashboard'),
+        apiClient.get('/clinic-admin/appointments'),
+      ]);
+
+      if (metricsRes.status === 'fulfilled') {
+        const data = metricsRes.value.data;
+        setMetrics(data?.metrics || data?.data?.metrics || {
+          totalPatients: 0,
+          totalDoctors: 0,
+          totalAppointments: 0,
+          totalRecords: 0,
+          todayAppointments: 0,
+          weekAppointments: 0,
+        });
+      }
+
+      if (appointmentsRes.status === 'fulfilled') {
+        const data = appointmentsRes.value.data;
+        const appts = data?.appointments || data?.data?.appointments || [];
+        setAppointments(Array.isArray(appts) ? appts : []);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load dashboard';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex justify-between items-center h-12">
-            <h1 className="text-lg sm:text-xl font-semibold text-foreground">
-              Clinic Dashboard
-            </h1>
-
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Badge
-                variant="secondary"
-                className="text-[10px] sm:text-xs"
-              >
-                {session.user.name}
-              </Badge>
-
-              <LogoutButton
-                redirectTo="/clinic"
-                size="sm"
-                className="text-xs"
-              />
-            </div>
-          </div>
+  if (loading) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
         </div>
-      </header>
+      </div>
+    );
+  }
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {/* Today's Appointments */}
-          <Card className="hover-lift border-border/50">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                Today&apos;s Appointments
-              </CardTitle>
+  const todayAppts = appointments.filter((a) => {
+    const d = new Date(a.slotTime);
+    const now = new Date();
+    return d.toDateString() === now.toDateString();
+  });
 
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground">
-                12
-              </div>
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
-              <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                +3 from yesterday
-              </div>
-            </CardHeader>
-          </Card>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          {error}
+        </div>
+      )}
 
-          {/* Week Appointments */}
-          <Card className="hover-lift border-border/50">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                This Week
-              </CardTitle>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-white border border-zinc-200">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Today&apos;s Appointments
+            </CardTitle>
+            <div className="text-3xl font-bold text-zinc-900">
+              {metrics?.todayAppointments ?? todayAppts.length}
+            </div>
+          </CardHeader>
+        </Card>
 
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground">
-                45
-              </div>
+        <Card className="bg-white border border-zinc-200">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              This Week
+            </CardTitle>
+            <div className="text-3xl font-bold text-zinc-900">
+              {metrics?.weekAppointments ?? 0}
+            </div>
+          </CardHeader>
+        </Card>
 
-              <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                +12% vs last week
-              </div>
-            </CardHeader>
-          </Card>
+        <Card className="bg-white border border-zinc-200">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Total Patients
+            </CardTitle>
+            <div className="text-3xl font-bold text-zinc-900">
+              {metrics?.totalPatients ?? 0}
+            </div>
+          </CardHeader>
+        </Card>
 
-          {/* No Show Rate */}
-          <Card className="hover-lift border-border/50">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                No-Show Rate
-              </CardTitle>
+        <Card className="bg-white border border-zinc-200">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Total Doctors
+            </CardTitle>
+            <div className="text-3xl font-bold text-zinc-900">
+              {metrics?.totalDoctors ?? 0}
+            </div>
+          </CardHeader>
+        </Card>
 
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground">
-                8.5%
-              </div>
+        <Card className="bg-white border border-zinc-200">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Total Records
+            </CardTitle>
+            <div className="text-3xl font-bold text-zinc-900">
+              {metrics?.totalRecords ?? 0}
+            </div>
+          </CardHeader>
+        </Card>
 
-              <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                -2.3% improvement
-              </div>
-            </CardHeader>
-          </Card>
+        <Card className="bg-white border border-zinc-200">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
+              <TrendingDown className="w-4 h-4" />
+              Total Appointments
+            </CardTitle>
+            <div className="text-3xl font-bold text-zinc-900">
+              {metrics?.totalAppointments ?? 0}
+            </div>
+          </CardHeader>
+        </Card>
+      </div>
 
-          {/* Total Patients */}
-          <Card className="hover-lift border-border/50">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                Total Patients
-              </CardTitle>
-
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground">
-                1,234
-              </div>
-
-              <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                +15 this month
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Appointment Queue */}
-          <Card className="hover-lift border-border/50 col-span-2 sm:col-span-2 lg:col-span-3">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <CardTitle className="text-sm sm:text-base lg:text-lg flex items-center gap-2">
-                <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
-                Appointment Queue
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-              <div className="space-y-3">
-                {[
-                  {
-                    patient: 'John Doe',
-                    doctor: 'Dr. Smith - General Checkup',
-                    time: '10:00 AM',
-                    status: 'In Progress',
-                    variant: 'default' as const,
-                  },
-                  {
-                    patient: 'Jane Smith',
-                    doctor: 'Dr. Johnson - Follow-up',
-                    time: '10:30 AM',
-                    status: 'Waiting',
-                    variant: 'secondary' as const,
-                  },
-                  {
-                    patient: 'Bob Wilson',
-                    doctor: 'Dr. Smith - Lab Results',
-                    time: '11:00 AM',
-                    status: 'Scheduled',
-                    variant: 'outline' as const,
-                  },
-                ].map((appointment) => (
-                  <div
-                    key={appointment.patient}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-foreground font-medium truncate">
-                        {appointment.patient}
-                      </div>
-
-                      <div className="text-xs text-muted-foreground truncate">
-                        {appointment.doctor}
-                      </div>
+      {/* Recent Appointments */}
+      <Card className="bg-white border border-zinc-200">
+        <CardHeader className="p-4">
+          <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Recent Appointments
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4">
+          {appointments.length === 0 ? (
+            <p className="text-sm text-zinc-500 text-center py-6">No appointments yet</p>
+          ) : (
+            <div className="space-y-2">
+              {appointments.slice(0, 10).map((apt) => (
+                <div
+                  key={apt.id}
+                  className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-zinc-900 truncate">
+                      {apt.patientName || 'Patient'}
                     </div>
-
-                    <div className="text-right ml-4">
-                      <div className="text-xs text-foreground">
-                        {appointment.time}
-                      </div>
-
-                      <Badge
-                        variant={appointment.variant}
-                        className="text-[10px]"
-                      >
-                        {appointment.status}
-                      </Badge>
+                    <div className="text-xs text-zinc-500 truncate">
+                      {apt.doctorName || 'Doctor'}
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="hover-lift border-border/50">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <CardTitle className="text-sm sm:text-base lg:text-lg flex items-center gap-2">
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                Actions
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-              <div className="space-y-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  View Analytics
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Staff
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Clinic Settings
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+                  <div className="text-right ml-4">
+                    <div className="text-xs text-zinc-600">
+                      {new Date(apt.slotTime).toLocaleString()}
+                    </div>
+                    <Badge
+                      variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'}
+                      className="text-[10px]"
+                    >
+                      {apt.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { BentoCard } from './bento-card';
 import { FileText, Download, Trash2, Search, Calendar, Loader2 } from 'lucide-react';
 import { MedicalRecord } from '@/types/user';
 import apiClient from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface RecordsClientProps {
   userName?: string;
@@ -68,7 +69,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
       fetchRecords();
     } catch (error) {
       console.error('Failed to upload file:', error);
-      alert('Failed to upload file. Please try again.');
+      toast.error('Failed to upload file. Please try again.');
     }
   };
 

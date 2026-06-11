@@ -14,10 +14,12 @@ export default async function UserLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-zinc-50">
       <UserNav userName={session.user.name || 'User'} />
-      <div className="flex-1">
-        {children}
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1 p-6 overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   );

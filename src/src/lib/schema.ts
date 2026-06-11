@@ -15,6 +15,8 @@ export type User = {
     gender?: string;
     address?: string;
     medicalIdentifier?: string;
+    specialization?: string;
+    licenseNumber?: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -41,6 +43,29 @@ export type Clinic = {
   };
   createdAt: string;
   updatedAt: string;
+};
+
+export type ClinicDoctor = {
+  id: string;
+  clinicId: string;
+  doctorId: string;
+  isActive: boolean;
+  joinedAt: string;
+  invitedBy?: string;
+  doctor?: User;
+};
+
+export type Notification = {
+  id: string;
+  userId: string;
+  clinicId?: string;
+  type: 'appointment_reminder' | 'appointment_booked' | 'appointment_cancelled' | 'record_uploaded' | 'lab_result_ready' | 'general';
+  title: string;
+  message: string;
+  data?: Record<string, unknown>;
+  isRead: boolean;
+  readAt?: string;
+  createdAt: string;
 };
 
 export type Appointment = {

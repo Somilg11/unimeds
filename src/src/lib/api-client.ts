@@ -9,22 +9,38 @@ const apiClient = axios.create({
   },
 });
 
-// Attach Auth.js JWT to every request (client-side only)
+// Attach Auth.js JWT or custom token to every request (client-side only)
 apiClient.interceptors.request.use(async (config) => {
-  // Only try to get session on client side
   if (typeof window !== 'undefined') {
-    try {
-      const session = await getSession();
-      const token = (session as any)?.accessToken || (session as any)?.user?.authId;
-      
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    let token: string | null = null;
+
+    // Check for admin token (credential-based login)
+    const adminToken = localStorage.getItem('admin_token');
+    if (adminToken) {
+      token = adminToken;
+    }
+
+    // Check for doctor token (authId-based login)
+    const doctorToken = localStorage.getItem('doctor_token');
+    if (doctorToken) {
+      token = doctorToken;
+    }
+
+    // Fall back to NextAuth session token
+    if (!token) {
+      try {
+        const session = await getSession();
+        token = (session as any)?.accessToken || (session as any)?.user?.authId;
+      } catch (error) {
+        // ignore
       }
-    } catch (error) {
-      console.error('Failed to append authentication token', error);
+    }
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
   }
-  
+
   return config;
 });
 
@@ -32,9 +48,16 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
       if (typeof window !== 'undefined') {
-        window.location.href = '/auth/signin';
+        // Don't redirect if we're on admin or doctor pages
+        const path = window.location.pathname;
+        if (path.startsWith('/admin')) {
+          window.location.href = '/admin';
+        } else if (path.startsWith('/doctor')) {
+          window.location.href = '/doctor';
+        } else {
+          window.location.href = '/auth/signin';
+        }
       }
     }
     return Promise.reject(error);

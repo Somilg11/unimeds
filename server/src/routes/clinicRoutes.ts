@@ -3,21 +3,31 @@ import * as clinicController from '../controllers/clinicController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = Router();
+const requireClinicAdmin = [authenticate, authorize('clinic_admin')];
 
-// All clinic routes require authentication and clinic_admin role
-router.use(authenticate);
-router.use(authorize('clinic_admin'));
+// Dashboard & Analytics
+router.get('/admin/dashboard', ...requireClinicAdmin, clinicController.getClinicDashboardMetrics);
+router.get('/admin/analytics', ...requireClinicAdmin, clinicController.getClinicAnalytics);
+router.get('/admin/clinic', ...requireClinicAdmin, clinicController.getClinicById);
 
-// GET /api/v1/hospital/admin/appointments - Get clinic appointments
-router.get('/admin/appointments', clinicController.getClinicAppointments);
+// Appointments
+router.get('/admin/appointments', ...requireClinicAdmin, clinicController.getClinicAppointments);
 
-// GET /api/v1/hospital/admin/analytics - Get clinic analytics
-router.get('/admin/analytics', clinicController.getClinicAnalytics);
+// Settings
+router.put('/admin/settings', ...requireClinicAdmin, clinicController.updateClinicSettings);
 
-// GET /api/v1/hospital/admin/dashboard - Get clinic dashboard metrics
-router.get('/admin/dashboard', clinicController.getClinicDashboardMetrics);
+// Staff Management
+router.get('/admin/staff', ...requireClinicAdmin, clinicController.getClinicStaff);
+router.post('/admin/staff', ...requireClinicAdmin, clinicController.addDoctorToClinic);
+router.put('/admin/staff/toggle', ...requireClinicAdmin, clinicController.toggleDoctorActive);
+router.delete('/admin/staff', ...requireClinicAdmin, clinicController.removeDoctorFromClinic);
 
-// PUT /api/v1/hospital/admin/settings - Update clinic settings
-router.put('/admin/settings', clinicController.updateClinicSettings);
+// Patients & Records
+router.get('/admin/patients', ...requireClinicAdmin, clinicController.getClinicPatients);
+router.get('/admin/records', ...requireClinicAdmin, clinicController.getClinicRecords);
+
+// Notifications
+router.get('/admin/notifications', ...requireClinicAdmin, clinicController.getNotifications);
+router.put('/admin/notifications/:notificationId/read', ...requireClinicAdmin, clinicController.markNotificationRead);
 
 export default router;

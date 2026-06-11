@@ -8,6 +8,7 @@ import { BentoCard } from './bento-card';
 import { Calendar, FileText, User, Activity, ArrowRight } from 'lucide-react';
 import { TimelineItem } from '@/types/user';
 import apiClient from '@/lib/api-client';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 interface PatientDashboardClientProps {
@@ -31,7 +32,7 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
       window.location.reload();
     } catch (error) {
       console.error('Failed to upload file:', error);
-      alert('Failed to upload file. Please try again.');
+      toast.error('Failed to upload file. Please try again.');
     }
   };
 

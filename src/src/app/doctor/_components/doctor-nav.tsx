@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Calendar, Users, LayoutDashboard, Stethoscope, ChevronLeft, ChevronRight, FileText, Menu, X } from 'lucide-react';
+import { Calendar, Users, LayoutDashboard, Stethoscope, ChevronLeft, ChevronRight, FileText, Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LogoutButton } from '@/components/logout-button';
 
 const navItems = [
   {
@@ -37,8 +37,15 @@ interface DoctorNavProps {
 
 export function DoctorNav({ userName }: DoctorNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  function handleLogout() {
+    localStorage.removeItem('doctor_token');
+    localStorage.removeItem('doctor_user');
+    router.push('/doctor');
+  }
 
   return (
     <>
@@ -150,8 +157,9 @@ export function DoctorNav({ userName }: DoctorNavProps) {
             </div>
           </div>
         )}
-        <LogoutButton
-          redirectTo="/doctor"
+        <Button
+          variant="outline"
+          onClick={handleLogout}
           className={cn(
             'w-full transition-all duration-300',
             isCollapsed
@@ -159,8 +167,9 @@ export function DoctorNav({ userName }: DoctorNavProps) {
               : 'justify-start text-sm h-10 border-dashed text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
           )}
         >
+          <LogOut className={cn('w-4 h-4 shrink-0', isCollapsed ? '' : 'mr-2')} />
           {!isCollapsed && <span>Logout</span>}
-        </LogoutButton>
+        </Button>
       </div>
     </nav>
     </>
