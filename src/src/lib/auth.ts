@@ -20,13 +20,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user && account) {
         token.id = user.id;
         token.authId = account.providerAccountId;
+        // Store the access token in the token right after signin
+        token.accessToken = account.access_token;
       }
+      // Persist the access token across sign in
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        Object.assign(session.user, { authId: token.authId as string });
+        session.user.authId = token.authId as string;
+        // Send the access token to the client
+        session.accessToken = token.accessToken as string;
       }
       return session;
     },

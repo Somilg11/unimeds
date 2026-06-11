@@ -14,6 +14,9 @@ router.get('/admin/appointments', clinicController.getClinicAppointments);
 // GET /api/v1/hospital/admin/analytics - Get clinic analytics
 router.get('/admin/analytics', clinicController.getClinicAnalytics);
 
+// GET /api/v1/hospital/admin/dashboard - Get clinic dashboard metrics
+router.get('/admin/dashboard', clinicController.getClinicDashboardMetrics);
+
 // PUT /api/v1/hospital/admin/settings - Update clinic settings
 router.put('/admin/settings', clinicController.updateClinicSettings);
 

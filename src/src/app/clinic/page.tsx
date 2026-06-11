@@ -7,7 +7,7 @@ export default function ClinicWelcome() {
     <PortalWelcome
       title="Clinic Admin"
       subtitle="Welcome to UniMeds"
-      description="Monitor analytics, appointment queues, and clinic operations. Sign in to access your dashboard."
+      description="Manage appointments, patients, records, and clinic settings. Sign in to access your dashboard."
       icon={Building2}
       signInAction={signInClinic}
     />

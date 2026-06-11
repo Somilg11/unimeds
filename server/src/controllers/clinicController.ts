@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { db } from '../db/db.js';
-import { appointments, users, clinics } from '../db/schema.js';
-import { eq, desc, and, gte, lte, count } from 'drizzle-orm';
+import { appointments, users, clinics, records } from '../db/schema.js';
+import { eq, desc, and, gte, lte, count, sql } from 'drizzle-orm';
 
 export const getClinicAppointments = async (req: Request, res: Response) => {
   try {
@@ -148,5 +148,76 @@ export const updateClinicSettings = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error updating clinic settings:', error);
     res.status(500).json({ error: 'Failed to update clinic settings' });
+  }
+};
+
+export const getClinicDashboardMetrics = async (req: Request, res: Response) => {
+  try {
+    const clinicId = req.user?.id;
+
+    if (!clinicId) {
+      return res.status(401).json({ error: 'Clinic not authenticated' });
+    }
+
+    // Get distinct patient IDs and doctor IDs from appointments for this clinic
+    const appointmentStats = await db
+      .select({
+        patientCount: count(sql`distinct(${appointments.patientId})`),
+        doctorCount: count(sql`distinct(${appointments.doctorId})`),
+        appointmentCount: count()
+      })
+      .from(appointments)
+      .where(eq(appointments.clinicId, clinicId));
+
+    // Get total records for patients of this clinic via join
+    const [recordResult] = await db
+      .select({ count: count() })
+      .from(records)
+      .innerJoin(appointments, eq(records.patientId, appointments.patientId))
+      .where(eq(appointments.clinicId, clinicId));
+
+    // Get today's appointments
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+    const [todayAppointments] = await db
+      .select({ count: count() })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.clinicId, clinicId),
+          gte(appointments.slotTime, startOfDay),
+          lte(appointments.slotTime, endOfDay)
+        )
+      );
+
+    // Get this week's appointments
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const [weekAppointments] = await db
+      .select({ count: count() })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.clinicId, clinicId),
+          gte(appointments.slotTime, weekAgo)
+        )
+      );
+
+    res.json({
+      metrics: {
+        totalPatients: appointmentStats[0]?.patientCount || 0,
+        totalDoctors: appointmentStats[0]?.doctorCount || 0,
+        totalAppointments: appointmentStats[0]?.appointmentCount || 0,
+        totalRecords: recordResult.count || 0,
+        todayAppointments: todayAppointments?.count || 0,
+        weekAppointments: weekAppointments?.count || 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching clinic dashboard metrics:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
   }
 };
