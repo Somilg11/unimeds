@@ -10,7 +10,6 @@ export default function ClinicAdminLayout({ children }: { children: React.ReactN
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check if user has a valid session by trying to fetch clinic data
     checkAuth();
   }, []);
 
@@ -22,7 +21,6 @@ export default function ClinicAdminLayout({ children }: { children: React.ReactN
         return;
       }
       const data = await res.json();
-      // If we get here, the user is authenticated and the clinic is active
       setUserName(data?.clinic?.name || 'Clinic Admin');
       setChecking(false);
     } catch {
@@ -32,17 +30,17 @@ export default function ClinicAdminLayout({ children }: { children: React.ReactN
 
   if (checking) {
     return (
-      <div className="flex min-h-screen bg-zinc-50 items-center justify-center">
-        <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+      <div className="flex min-h-screen bg-white items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-50">
+    <div className="flex min-h-screen bg-white">
       <ClinicAdminNav userName={userName} />
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 flex flex-col pt-13 lg:pt-0">
+        <main className="flex-1 max-w-[1400px] mx-auto w-full p-4 lg:p-10">
           {children}
         </main>
       </div>

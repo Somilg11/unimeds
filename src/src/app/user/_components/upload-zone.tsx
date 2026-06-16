@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 interface UploadZoneProps {
   onUpload: (file: File) => void;
   accept?: string;
-  maxSize?: number; // in bytes
+  maxSize?: number;
   className?: string;
   disabled?: boolean;
 }
@@ -16,7 +16,7 @@ interface UploadZoneProps {
 export function UploadZone({
   onUpload,
   accept = 'image/*,.pdf',
-  maxSize = 10 * 1024 * 1024, // 10MB default
+  maxSize = 10 * 1024 * 1024,
   className,
   disabled = false,
 }: UploadZoneProps) {
@@ -25,13 +25,11 @@ export function UploadZone({
 
   const validateAndUpload = useCallback(
     async (file: File) => {
-      // Validate file size
       if (file.size > maxSize) {
         toast.error(`File size exceeds ${maxSize / 1024 / 1024}MB limit`);
         return;
       }
 
-      // Validate file type
       if (accept && !file.type.match(accept.replace('*', '.*'))) {
         toast.error('Invalid file type');
         return;
@@ -57,8 +55,7 @@ export function UploadZone({
 
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
-        const file = files[0];
-        validateAndUpload(file);
+        validateAndUpload(files[0]);
       }
     },
     [disabled, isUploading, validateAndUpload]
@@ -84,8 +81,7 @@ export function UploadZone({
 
       const files = e.target.files;
       if (files && files.length > 0) {
-        const file = files[0];
-        validateAndUpload(file);
+        validateAndUpload(files[0]);
       }
     },
     [disabled, isUploading, validateAndUpload]
@@ -94,10 +90,10 @@ export function UploadZone({
   return (
     <div
       className={cn(
-        'border-2 border-dashed border-zinc-300 rounded-xl p-6 sm:p-8 lg:p-12 text-center',
-        'bg-zinc-50 hover:bg-zinc-100/80 transition-all duration-300 cursor-pointer',
-        'hover:border-zinc-400 hover:shadow-premium',
-        isDragging && 'bg-zinc-100/80 border-zinc-950',
+        'border border-dashed border-gray-300 p-8 sm:p-12 text-center',
+        'bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer',
+        'hover:border-gray-400',
+        isDragging && 'bg-gray-100 border-gray-900',
         (disabled || isUploading) && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -118,14 +114,14 @@ export function UploadZone({
         className="cursor-pointer flex flex-col items-center"
       >
         {isUploading ? (
-          <Loader2 className="mx-auto h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-zinc-500 mb-3 animate-spin" />
+          <Loader2 className="mx-auto h-10 w-10 text-gray-400 mb-3 animate-spin" />
         ) : (
-          <Upload className="mx-auto h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-zinc-500 mb-3" />
+          <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
         )}
-        <p className="text-sm sm:text-base font-medium text-zinc-900 tracking-tight">
+        <p className="text-sm font-medium text-gray-900">
           {isUploading ? 'Processing document...' : 'Drop medical documents here'}
         </p>
-        <p className="text-xs text-zinc-600 mt-2">
+        <p className="text-[11px] font-mono uppercase text-gray-400 mt-2 tracking-wider">
           PDF, Images up to {maxSize / 1024 / 1024}MB
         </p>
       </label>

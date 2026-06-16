@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, FileText, Activity, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -53,133 +51,112 @@ export function DoctorDashboardClient({ userName, token }: DoctorDashboardClient
   const uniquePatients = new Set(appointments.map(a => a.patientName)).size;
 
   return (
-    <div className="bg-zinc-50">
-      <header className="bg-white/80 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight">
-                Dashboard
-              </h1>
-              <p className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-0.5">
-                Welcome back, {userName}
-              </p>
-            </div>
+    <div>
+      <div className="mb-8">
+        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+          Doctor Portal
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Welcome back, {userName}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 mb-6">
+        <div className="bg-white p-5">
+          <Activity className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{loading ? '-' : todayApts.length}</p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Today</p>
+        </div>
+        <div className="bg-white p-5">
+          <Users className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{loading ? '-' : uniquePatients}</p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Patients</p>
+        </div>
+        <div className="bg-white p-5">
+          <Calendar className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{loading ? '-' : pendingApts.length}</p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Pending</p>
+        </div>
+        <div className="bg-white p-5">
+          <FileText className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{loading ? '-' : appointments.length}</p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Total Apts</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              Recent Appointments
+            </p>
+          </div>
+          <div className="p-4">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+              </div>
+            ) : appointments.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">No appointments found</p>
+            ) : (
+              <div className="space-y-2">
+                {appointments.slice(0, 5).map((apt) => (
+                  <div key={apt.id} className="flex items-center justify-between p-3 border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-900 font-medium truncate">{apt.patientName}</div>
+                      <div className="text-xs text-gray-500 truncate">{apt.clinicName}</div>
+                    </div>
+                    <div className="text-right ml-3 shrink-0">
+                      <div className="text-xs text-gray-600">
+                        {new Date(apt.slotTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <Badge variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-[10px]">
+                        {apt.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card className="bg-white border border-zinc-200 md:col-span-2">
-            <CardHeader className="p-4">
-              <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-                <Activity className="w-4 h-4" />
-                Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
-                  <div className="text-2xl font-bold text-zinc-900">
-                    {loading ? '-' : todayApts.length}
-                  </div>
-                  <div className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-1">
-                    Today&apos;s Appointments
-                  </div>
-                </div>
-                <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
-                  <div className="text-2xl font-bold text-zinc-900">
-                    {loading ? '-' : uniquePatients}
-                  </div>
-                  <div className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-1">
-                    Total Patients
-                  </div>
-                </div>
-                <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
-                  <div className="text-2xl font-bold text-zinc-900">
-                    {loading ? '-' : pendingApts.length}
-                  </div>
-                  <div className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-1">
-                    Pending Requests
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-zinc-200">
-            <CardHeader className="p-4">
-              <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
+        <div className="border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-gray-400" />
+              Quick Actions
+            </p>
+          </div>
+          <div className="p-2">
+            <Link href="/doctor/appointments" className="flex items-center justify-between px-3 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+              <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4" />
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="space-y-2">
-                <Link href="/doctor/appointments">
-                  <Button variant="ghost" className="w-full justify-start text-sm h-10 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-                    <Calendar className="w-4 h-4 mr-3" />
-                    View Appointments
-                    <ArrowRight className="w-4 h-4 ml-auto" />
-                  </Button>
-                </Link>
-                <Link href="/doctor/patients">
-                  <Button variant="ghost" className="w-full justify-start text-sm h-10 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-                    <Users className="w-4 h-4 mr-3" />
-                    Manage Patients
-                    <ArrowRight className="w-4 h-4 ml-auto" />
-                  </Button>
-                </Link>
-                <Link href="/doctor/records">
-                  <Button variant="ghost" className="w-full justify-start text-sm h-10 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-                    <FileText className="w-4 h-4 mr-3" />
-                    View Records
-                    <ArrowRight className="w-4 h-4 ml-auto" />
-                  </Button>
-                </Link>
+                <span>View Appointments</span>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-zinc-200 md:col-span-3">
-            <CardHeader className="p-4">
-              <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Recent Appointments
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
-                </div>
-              ) : appointments.length === 0 ? (
-                <p className="text-sm text-zinc-400 text-center py-8">No appointments found</p>
-              ) : (
-                <div className="space-y-2">
-                  {appointments.slice(0, 5).map((apt) => (
-                    <div key={apt.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-zinc-900 font-medium truncate">{apt.patientName}</div>
-                        <div className="text-xs text-zinc-500 truncate">{apt.clinicName}</div>
-                      </div>
-                      <div className="text-right ml-3 shrink-0">
-                        <div className="text-xs text-zinc-600">
-                          {new Date(apt.slotTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                        <Badge variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-[10px]">
-                          {apt.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/doctor/patients" className="flex items-center justify-between px-3 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4" />
+                <span>Manage Patients</span>
+              </div>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/doctor/records" className="flex items-center justify-between px-3 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+              <div className="flex items-center gap-3">
+                <FileText className="w-4 h-4" />
+                <span>View Records</span>
+              </div>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

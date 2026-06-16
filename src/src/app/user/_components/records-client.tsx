@@ -65,7 +65,6 @@ export function RecordsClient({ userName }: RecordsClientProps) {
       formData.append('recordType', 'general');
       
       await apiClient.post('/user/records/upload', formData);
-      // Refresh records after upload
       fetchRecords();
     } catch (error) {
       console.error('Failed to upload file:', error);
@@ -91,7 +90,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
     return (
       <Badge 
         variant={variantMap[type] || 'secondary'} 
-        className="text-[10px] tracking-widest uppercase font-bold"
+        className="text-[10px] font-mono uppercase tracking-wider"
       >
         {type.replace('_', ' ')}
       </Badge>
@@ -109,7 +108,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
     return (
       <Badge 
         variant={variantMap[status] || 'secondary'} 
-        className="text-[10px] tracking-widest uppercase font-bold"
+        className="text-[10px] font-mono uppercase tracking-wider"
       >
         {status}
       </Badge>
@@ -117,63 +116,56 @@ export function RecordsClient({ userName }: RecordsClientProps) {
   };
 
   return (
-    <div className="bg-zinc-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight">
-                Medical Records
-              </h1>
-              <p className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-0.5">
-                Manage your health documents
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+          Patient Portal
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Medical Records
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Manage your health documents
+        </p>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          
-          {/* Upload Section */}
-          <BentoCard 
-            title="Upload Documents"
-            icon={<FileText className="w-5 h-5" />}
-            className="lg:col-span-1"
-          >
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Upload Section */}
+        <div className="lg:col-span-4">
+          <BentoCard title="Upload Documents" icon={<FileText className="w-4 h-4" />}>
             <UploadZone onUpload={handleFileUpload} />
           </BentoCard>
+        </div>
 
-          {/* Records List */}
-          <BentoCard 
-            title="Your Records"
-            icon={<FileText className="w-5 h-5" />}
-            className="lg:col-span-2"
-          >
+        {/* Records List */}
+        <div className="lg:col-span-8">
+          <BentoCard title="Your Records" icon={<FileText className="w-4 h-4" />}>
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search records..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-zinc-300 rounded-lg bg-white text-sm focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-px bg-gray-200 border border-gray-200">
                 {(['all', 'lab_report', 'prescription', 'imaging'] as const).map((filter) => (
                   <Button
                     key={filter}
-                    variant={selectedFilter === filter ? 'default' : 'outline'}
+                    variant={selectedFilter === filter ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setSelectedFilter(filter)}
-                    className="text-[10px] tracking-widest uppercase font-bold h-9"
+                    className={`text-[11px] font-mono uppercase tracking-wider h-9 ${
+                      selectedFilter === filter
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
                   >
                     {filter.replace('_', ' ')}
                   </Button>
@@ -184,15 +176,15 @@ export function RecordsClient({ userName }: RecordsClientProps) {
             {/* Records Grid */}
             {isLoading ? (
               <div className="text-center py-12">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-zinc-400 mb-4" />
-                <p className="text-sm text-zinc-600">Loading records...</p>
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
+                <p className="text-sm text-gray-500">Loading records...</p>
               </div>
             ) : filteredRecords.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-px bg-gray-200 border border-gray-200">
                 {filteredRecords.map((record) => (
                   <div
                     key={record.id}
-                    className="bg-zinc-50 rounded-lg p-4 border border-zinc-200 hover:border-zinc-300 transition-all duration-300 group"
+                    className="bg-white p-4 hover:bg-gray-50/50 transition-colors group"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
@@ -200,13 +192,13 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                           {getRecordTypeBadge(record.recordType)}
                           {getOcrStatusBadge(record.ocrStatus)}
                         </div>
-                        <h4 className="text-sm font-semibold text-zinc-900 tracking-tight truncate">
+                        <h4 className="text-sm font-semibold text-gray-900 tracking-tight truncate">
                           {record.fileName}
                         </h4>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-[10px] text-zinc-600 mb-3">
+                    <div className="flex items-center gap-4 text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-3">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(record.uploadDate).toLocaleDateString()}
@@ -218,13 +210,13 @@ export function RecordsClient({ userName }: RecordsClientProps) {
 
                     {record.ocrData?.keyFindings && record.ocrStatus === 'completed' && (
                       <div className="mb-3">
-                        <div className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mb-1">
+                        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-1">
                           Key Findings
-                        </div>
-                        <div className="text-xs text-zinc-700 bg-white rounded p-2 border border-dashed border-zinc-300">
+                        </p>
+                        <div className="text-xs text-gray-600 bg-gray-50 p-3 border border-dashed border-gray-300">
                           {record.ocrData.keyFindings.slice(0, 2).map((finding, idx) => (
                             <div key={idx} className="mb-1 last:mb-0">
-                              • {finding}
+                              &bull; {finding}
                             </div>
                           ))}
                         </div>
@@ -235,7 +227,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 text-[10px] tracking-widest uppercase font-bold h-8 border-dashed"
+                        className="flex-1 text-[11px] font-mono uppercase tracking-wider h-8 border-dashed"
                       >
                         <Download className="w-3 h-3 mr-2" />
                         Download
@@ -243,7 +235,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-[10px] tracking-widest uppercase font-bold h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-[11px] font-mono uppercase tracking-wider h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -252,16 +244,17 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 border-2 border-dashed border-zinc-300 rounded-lg">
-                <FileText className="mx-auto h-12 w-12 text-zinc-400 mb-4" />
-                <p className="text-sm text-zinc-600 font-medium mb-2">No records found</p>
-                <p className="text-xs text-zinc-500">Upload your first medical document to get started</p>
+              <div className="text-center py-12 border border-dashed border-gray-300">
+                <FileText className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                <p className="text-sm text-gray-500 mb-1">No records found</p>
+                <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">
+                  Upload your first medical document to get started
+                </p>
               </div>
             )}
           </BentoCard>
-
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -14,6 +14,8 @@ interface LogoutButtonProps {
   className?: string;
   /** Custom label/content. Defaults to an icon + "Logout". */
   children?: ReactNode;
+  /** Custom logout handler. If provided, skips next-auth signOut. */
+  onLogout?: () => void;
 }
 
 /**
@@ -26,8 +28,13 @@ export function LogoutButton({
   size,
   className,
   children,
+  onLogout,
 }: LogoutButtonProps) {
   const handleLogout = async () => {
+    if (onLogout) {
+      onLogout();
+      return;
+    }
     await signOut({ callbackUrl: redirectTo });
   };
 

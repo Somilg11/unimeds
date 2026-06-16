@@ -24,6 +24,8 @@ export const users = pgTable('users', {
     medicalIdentifier?: string;
     specialization?: string;
     licenseNumber?: string;
+    picture?: string;
+    clinicId?: string;
   }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

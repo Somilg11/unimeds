@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -161,22 +159,19 @@ export default function ClinicAdminSettings() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Clinic Settings</h1>
+      <div>
+        <h1 className="text-lg font-bold text-gray-900 mb-6">Clinic Settings</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="max-w-3xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Settings className="w-6 h-6" />
-          Clinic Settings
-        </h1>
+        <h1 className="text-lg font-bold text-gray-900">Clinic Settings</h1>
         <Button onClick={handleSave} disabled={saving} size="sm">
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save'}
@@ -184,43 +179,43 @@ export default function ClinicAdminSettings() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
         </div>
       )}
 
       {successMessage && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-600">
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 text-sm text-green-600">
           {successMessage}
         </div>
       )}
 
       <div className="space-y-6">
         {/* General Settings */}
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-              <Globe className="w-4 h-4" />
+        <div className="border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-gray-400" />
               General
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 space-y-4">
+            </h2>
+          </div>
+          <div className="p-4 space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs text-zinc-600">Clinic Name</Label>
+              <Label className="text-xs text-gray-600">Clinic Name</Label>
               <Input
                 value={settings.clinicName || ''}
                 onChange={(e) => setSettings((prev) => ({ ...prev, clinicName: e.target.value }))}
                 placeholder="Clinic name"
-                className="bg-zinc-50 border border-zinc-200"
+                className="bg-gray-50 border border-gray-200"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-zinc-600">Timezone</Label>
+              <Label className="text-xs text-gray-600">Timezone</Label>
               <Select
                 value={settings.timezone}
                 onValueChange={(value) => setSettings((prev) => ({ ...prev, timezone: value }))}
               >
-                <SelectTrigger className="w-full bg-zinc-50 border border-zinc-200">
+                <SelectTrigger className="w-full bg-gray-50 border border-gray-200">
                   <SelectValue placeholder="Select timezone" />
                 </SelectTrigger>
                 <SelectContent>
@@ -232,21 +227,21 @@ export default function ClinicAdminSettings() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Booking Settings */}
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
+        <div className="border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-gray-400" />
               Booking Rules
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            </h2>
+          </div>
+          <div className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs text-zinc-600">Booking Window (days)</Label>
+                <Label className="text-xs text-gray-600">Booking Window (days)</Label>
                 <Input
                   type="number"
                   min={1}
@@ -258,11 +253,11 @@ export default function ClinicAdminSettings() {
                       bookingWindowDays: parseInt(e.target.value) || 30,
                     }))
                   }
-                  className="bg-zinc-50 border border-zinc-200"
+                  className="bg-gray-50 border border-gray-200"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-zinc-600">Cancellation Window (hours)</Label>
+                <Label className="text-xs text-gray-600">Cancellation Window (hours)</Label>
                 <Input
                   type="number"
                   min={1}
@@ -274,34 +269,34 @@ export default function ClinicAdminSettings() {
                       cancellationHours: parseInt(e.target.value) || 24,
                     }))
                   }
-                  className="bg-zinc-50 border border-zinc-200"
+                  className="bg-gray-50 border border-gray-200"
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Notification Features */}
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-              <Bell className="w-4 h-4" />
+        <div className="border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Bell className="w-4 h-4 text-gray-400" />
               Notifications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 space-y-3">
+            </h2>
+          </div>
+          <div>
             {[
               { key: 'voiceReminders' as const, label: 'Voice Reminders' },
               { key: 'emailNotifications' as const, label: 'Email Notifications' },
               { key: 'whatsappNotifications' as const, label: 'WhatsApp Notifications' },
             ].map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between py-2 border-b border-zinc-100 last:border-b-0">
-                <span className="text-sm text-zinc-700">{label}</span>
+              <div key={key} className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0">
+                <span className="text-sm text-gray-700">{label}</span>
                 <button
                   type="button"
                   onClick={() => toggleFeature(key)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    settings[key] ? 'bg-zinc-900' : 'bg-zinc-200'
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    settings[key] ? 'bg-gray-900' : 'bg-gray-200'
                   }`}
                 >
                   <span
@@ -312,18 +307,18 @@ export default function ClinicAdminSettings() {
                 </button>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Webhooks */}
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-              <Webhook className="w-4 h-4" />
+        <div className="border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Webhook className="w-4 h-4 text-gray-400" />
               Webhooks
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 space-y-4">
+            </h2>
+          </div>
+          <div className="p-4 space-y-4">
             {[
               { key: 'appointmentBooked' as const, label: 'Appointment Booked URL' },
               { key: 'appointmentCancelled' as const, label: 'Appointment Cancelled URL' },
@@ -331,17 +326,17 @@ export default function ClinicAdminSettings() {
               { key: 'notificationBase' as const, label: 'Notification Base URL' },
             ].map(({ key, label }) => (
               <div key={key} className="space-y-2">
-                <Label className="text-xs text-zinc-600">{label}</Label>
+                <Label className="text-xs text-gray-600">{label}</Label>
                 <Input
                   value={settings.webhooks[key]}
                   onChange={(e) => updateWebhook(key, e.target.value)}
                   placeholder="https://..."
-                  className="bg-zinc-50 border border-zinc-200"
+                  className="bg-gray-50 border border-gray-200"
                 />
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

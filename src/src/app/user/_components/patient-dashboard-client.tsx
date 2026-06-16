@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { UploadZone } from './upload-zone';
 import { TimelineGrid } from './timeline-grid';
 import { BentoCard } from './bento-card';
@@ -28,7 +27,6 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
       formData.append('recordType', 'general');
       
       await apiClient.post('/user/records/upload', formData);
-      // Refresh timeline after upload
       window.location.reload();
     } catch (error) {
       console.error('Failed to upload file:', error);
@@ -41,118 +39,118 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
     .slice(0, 3);
 
   return (
-    <div className="bg-zinc-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight">
-                Dashboard
-              </h1>
-              <p className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-0.5">
-                Welcome back, {userName}
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+          Patient Portal
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Welcome back, {userName}
+        </p>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          
-          {/* Upload Records Card */}
-          <BentoCard 
-            title="Upload Records"
-            icon={<Activity className="w-5 h-5" />}
-          >
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 mb-6">
+        <div className="bg-white p-5">
+          <Activity className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{timelineData.length}</p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Total Events</p>
+        </div>
+        <div className="bg-white p-5">
+          <Calendar className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{upcomingAppointments.length}</p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Upcoming</p>
+        </div>
+        <div className="bg-white p-5">
+          <FileText className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">
+            {timelineData.filter(i => i.type === 'record').length}
+          </p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Records</p>
+        </div>
+        <div className="bg-white p-5">
+          <User className="w-4 h-4 text-blue-600 mb-2" />
+          <p className="text-2xl font-bold text-gray-900">
+            {timelineData.filter(i => i.type === 'appointment').length}
+          </p>
+          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Appointments</p>
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Upload + Timeline */}
+        <div className="lg:col-span-8 space-y-6">
+          <BentoCard title="Upload Records" icon={<Activity className="w-4 h-4" />}>
             <UploadZone onUpload={handleFileUpload} />
           </BentoCard>
 
-          {/* Health Timeline Card */}
-          <BentoCard 
-            title="Health Timeline"
-            icon={<Activity className="w-5 h-5" />}
-            className="md:col-span-2"
-          >
+          <BentoCard title="Health Timeline" icon={<Activity className="w-4 h-4" />}>
             <TimelineGrid items={timelineData} />
           </BentoCard>
+        </div>
 
-          {/* Upcoming Appointments Card */}
-          <BentoCard 
-            title="Upcoming Appointments"
-            icon={<Calendar className="w-5 h-5" />}
-          >
+        {/* Right Column: Appointments + Actions */}
+        <div className="lg:col-span-4 space-y-6">
+          <BentoCard title="Upcoming Appointments" icon={<Calendar className="w-4 h-4" />}>
             <div className="space-y-3">
               {upcomingAppointments.length > 0 ? (
                 upcomingAppointments.map((appointment) => (
                   <div 
                     key={appointment.id} 
-                    className="bg-zinc-50 rounded-lg p-4 border border-zinc-200 hover:border-zinc-300 transition-colors"
+                    className="p-4 border border-gray-200 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mb-1">
+                    <p className="text-[11px] font-mono uppercase text-gray-400 mb-1">
                       {new Date(appointment.date).toLocaleDateString()}
-                    </div>
-                    <div className="text-sm font-semibold text-zinc-900 tracking-tight">
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 tracking-tight">
                       {appointment.metadata?.doctorName || 'Doctor'}
-                    </div>
-                    <div className="text-xs text-zinc-600 mt-1">
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
                       {appointment.description}
-                    </div>
+                    </p>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 border-2 border-dashed border-zinc-300 rounded-lg">
-                  <Calendar className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
-                  <p className="text-sm text-zinc-600 font-medium">No upcoming appointments</p>
+                <div className="text-center py-8 border border-dashed border-gray-300">
+                  <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                  <p className="text-sm text-gray-500">No upcoming appointments</p>
                 </div>
               )}
             </div>
           </BentoCard>
 
-          {/* Quick Actions Card */}
-          <BentoCard 
-            title="Quick Actions"
-            icon={<User className="w-5 h-5" />}
-          >
-            <div className="space-y-2">
-              <Link href="/user/book">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-sm h-10 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-                >
-                  <Calendar className="w-4 h-4 mr-3" />
-                  Book Appointment
-                  <ArrowRight className="w-4 h-4 ml-auto" />
-                </Button>
+          <BentoCard title="Quick Actions" icon={<User className="w-4 h-4" />}>
+            <div className="space-y-px bg-gray-200 border border-gray-200">
+              <Link href="/user/book" className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <span className="text-[13px] font-medium text-gray-900">Book Appointment</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
               </Link>
-              <Link href="/user/records">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-sm h-10 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-                >
-                  <FileText className="w-4 h-4 mr-3" />
-                  View Records
-                  <ArrowRight className="w-4 h-4 ml-auto" />
-                </Button>
+              <Link href="/user/records" className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <span className="text-[13px] font-medium text-gray-900">View Records</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
               </Link>
-              <Link href="/user/profile">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-sm h-10 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-                >
-                  <User className="w-4 h-4 mr-3" />
-                  Update Profile
-                  <ArrowRight className="w-4 h-4 ml-auto" />
-                </Button>
+              <Link href="/user/profile" className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <span className="text-[13px] font-medium text-gray-900">Update Profile</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
               </Link>
             </div>
           </BentoCard>
-
         </div>
-      </main>
+      </div>
     </div>
   );
 }

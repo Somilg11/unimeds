@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Calendar,
@@ -12,7 +11,6 @@ import {
   FileText,
   Clock,
 } from 'lucide-react';
-import Link from 'next/link';
 
 interface DashboardMetrics {
   totalPatients: number;
@@ -78,10 +76,10 @@ export default function ClinicDashboard() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <div>
+        <h1 className="text-lg font-bold text-gray-900 mb-6">Dashboard</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -93,133 +91,78 @@ export default function ClinicDashboard() {
     return d.toDateString() === now.toDateString();
   });
 
+  const stats = [
+    { label: "Today's Appointments", value: metrics?.todayAppointments ?? todayAppts.length, icon: Calendar },
+    { label: 'This Week', value: metrics?.weekAppointments ?? 0, icon: Clock },
+    { label: 'Total Patients', value: metrics?.totalPatients ?? 0, icon: Users },
+    { label: 'Total Doctors', value: metrics?.totalDoctors ?? 0, icon: Activity },
+    { label: 'Total Records', value: metrics?.totalRecords ?? 0, icon: FileText },
+    { label: 'Total Appointments', value: metrics?.totalAppointments ?? 0, icon: TrendingDown },
+  ];
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <div>
+      <h1 className="text-lg font-bold text-gray-900 mb-6">Dashboard</h1>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Today&apos;s Appointments
-            </CardTitle>
-            <div className="text-3xl font-bold text-zinc-900">
-              {metrics?.todayAppointments ?? todayAppts.length}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 border border-gray-200 mb-8">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="bg-white p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Icon className="w-4 h-4 text-gray-400" />
+                <span className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">{stat.label}</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
             </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              This Week
-            </CardTitle>
-            <div className="text-3xl font-bold text-zinc-900">
-              {metrics?.weekAppointments ?? 0}
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Total Patients
-            </CardTitle>
-            <div className="text-3xl font-bold text-zinc-900">
-              {metrics?.totalPatients ?? 0}
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Total Doctors
-            </CardTitle>
-            <div className="text-3xl font-bold text-zinc-900">
-              {metrics?.totalDoctors ?? 0}
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Total Records
-            </CardTitle>
-            <div className="text-3xl font-bold text-zinc-900">
-              {metrics?.totalRecords ?? 0}
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="bg-white border border-zinc-200">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-medium text-zinc-500 flex items-center gap-2">
-              <TrendingDown className="w-4 h-4" />
-              Total Appointments
-            </CardTitle>
-            <div className="text-3xl font-bold text-zinc-900">
-              {metrics?.totalAppointments ?? 0}
-            </div>
-          </CardHeader>
-        </Card>
+          );
+        })}
       </div>
 
       {/* Recent Appointments */}
-      <Card className="bg-white border border-zinc-200">
-        <CardHeader className="p-4">
-          <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Recent Appointments
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
+      <div className="border border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900">Recent Appointments</h2>
+        </div>
+        <div>
           {appointments.length === 0 ? (
-            <p className="text-sm text-zinc-500 text-center py-6">No appointments yet</p>
+            <p className="text-sm text-gray-400 text-center py-8">No appointments yet</p>
           ) : (
-            <div className="space-y-2">
-              {appointments.slice(0, 10).map((apt) => (
-                <div
-                  key={apt.id}
-                  className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-zinc-900 truncate">
-                      {apt.patientName || 'Patient'}
-                    </div>
-                    <div className="text-xs text-zinc-500 truncate">
-                      {apt.doctorName || 'Doctor'}
-                    </div>
+            appointments.slice(0, 10).map((apt) => (
+              <div
+                key={apt.id}
+                className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {apt.patientName || 'Patient'}
                   </div>
-                  <div className="text-right ml-4">
-                    <div className="text-xs text-zinc-600">
-                      {new Date(apt.slotTime).toLocaleString()}
-                    </div>
-                    <Badge
-                      variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'}
-                      className="text-[10px]"
-                    >
-                      {apt.status}
-                    </Badge>
+                  <div className="text-xs text-gray-500 truncate">
+                    {apt.doctorName || 'Doctor'}
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="text-right ml-4">
+                  <div className="text-xs text-gray-600">
+                    {new Date(apt.slotTime).toLocaleString()}
+                  </div>
+                  <Badge
+                    variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'}
+                    className="text-[10px]"
+                  >
+                    {apt.status}
+                  </Badge>
+                </div>
+              </div>
+            ))
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

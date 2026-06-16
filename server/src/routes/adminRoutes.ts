@@ -25,6 +25,7 @@ router.delete('/doctors/assign', ...requireAdmin, adminController.removeDoctorFr
 // Platform metrics & audit
 router.get('/metrics', ...requireAdmin, adminController.getPlatformMetrics);
 router.get('/audit-logs', ...requireAdmin, adminController.getAuditLogs);
+router.delete('/audit-logs', ...requireAdmin, adminController.clearAuditLogs);
 
 // Notifications
 router.get('/notifications', ...requireAdmin, adminController.getNotifications);

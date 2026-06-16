@@ -96,8 +96,6 @@ export function BookingClient({ userName }: BookingClientProps) {
     if (wizardState.step === 1 && selectedClinic) {
       fetchDoctors(selectedClinic);
     } else if (wizardState.step === 2 && selectedDoctor) {
-      // When doctor is selected, we need a date to fetch slots
-      // For now, default to tomorrow
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateStr = tomorrow.toISOString().split('T')[0];
@@ -116,7 +114,6 @@ export function BookingClient({ userName }: BookingClientProps) {
 
   const handleSubmit = async () => {
     try {
-      // Construct the full ISO datetime from slot date + startTime
       const slotDateTime = selectedSlot
         ? new Date(`${selectedSlot.date}T${selectedSlot.startTime}:00`).toISOString()
         : undefined;
@@ -152,56 +149,65 @@ export function BookingClient({ userName }: BookingClientProps) {
   };
 
   return (
-    <div className="bg-zinc-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight">
-                Book Appointment
-              </h1>
-              <p className="text-xs text-zinc-600 tracking-widest uppercase font-bold mt-0.5">
-                {getStepTitle()}
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+          Patient Portal
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Book Appointment
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {getStepTitle()}
+        </p>
+      </div>
 
       {/* Progress Steps */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
-          {[1, 2, 3, 4].map((step) => (
-            <div key={step} className="flex items-center flex-1">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                  wizardState.step >= step
-                    ? 'bg-zinc-900 text-white'
-                    : 'bg-zinc-200 text-zinc-600'
-                }`}
-              >
-                {wizardState.step > step ? <Check className="w-4 h-4" /> : step}
-              </div>
-              {step < 4 && (
+      <div className="mb-8">
+        <div className="flex items-start">
+          {[1, 2, 3, 4].map((step, i) => (
+            <div key={step} className="flex-1 flex flex-col items-center">
+              <div className="flex items-center w-full">
+                {i > 0 && (
+                  <div
+                    className={`flex-1 h-px ${
+                      wizardState.step > step ? 'bg-gray-900' : 'bg-gray-200'
+                    }`}
+                  />
+                )}
                 <div
-                  className={`flex-1 h-px mx-2 ${
-                    wizardState.step > step ? 'bg-zinc-900' : 'bg-zinc-200'
+                  className={`w-8 h-8 flex items-center justify-center text-xs font-bold shrink-0 ${
+                    wizardState.step >= step
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-200 text-gray-500'
                   }`}
-                />
-              )}
+                >
+                  {wizardState.step > step ? <Check className="w-4 h-4" /> : step}
+                </div>
+                {i < 3 && (
+                  <div
+                    className={`flex-1 h-px ${
+                      wizardState.step > step ? 'bg-gray-900' : 'bg-gray-200'
+                    }`}
+                  />
+                )}
+              </div>
+              <span className="text-[10px] font-mono uppercase text-gray-400 tracking-wider mt-2 text-center">
+                {['Clinic', 'Doctor', 'Time', 'Confirm'][i]}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <BentoCard className="max-w-4xl mx-auto">
+      <div className="max-w-4xl">
+        <BentoCard>
           {/* Step 1: Select Clinic */}
           {wizardState.step === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
                 {clinics.map((clinic) => (
                   <button
                     key={clinic.id}
@@ -209,19 +215,21 @@ export function BookingClient({ userName }: BookingClientProps) {
                       setSelectedClinic(clinic.id);
                       handleNext();
                     }}
-                    className={`p-6 rounded-lg border-2 text-left transition-all duration-300 ${
+                    className={`p-6 text-left transition-colors ${
                       selectedClinic === clinic.id
-                        ? 'border-zinc-950 bg-zinc-50'
-                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-white hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="w-5 h-5 text-zinc-700" />
-                      <h3 className="text-base font-semibold text-zinc-900 tracking-tight">
+                      <MapPin className={`w-4 h-4 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`} />
+                      <h3 className="text-sm font-semibold tracking-tight">
                         {clinic.name}
                       </h3>
                     </div>
-                    <p className="text-sm text-zinc-600">{clinic.address}</p>
+                    <p className={`text-xs ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-500'}`}>
+                      {clinic.address}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -233,11 +241,11 @@ export function BookingClient({ userName }: BookingClientProps) {
             <div className="space-y-4">
               {isLoadingDoctors ? (
                 <div className="text-center py-12">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-zinc-400 mb-4" />
-                  <p className="text-sm text-zinc-600">Loading doctors...</p>
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">Loading doctors...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-200 border border-gray-200">
                   {doctors.map((doctor) => (
                     <button
                       key={doctor.id}
@@ -245,21 +253,23 @@ export function BookingClient({ userName }: BookingClientProps) {
                         setSelectedDoctor(doctor.id);
                         handleNext();
                       }}
-                      className={`p-6 rounded-lg border-2 text-left transition-all duration-300 ${
+                      className={`p-6 text-left transition-colors ${
                         selectedDoctor === doctor.id
-                          ? 'border-zinc-950 bg-zinc-50'
-                          : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-white hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 rounded-full bg-zinc-200 flex items-center justify-center">
-                          <User className="w-6 h-6 text-zinc-600" />
+                        <div className={`w-10 h-10 flex items-center justify-center ${selectedDoctor === doctor.id ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                          <User className={`w-5 h-5 ${selectedDoctor === doctor.id ? 'text-gray-300' : 'text-gray-500'}`} />
                         </div>
                         <div>
-                          <h3 className="text-base font-semibold text-zinc-900 tracking-tight">
+                          <h3 className="text-sm font-semibold tracking-tight">
                             {doctor.profileData?.name || 'Unknown Doctor'}
                           </h3>
-                          <p className="text-xs text-zinc-600">{doctor.profileData?.specialty || 'General Practice'}</p>
+                          <p className={`text-xs ${selectedDoctor === doctor.id ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {doctor.profileData?.specialty || 'General Practice'}
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -281,7 +291,7 @@ export function BookingClient({ userName }: BookingClientProps) {
           {wizardState.step === 3 && (
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mb-2 block">
+                <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
                   Select Date
                 </label>
                 <input
@@ -295,30 +305,30 @@ export function BookingClient({ userName }: BookingClientProps) {
                     setSelectedSlot(undefined);
                   }}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full max-w-xs px-4 py-3 border border-zinc-300 rounded-lg bg-white text-sm focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                  className="w-full max-w-xs px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
                 />
               </div>
               {isLoadingSlots ? (
                 <div className="text-center py-12">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-zinc-400 mb-4" />
-                  <p className="text-sm text-zinc-600">Loading available slots...</p>
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">Loading available slots...</p>
                 </div>
               ) : availableSlots.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
                   {availableSlots.map((slot) => (
                     <button
                       key={slot.id}
                       onClick={() => setSelectedSlot(slot)}
                       disabled={!slot.available}
-                      className={`p-4 rounded-lg border-2 text-left transition-all duration-300 ${
+                      className={`p-4 text-left transition-colors ${
                         selectedSlot?.id === slot.id
-                          ? 'border-zinc-950 bg-zinc-50'
-                          : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-white hover:bg-gray-50'
                       } ${!slot.available ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-4 h-4 text-zinc-700" />
-                        <span className="text-sm font-semibold text-zinc-900 tracking-tight">
+                        <Calendar className={`w-4 h-4 ${selectedSlot?.id === slot.id ? 'text-gray-300' : 'text-gray-400'}`} />
+                        <span className="text-sm font-semibold tracking-tight">
                           {new Date(slot.date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -326,8 +336,8 @@ export function BookingClient({ userName }: BookingClientProps) {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-zinc-700" />
-                        <span className="text-sm text-zinc-600">
+                        <Clock className={`w-4 h-4 ${selectedSlot?.id === slot.id ? 'text-gray-300' : 'text-gray-400'}`} />
+                        <span className={`text-sm ${selectedSlot?.id === slot.id ? 'text-gray-300' : 'text-gray-500'}`}>
                           {slot.startTime} - {slot.endTime}
                         </span>
                       </div>
@@ -335,10 +345,12 @@ export function BookingClient({ userName }: BookingClientProps) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 border-2 border-dashed border-zinc-300 rounded-lg">
-                  <Calendar className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
-                  <p className="text-sm text-zinc-600 font-medium">No available slots for this date</p>
-                  <p className="text-xs text-zinc-500">Please select a different date</p>
+                <div className="text-center py-12 border border-dashed border-gray-300">
+                  <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                  <p className="text-sm text-gray-500">No available slots for this date</p>
+                  <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
+                    Please select a different date
+                  </p>
                 </div>
               )}
               <div className="flex gap-3 mt-4">
@@ -353,7 +365,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                 <Button
                   onClick={handleNext}
                   disabled={!selectedSlot}
-                  className="bg-[#0a2540] text-white hover:bg-[#003366]"
+                  className="bg-gray-900 text-white hover:bg-gray-800"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-2" />
@@ -367,7 +379,7 @@ export function BookingClient({ userName }: BookingClientProps) {
             <div className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mb-2 block">
+                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
                     Reason for Visit
                   </label>
                   <input
@@ -375,11 +387,11 @@ export function BookingClient({ userName }: BookingClientProps) {
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="e.g., Annual checkup, Follow-up, etc."
-                    className="w-full px-4 py-3 border border-zinc-300 rounded-lg bg-white text-sm focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                    className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mb-2 block">
+                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
                     Additional Notes (Optional)
                   </label>
                   <textarea
@@ -387,38 +399,38 @@ export function BookingClient({ userName }: BookingClientProps) {
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any additional information for the doctor..."
                     rows={4}
-                    className="w-full px-4 py-3 border border-zinc-300 rounded-lg bg-white text-sm focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 resize-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 resize-none"
                   />
                 </div>
               </div>
 
               {/* Summary */}
-              <div className="bg-zinc-50 rounded-lg p-6 border border-zinc-200">
-                <h3 className="text-sm font-semibold text-zinc-900 tracking-tight mb-4">
+              <div className="bg-gray-50 p-6 border border-gray-200">
+                <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-4">
                   Appointment Summary
-                </h3>
+                </p>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-zinc-600">Clinic:</span>
-                    <span className="font-medium text-zinc-900">
+                    <span className="text-gray-500">Clinic:</span>
+                    <span className="font-medium text-gray-900">
                       {clinics.find((c) => c.id === selectedClinic)?.name}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-600">Doctor:</span>
-                    <span className="font-medium text-zinc-900">
+                    <span className="text-gray-500">Doctor:</span>
+                    <span className="font-medium text-gray-900">
                       {doctors.find((d) => d.id === selectedDoctor)?.profileData?.name || 'Unknown Doctor'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-600">Date:</span>
-                    <span className="font-medium text-zinc-900">
+                    <span className="text-gray-500">Date:</span>
+                    <span className="font-medium text-gray-900">
                       {selectedSlot && new Date(selectedSlot.date).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-600">Time:</span>
-                    <span className="font-medium text-zinc-900">
+                    <span className="text-gray-500">Time:</span>
+                    <span className="font-medium text-gray-900">
                       {selectedSlot?.startTime} - {selectedSlot?.endTime}
                     </span>
                   </div>
@@ -437,7 +449,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                 <Button
                   onClick={handleSubmit}
                   disabled={!reason}
-                  className="bg-[#0a2540] text-white hover:bg-[#003366] flex-1"
+                  className="bg-gray-900 text-white hover:bg-gray-800 flex-1"
                 >
                   Confirm Booking
                   <Check className="w-4 h-4 ml-2" />
@@ -446,7 +458,7 @@ export function BookingClient({ userName }: BookingClientProps) {
             </div>
           )}
         </BentoCard>
-      </main>
+      </div>
     </div>
   );
 }

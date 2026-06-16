@@ -51,6 +51,10 @@ export const superAdminLogin = async (req: Request, res: Response) => {
         .returning();
     }
 
+    if (!adminUser) {
+      return res.status(500).json({ error: 'Failed to create admin user' });
+    }
+
     const token = jwt.sign(
       { sub: adminUser.authId, authId: adminUser.authId },
       process.env.AUTH_SECRET || 'dev-secret',
@@ -67,14 +71,6 @@ export const superAdminLogin = async (req: Request, res: Response) => {
       },
     });
 
-    await db.insert(auditLogs).values({
-      userId: adminUser.id,
-      action: 'SUPER_ADMIN_LOGIN',
-      targetResource: `users:${adminUser.id}`,
-      metadata: {
-        newState: { authId: adminUser.authId },
-      },
-    });
   } catch (error) {
     console.error('Error during super admin login:', error);
     res.status(500).json({ error: 'Login failed' });
@@ -212,6 +208,31 @@ export const getAuditLogs = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching audit logs:', error);
     res.status(500).json({ error: 'Failed to fetch audit logs' });
+  }
+};
+
+export const clearAuditLogs = async (req: Request, res: Response) => {
+  try {
+    const { olderThan } = req.query;
+
+    if (olderThan) {
+      const days = Number(olderThan);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+
+      const deleted = await db
+        .delete(auditLogs)
+        .where(lte(auditLogs.timestamp, cutoff))
+        .returning({ id: auditLogs.id });
+
+      res.json({ success: true, deleted: deleted.length, message: `Deleted ${deleted.length} logs older than ${days} days` });
+    } else {
+      const deleted = await db.delete(auditLogs).returning({ id: auditLogs.id });
+      res.json({ success: true, deleted: deleted.length, message: `Deleted all ${deleted.length} audit logs` });
+    }
+  } catch (error) {
+    console.error('Error clearing audit logs:', error);
+    res.status(500).json({ error: 'Failed to clear audit logs' });
   }
 };
 
@@ -529,7 +550,7 @@ export const createDoctor = async (req: Request, res: Response) => {
     await db.insert(auditLogs).values({
       userId: req.user?.id || null,
       action: 'DOCTOR_CREATED',
-      targetResource: `users:${newDoctor.id}`,
+      targetResource: `doctors:${newDoctor.id}`,
       metadata: {
         newState: { name, email, specialization, authId },
       },
@@ -635,7 +656,7 @@ export const markNotificationRead = async (req: Request, res: Response) => {
 
 export const toggleClinicStatus = async (req: Request, res: Response) => {
   try {
-    const { clinicId } = req.params;
+    const clinicId = req.params.clinicId as string;
 
     if (!clinicId) {
       return res.status(400).json({ error: 'clinicId is required' });

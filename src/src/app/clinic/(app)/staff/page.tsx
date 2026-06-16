@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,7 +48,7 @@ const emptyForm: NewDoctorForm = {
   licenseNumber: '',
 };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 export default function ClinicAdminStaff() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -178,22 +177,19 @@ export default function ClinicAdminStaff() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Staff Management</h1>
+      <div>
+        <h1 className="text-lg font-bold text-gray-900 mb-6">Staff Management</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="w-6 h-6" />
-          Staff Management
-        </h1>
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-lg font-bold text-gray-900">Staff Management</h1>
         <Button onClick={() => { setShowAddForm(!showAddForm); setCreatedAuthId(null); }} size="sm">
           <UserPlus className="w-4 h-4 mr-2" />
           Add Doctor
@@ -201,7 +197,7 @@ export default function ClinicAdminStaff() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
           <button
             onClick={() => setError(null)}
@@ -214,15 +210,13 @@ export default function ClinicAdminStaff() {
 
       {/* Add Doctor Form */}
       {showAddForm && (
-        <Card className="bg-white border border-zinc-200 mb-6">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-zinc-900">
-              Add New Doctor
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
+        <div className="border border-gray-200 mb-6">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900">Add New Doctor</h2>
+          </div>
+          <div className="p-4">
             {createdAuthId && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="mb-4 p-3 bg-green-50 border border-green-200">
                 <p className="text-sm text-green-700 font-medium mb-2">
                   Doctor created successfully!
                 </p>
@@ -230,7 +224,7 @@ export default function ClinicAdminStaff() {
                   Auth ID (share with the doctor for login):
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 px-2 py-1 bg-white rounded border border-green-200 text-sm text-zinc-900 break-all">
+                  <code className="flex-1 px-2 py-1 bg-white border border-green-200 text-sm text-gray-900 break-all">
                     {createdAuthId}
                   </code>
                   <Button
@@ -242,7 +236,7 @@ export default function ClinicAdminStaff() {
                     {copiedId ? (
                       <Check className="w-4 h-4 text-green-600" />
                     ) : (
-                      <Copy className="w-4 h-4 text-zinc-500" />
+                      <Copy className="w-4 h-4 text-gray-500" />
                     )}
                   </Button>
                 </div>
@@ -250,7 +244,7 @@ export default function ClinicAdminStaff() {
             )}
 
             {submitError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
                 {submitError}
               </div>
             )}
@@ -258,53 +252,53 @@ export default function ClinicAdminStaff() {
             <form onSubmit={handleAddDoctor} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-zinc-600">Name *</Label>
+                  <Label className="text-xs text-gray-600">Name *</Label>
                   <Input
                     required
                     value={formData.name}
                     onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Dr. Name"
-                    className="bg-zinc-50 border border-zinc-200"
+                    className="bg-gray-50 border border-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-zinc-600">Email *</Label>
+                  <Label className="text-xs text-gray-600">Email *</Label>
                   <Input
                     required
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="doctor@example.com"
-                    className="bg-zinc-50 border border-zinc-200"
+                    className="bg-gray-50 border border-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-zinc-600">Phone</Label>
+                  <Label className="text-xs text-gray-600">Phone</Label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                     placeholder="+1 234 567 890"
-                    className="bg-zinc-50 border border-zinc-200"
+                    className="bg-gray-50 border border-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-zinc-600">Specialization *</Label>
+                  <Label className="text-xs text-gray-600">Specialization *</Label>
                   <Input
                     required
                     value={formData.specialization}
                     onChange={(e) => setFormData((prev) => ({ ...prev, specialization: e.target.value }))}
                     placeholder="e.g. General Practice"
-                    className="bg-zinc-50 border border-zinc-200"
+                    className="bg-gray-50 border border-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-zinc-600">License Number *</Label>
+                  <Label className="text-xs text-gray-600">License Number *</Label>
                   <Input
                     required
                     value={formData.licenseNumber}
                     onChange={(e) => setFormData((prev) => ({ ...prev, licenseNumber: e.target.value }))}
                     placeholder="License #"
-                    className="bg-zinc-50 border border-zinc-200"
+                    className="bg-gray-50 border border-gray-200"
                   />
                 </div>
               </div>
@@ -322,25 +316,25 @@ export default function ClinicAdminStaff() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search by name, email, or specialization..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pl-10 bg-white border border-zinc-200"
+            className="pl-10 bg-white border border-gray-200"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-          className="text-xs border border-zinc-200 rounded-md px-3 py-2 bg-white text-zinc-700"
+          className="text-xs border border-gray-200 px-3 py-2 bg-white text-gray-700"
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -349,39 +343,39 @@ export default function ClinicAdminStaff() {
       </div>
 
       {/* Table */}
-      <Card className="bg-white border border-zinc-200">
+      <div className="border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Doctor Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Specialization</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">License #</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Auth ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider">Doctor Name</th>
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden sm:table-cell">Email</th>
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden md:table-cell">Specialization</th>
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden lg:table-cell">License #</th>
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden xl:table-cell">Auth ID</th>
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody>
               {paginatedDoctors.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
-                    <Users className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-                    <p className="text-zinc-500 text-sm">No doctors found</p>
+                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">No doctors found</p>
                   </td>
                 </tr>
               ) : (
                 paginatedDoctors.map((doctor) => (
-                  <tr key={doctor.doctorId} className="hover:bg-zinc-50">
-                    <td className="px-4 py-3 text-zinc-900 font-medium whitespace-nowrap">{doctor.name}</td>
-                    <td className="px-4 py-3 text-zinc-600 whitespace-nowrap">{doctor.email}</td>
-                    <td className="px-4 py-3 text-zinc-600 whitespace-nowrap">{doctor.specialization}</td>
-                    <td className="px-4 py-3 text-zinc-600 whitespace-nowrap">{doctor.licenseNumber}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                  <tr key={doctor.doctorId} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                    <td className="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">{doctor.name}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden sm:table-cell">{doctor.email}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">{doctor.specialization}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden lg:table-cell">{doctor.licenseNumber}</td>
+                    <td className="px-4 py-3 whitespace-nowrap hidden xl:table-cell">
                       {doctor.authId ? (
                         <div className="flex items-center gap-1.5">
-                          <code className="text-xs bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100 max-w-[120px] truncate">
+                          <code className="text-xs bg-gray-50 px-2 py-0.5 border border-gray-100 max-w-[120px] truncate">
                             {visibleAuthIds.has(doctor.doctorId) ? doctor.authId : '••••••••'}
                           </code>
                           <button
@@ -394,7 +388,7 @@ export default function ClinicAdminStaff() {
                                 return next;
                               });
                             }}
-                            className="shrink-0 text-zinc-400 hover:text-zinc-600"
+                            className="shrink-0 text-gray-400 hover:text-gray-600"
                             title={visibleAuthIds.has(doctor.doctorId) ? 'Hide' : 'Reveal'}
                           >
                             {visibleAuthIds.has(doctor.doctorId) ? (
@@ -406,7 +400,7 @@ export default function ClinicAdminStaff() {
                           <button
                             type="button"
                             onClick={() => handleCopyAuthId(doctor.authId!)}
-                            className="shrink-0 text-zinc-400 hover:text-zinc-600"
+                            className="shrink-0 text-gray-400 hover:text-gray-600"
                             title="Copy"
                           >
                             {copiedId ? (
@@ -417,7 +411,7 @@ export default function ClinicAdminStaff() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-zinc-400">—</span>
+                        <span className="text-xs text-gray-400">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -426,7 +420,7 @@ export default function ClinicAdminStaff() {
                         className={`text-[10px] ${
                           doctor.isActive
                             ? 'bg-green-100 text-green-700 border-green-200'
-                            : 'bg-zinc-100 text-zinc-500 border-zinc-200'
+                            : 'bg-gray-100 text-gray-500 border-gray-200'
                         }`}
                       >
                         {doctor.isActive ? 'Active' : 'Inactive'}
@@ -461,38 +455,34 @@ export default function ClinicAdminStaff() {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Pagination */}
-        {filteredDoctors.length > PAGE_SIZE && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-200">
-            <p className="text-xs text-zinc-500">
-              Page {safePage} of {totalPages} ({filteredDoctors.length} total)
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={safePage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              >
-                <ChevronLeft className="w-3 h-3 mr-1" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={safePage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              >
-                Next
-                <ChevronRight className="w-3 h-3 ml-1" />
-              </Button>
-            </div>
+      {/* Pagination */}
+      {filteredDoctors.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs text-gray-500">
+            Page {safePage} of {totalPages} ({filteredDoctors.length} total)
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={safePage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              Prev
+            </button>
+            <button
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRight className="w-3 h-3" />
+            </button>
           </div>
-        )}
-      </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,18 +1,18 @@
 import type { Request, Response } from 'express';
 import { db } from '../db/db.js';
-import { users, clinics, auditLogs } from '../db/schema.js';
+import { users, clinics } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
 
 export const oauthLogin = async (req: Request, res: Response) => {
   try {
-    const { email, name, picture } = req.body;
+    const { email, name, picture, role: requestedRole } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Look up user by authId = email (clinic_admin) or by profileData email (patient/doctor)
+    // Look up user by authId = email
     let [user] = await db
       .select()
       .from(users)
@@ -25,16 +25,20 @@ export const oauthLogin = async (req: Request, res: Response) => {
       user = allUsers.find((u) => {
         const profile = u.profileData as Record<string, unknown> | null;
         return profile?.email === email;
-      }) || null;
+      });
     }
 
-    // If still not found, create as patient
+    // If still not found, create as patient (or requested role)
     if (!user) {
+      const newUserRole = (requestedRole === 'patient' || requestedRole === 'doctor' || requestedRole === 'clinic_admin')
+        ? requestedRole
+        : 'patient';
+
       [user] = await db
         .insert(users)
         .values({
           authId: email,
-          role: 'patient',
+          role: newUserRole,
           profileData: {
             name: name || '',
             email,
@@ -83,14 +87,6 @@ export const oauthLogin = async (req: Request, res: Response) => {
       },
     });
 
-    await db.insert(auditLogs).values({
-      userId: user.id,
-      action: 'OAUTH_LOGIN',
-      targetResource: `users:${user.id}`,
-      metadata: {
-        newState: { email, role: user.role },
-      },
-    });
   } catch (error) {
     console.error('Error during OAuth login:', error);
     res.status(500).json({ error: 'OAuth login failed' });

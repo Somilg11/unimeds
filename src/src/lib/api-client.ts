@@ -30,13 +30,13 @@ apiClient.interceptors.request.use(async (config) => {
     if (!token) {
       try {
         const session = await getSession();
-        token = (session as any)?.accessToken || (session as any)?.user?.authId;
+        token = (session as any)?.accessToken || null;
       } catch (error) {
         // ignore
       }
     }
 
-    if (token) {
+    if (token && token !== 'undefined' && token !== 'null') {
       config.headers.Authorization = `Bearer ${token}`;
     }
   }
@@ -49,7 +49,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        // Don't redirect if we're on admin or doctor pages
+        // Only redirect to signin for actual auth failures, not on every 401
         const path = window.location.pathname;
         if (path.startsWith('/admin')) {
           window.location.href = '/admin';
@@ -60,6 +60,7 @@ apiClient.interceptors.response.use(
         }
       }
     }
+    // 403 = permission issue, don't redirect — just reject the promise
     return Promise.reject(error);
   }
 );

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Building2, Calendar, FileText, Stethoscope, Activity, Clock } from 'lucide-react';
 
 interface Metrics {
@@ -41,10 +40,10 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <div className="p-4 lg:p-10">
+        <h1 className="text-2xl font-black tracking-tight text-gray-900 mb-6">Dashboard</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -52,9 +51,9 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+      <div className="p-4 lg:p-10">
+        <h1 className="text-2xl font-black tracking-tight text-gray-900 mb-6">Dashboard</h1>
+        <div className="p-3 bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
           <button onClick={fetchMetrics} className="ml-2 text-red-400 hover:text-red-600 underline">
             Retry
@@ -65,46 +64,38 @@ export default function AdminDashboard() {
   }
 
   const cards = [
-    { title: 'Total Users', value: metrics?.totalUsers ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Total Doctors', value: metrics?.totalDoctors ?? 0, icon: Stethoscope, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { title: 'Total Patients', value: metrics?.totalPatients ?? 0, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
-    { title: 'Total Clinics', value: metrics?.totalClinics ?? 0, icon: Building2, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { title: 'Total Appointments', value: metrics?.totalAppointments ?? 0, icon: Calendar, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { title: 'Total Records', value: metrics?.totalRecords ?? 0, icon: FileText, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-    { title: 'Recent Appointments', value: metrics?.recentAppointments ?? 0, icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { title: 'Total Users', value: metrics?.totalUsers ?? 0, icon: Users, color: 'text-blue-600' },
+    { title: 'Total Doctors', value: metrics?.totalDoctors ?? 0, icon: Stethoscope, color: 'text-blue-600' },
+    { title: 'Total Patients', value: metrics?.totalPatients ?? 0, icon: Users, color: 'text-blue-600' },
+    { title: 'Total Clinics', value: metrics?.totalClinics ?? 0, icon: Building2, color: 'text-blue-600' },
+    { title: 'Total Appointments', value: metrics?.totalAppointments ?? 0, icon: Calendar, color: 'text-blue-600' },
+    { title: 'Total Records', value: metrics?.totalRecords ?? 0, icon: FileText, color: 'text-blue-600' },
+    { title: 'Recent Appointments', value: metrics?.recentAppointments ?? 0, icon: Clock, color: 'text-blue-600', note: 'Last 30 days' },
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Activity className="w-6 h-6" />
-          Dashboard
-        </h1>
+    <div className="p-4 lg:p-10">
+      <div className="flex items-center gap-3 mb-6">
+        <Activity className="w-5 h-5 text-gray-400" />
+        <h1 className="text-2xl font-black tracking-tight text-gray-900">Dashboard</h1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key={card.title} className="bg-white border border-zinc-200">
-              <CardHeader className="p-4">
-                <CardTitle className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center`}>
-                    <Icon className={`w-5 h-5 ${card.color}`} />
-                  </div>
-                  <span className="text-sm font-medium text-zinc-500">{card.title}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="text-3xl font-semibold text-zinc-900">
+            <div key={card.title} className="bg-white p-4">
+              <p className="font-mono text-[10px] uppercase text-gray-500 mb-2">{card.title}</p>
+              <div className="flex items-center gap-2">
+                <Icon className={`w-4 h-4 ${card.color}`} />
+                <span className="text-2xl font-black tracking-tight text-gray-900">
                   {card.value.toLocaleString()}
-                </div>
-                {card.title === 'Recent Appointments' && (
-                  <div className="text-xs text-zinc-400 mt-1">Last 30 days</div>
-                )}
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+              {card.note && (
+                <p className="text-[10px] text-gray-400 mt-1">{card.note}</p>
+              )}
+            </div>
           );
         })}
       </div>

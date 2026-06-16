@@ -44,7 +44,7 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
     return (
       <Badge 
         variant={variantMap[status] || 'secondary'} 
-        className="text-[10px] tracking-widest uppercase font-bold"
+        className="text-[10px] font-mono uppercase tracking-wider"
       >
         {status}
       </Badge>
@@ -61,45 +61,45 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
   };
 
   return (
-    <div className={cn('space-y-3 sm:space-y-4', className)}>
+    <div className={cn('space-y-px bg-gray-200 border border-gray-200', className)}>
       {sortedItems.map((item) => (
         <div
           key={item.id}
-          className="relative pl-4 sm:pl-6 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-zinc-200 group"
+          className="bg-white p-4 hover:bg-gray-50/50 transition-colors group"
         >
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-zinc-500 group-hover:text-zinc-900 transition-colors">
+            <div className="mt-0.5 text-gray-400 group-hover:text-blue-600 transition-colors shrink-0">
               {getIcon(item.type)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="text-[10px] tracking-widest uppercase font-bold text-zinc-500">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">
                   {formatDate(item.date)}
-                </div>
+                </p>
                 {getStatusBadge(item.status)}
               </div>
-              <div className="text-sm sm:text-base font-semibold text-zinc-900 mt-1 tracking-tight">
+              <p className="text-sm font-semibold text-gray-900 tracking-tight">
                 {item.title}
-              </div>
+              </p>
               {item.description && (
-                <div className="text-xs text-zinc-600 mt-1">
+                <p className="text-xs text-gray-500 mt-0.5">
                   {item.description}
-                </div>
+                </p>
               )}
               {item.metadata?.doctorName && (
-                <div className="text-[10px] tracking-widest uppercase font-bold text-zinc-500 mt-1">
+                <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
                   {item.metadata.doctorName}
-                </div>
+                </p>
               )}
               {item.metadata?.location && (
-                <div className="text-[10px] text-zinc-600">
+                <p className="text-[11px] text-gray-500">
                   {item.metadata.location}
-                </div>
+                </p>
               )}
               {item.metadata?.recordType && (
                 <Badge 
                   variant="outline" 
-                  className="text-[8px] tracking-widest uppercase font-bold mt-2 border-dashed"
+                  className="text-[10px] font-mono uppercase tracking-wider mt-2 border-dashed"
                 >
                   {item.metadata.recordType}
                 </Badge>
@@ -109,9 +109,9 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
         </div>
       ))}
       {sortedItems.length === 0 && (
-        <div className="text-center py-8 sm:py-12 border-2 border-dashed border-zinc-300 rounded-lg">
-          <Activity className="mx-auto h-12 w-12 text-zinc-400 mb-4" />
-          <p className="text-sm text-zinc-600 font-medium">No timeline items yet</p>
+        <div className="bg-white text-center py-12 border border-dashed border-gray-300">
+          <Activity className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+          <p className="text-sm text-gray-500">No timeline items yet</p>
         </div>
       )}
     </div>

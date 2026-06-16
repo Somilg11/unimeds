@@ -445,6 +445,10 @@ export const addDoctorToClinic = async (req: Request, res: Response) => {
       })
       .returning();
 
+    if (!clinicDoctor) {
+      return res.status(500).json({ error: 'Failed to create clinic-doctor link' });
+    }
+
     await db.insert(notifications).values({
       userId: newUser.id,
       clinicId,
@@ -539,7 +543,7 @@ export const removeDoctorFromClinic = async (req: Request, res: Response) => {
       await db.insert(auditLogs).values({
         userId,
         action: 'DOCTOR_DEACTIVATED_FROM_CLINIC',
-        targetResource: `clinicDoctors:${existingLink[0].id}`,
+        targetResource: `clinicDoctors:${existingLink[0]?.id}`,
         metadata: {
           previousState: { clinicId, doctorId, reason: 'active_appointments' },
         },
@@ -563,7 +567,7 @@ export const removeDoctorFromClinic = async (req: Request, res: Response) => {
       await db.insert(auditLogs).values({
         userId,
         action: 'DOCTOR_REMOVED_FROM_CLINIC',
-        targetResource: `clinicDoctors:${existingLink[0].id}`,
+        targetResource: `clinicDoctors:${existingLink[0]?.id}`,
         metadata: {
           previousState: { clinicId, doctorId },
         },

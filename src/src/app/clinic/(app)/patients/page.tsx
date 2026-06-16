@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Users, Search, Calendar, Phone, Mail } from 'lucide-react';
 
 interface Patient {
@@ -52,10 +50,10 @@ export default function ClinicAdminPatients() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Patients</h1>
+      <div>
+        <h1 className="text-lg font-bold text-gray-900 mb-6">Patients</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -63,13 +61,13 @@ export default function ClinicAdminPatients() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Patients</h1>
-        <div className="bg-white rounded-lg border border-zinc-200 p-6">
+      <div>
+        <h1 className="text-lg font-bold text-gray-900 mb-6">Patients</h1>
+        <div className="border border-gray-200 p-6">
           <p className="text-red-500 text-sm">{error}</p>
           <button
             onClick={fetchPatients}
-            className="mt-2 text-sm text-zinc-900 underline hover:no-underline"
+            className="mt-2 text-sm text-gray-900 underline hover:no-underline"
           >
             Retry
           </button>
@@ -79,52 +77,45 @@ export default function ClinicAdminPatients() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="w-6 h-6" />
-          Patients
-        </h1>
-        <Badge variant="secondary" className="w-fit text-xs">
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-lg font-bold text-gray-900">Patients</h1>
+        <span className="text-xs font-mono uppercase text-gray-400">
           {patients.length} total
-        </Badge>
+        </span>
       </div>
 
       <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input
           placeholder="Search by name or email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 max-w-md bg-white border border-zinc-200"
+          className="pl-10 max-w-md bg-white border border-gray-200"
         />
       </div>
 
       {filteredPatients.length === 0 ? (
-        <div className="bg-white rounded-lg border border-zinc-200 p-12 text-center">
-          <Users className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-          <p className="text-zinc-500 text-sm">No patients found</p>
+        <div className="border border-gray-200 p-12 text-center">
+          <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">No patients found</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
           {filteredPatients.map((patient) => (
-            <Card key={patient.id} className="bg-white border border-zinc-200">
-              <CardHeader className="p-4">
-                <CardTitle className="text-base font-semibold text-zinc-900">
-                  {patient.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <Mail className="w-3.5 h-3.5 text-zinc-400" />
+            <div key={patient.id} className="bg-white p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">{patient.name}</h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Mail className="w-3.5 h-3.5 text-gray-400" />
                   <span className="truncate">{patient.email || '—'}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <Phone className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Phone className="w-3.5 h-3.5 text-gray-400" />
                   <span>{patient.phone || '—'}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
                   <span>
                     Last:{' '}
                     {patient.lastAppointmentDate
@@ -132,14 +123,14 @@ export default function ClinicAdminPatients() {
                       : 'Never'}
                   </span>
                 </div>
-                <div className="pt-2 border-t border-zinc-100">
-                  <Badge variant="outline" className="text-xs">
+                <div className="pt-2 border-t border-gray-100">
+                  <span className="text-xs font-mono uppercase text-gray-400">
                     {patient.totalAppointments ?? 0} appointment
                     {(patient.totalAppointments ?? 0) !== 1 ? 's' : ''}
-                  </Badge>
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
