@@ -4,6 +4,21 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Calendar, TrendingUp, Activity } from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 interface AnalyticsSummary {
   todaysAppointments: number;
@@ -51,6 +66,39 @@ const emptySummary: AnalyticsSummary = {
   totalPatients: 0,
   totalDoctors: 0,
 };
+
+const CHART_COLORS = {
+  primary: '#111827',
+  primaryLight: '#6b7280',
+  confirmed: '#059669',
+  confirmedLight: '#d1fae5',
+  cancelled: '#dc2626',
+  cancelledLight: '#fee2e2',
+  pending: '#d97706',
+  pendingLight: '#fef3c7',
+  accent: '#2563eb',
+  accentLight: '#dbeafe',
+  purple: '#7c3aed',
+  purpleLight: '#ede9fe',
+  cyan: '#0891b2',
+  cyanLight: '#cffafe',
+};
+
+const STATUS_COLORS = ['#059669', '#dc2626', '#d97706', '#6b7280'];
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-gray-900 text-white px-3 py-2 text-xs border-0">
+      <p className="font-medium mb-1">{label}</p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} className="text-gray-300">
+          {entry.name}: <span className="text-white font-medium">{entry.value}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
 
 export default function ClinicAdminAnalytics() {
   const [analytics, setAnalytics] = useState<AnalyticsData>({
@@ -112,35 +160,64 @@ export default function ClinicAdminAnalytics() {
       label: "Today's Appointments",
       value: analytics.summary.todaysAppointments,
       icon: Calendar,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
     },
     {
       label: 'This Week',
       value: analytics.summary.thisWeekAppointments,
       icon: TrendingUp,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
     },
     {
       label: 'Total Appointments',
       value: analytics.summary.totalAppointments,
       icon: BarChart3,
+      color: 'text-violet-600',
+      bg: 'bg-violet-50',
     },
     {
       label: 'No-Show Rate',
       value: `${analytics.summary.noShowRate}%`,
       icon: Activity,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
     },
     {
       label: 'Total Patients',
       value: analytics.summary.totalPatients,
       icon: Users,
+      color: 'text-cyan-600',
+      bg: 'bg-cyan-50',
     },
     {
       label: 'Total Doctors',
       value: analytics.summary.totalDoctors,
       icon: Users,
+      color: 'text-indigo-600',
+      bg: 'bg-indigo-50',
     },
   ];
 
-  const maxMonthlyCount = Math.max(...analytics.monthlyTrend.map((m) => m.count), 1);
+  const appointmentStatusData = analytics.doctorPerformance.reduce(
+    (acc, doc) => {
+      acc.confirmed += doc.confirmed;
+      acc.cancelled += doc.cancelled;
+      return acc;
+    },
+    { confirmed: 0, cancelled: 0 }
+  );
+
+  const donutData = [
+    { name: 'Confirmed', value: appointmentStatusData.confirmed },
+    { name: 'Cancelled', value: appointmentStatusData.cancelled },
+  ].filter((d) => d.value > 0);
+
+  const monthlyChartData = analytics.monthlyTrend.map((m) => ({
+    ...m,
+    month: m.month.length > 7 ? m.month.slice(5) : m.month,
+  }));
 
   if (loading) {
     return (
@@ -171,148 +248,234 @@ export default function ClinicAdminAnalytics() {
   }
 
   return (
-    <div>
-      <h1 className="text-lg font-bold text-gray-900 mb-6">Analytics</h1>
+    <div className="space-y-8">
+      <h1 className="text-lg font-bold text-gray-900">Analytics</h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-gray-200 border border-gray-200 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-gray-200 border border-gray-200">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
             <div key={card.label} className="bg-white p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-[10px] font-mono uppercase text-gray-400 tracking-wider">{card.label}</span>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-7 h-7 ${card.bg} flex items-center justify-center`}>
+                  <Icon className={`w-3.5 h-3.5 ${card.color}`} />
+                </div>
               </div>
-              <div className="text-xl font-bold text-gray-900 mt-1">{card.value}</div>
+              <p className="text-[10px] font-mono uppercase text-gray-400 tracking-wider mb-1">{card.label}</p>
+              <div className="text-xl font-bold text-gray-900">{card.value}</div>
             </div>
           );
         })}
       </div>
 
-      {/* Monthly Trend */}
-      <div className="border border-gray-200 mb-6">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-gray-400" />
-            Monthly Trend
-          </h2>
+      {/* Monthly Trend - Area Chart */}
+      <div className="border border-gray-200">
+        <div className="px-5 py-4 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900">Monthly Appointment Trend</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Appointments over the last 6 months</p>
         </div>
-        <div className="p-4">
-          {analytics.monthlyTrend.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">No data available</p>
+        <div className="p-5">
+          {monthlyChartData.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-12">No trend data available</p>
           ) : (
-            <div className="flex items-end gap-2 h-48">
-              {analytics.monthlyTrend.map((month) => {
-                const heightPercent = (month.count / maxMonthlyCount) * 100;
-                return (
-                  <div key={month.month} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-[10px] text-gray-500 font-medium">{month.count}</span>
-                    <div className="w-full flex justify-center" style={{ height: `${heightPercent}%` }}>
-                      <div className="w-full max-w-[40px] bg-gray-900" />
-                    </div>
-                    <span className="text-[10px] text-gray-500 truncate w-full text-center">
-                      {month.month}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <ResponsiveContainer width="100%" height={320}>
+              <AreaChart data={monthlyChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  axisLine={{ stroke: '#e5e7eb' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  name="Appointments"
+                  stroke={CHART_COLORS.primary}
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorCount)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Doctor Performance */}
-        <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Users className="w-4 h-4 text-gray-400" />
-              Doctor Performance
-            </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Doctor Performance - Bar Chart */}
+        <div className="lg:col-span-2 border border-gray-200">
+          <div className="px-5 py-4 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900">Doctor Performance</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Confirmed vs cancelled appointments per doctor</p>
           </div>
-          <div>
+          <div className="p-5">
             {analytics.doctorPerformance.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No data available</p>
+              <p className="text-sm text-gray-400 text-center py-12">No data available</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left p-3 text-[10px] font-mono uppercase text-gray-400">Doctor</th>
-                      <th className="text-left p-3 text-[10px] font-mono uppercase text-gray-400 hidden sm:table-cell">Specialization</th>
-                      <th className="text-right p-3 text-[10px] font-mono uppercase text-gray-400">Total</th>
-                      <th className="text-right p-3 text-[10px] font-mono uppercase text-gray-400">Confirmed</th>
-                      <th className="text-right p-3 text-[10px] font-mono uppercase text-gray-400">Cancelled</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.doctorPerformance.map((doc) => (
-                      <tr key={doc.doctorId} className="border-b border-gray-100 last:border-b-0">
-                        <td className="p-3 text-gray-900 font-medium">{doc.name}</td>
-                        <td className="p-3 text-gray-600 hidden sm:table-cell">{doc.specialization}</td>
-                        <td className="p-3 text-right text-gray-900">{doc.totalAppointments}</td>
-                        <td className="p-3 text-right">
-                          <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px]">
-                            {doc.confirmed}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-right">
-                          <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]">
-                            {doc.cancelled}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart
+                  data={analytics.doctorPerformance}
+                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  barGap={2}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                    tickLine={false}
+                    interval={0}
+                    angle={-30}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    iconType="square"
+                    iconSize={8}
+                    wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                  />
+                  <Bar
+                    dataKey="confirmed"
+                    name="Confirmed"
+                    fill={CHART_COLORS.confirmed}
+                    radius={[2, 2, 0, 0]}
+                    maxBarSize={40}
+                  />
+                  <Bar
+                    dataKey="cancelled"
+                    name="Cancelled"
+                    fill={CHART_COLORS.cancelled}
+                    radius={[2, 2, 0, 0]}
+                    maxBarSize={40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
 
-        {/* Upcoming Appointments */}
+        {/* Appointment Status - Donut Chart */}
         <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              Upcoming Appointments
-            </h2>
+          <div className="px-5 py-4 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900">Appointment Status</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Overall breakdown</p>
           </div>
-          <div>
-            {analytics.upcomingAppointments.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No upcoming appointments</p>
+          <div className="p-5">
+            {donutData.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-12">No data available</p>
             ) : (
-              <div>
-                {analytics.upcomingAppointments.map((apt) => (
-                  <div
-                    key={apt.id}
-                    className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-gray-900 font-medium truncate">
-                        {apt.patientName}
-                      </div>
-                      <div className="text-xs text-gray-500 truncate">
-                        {apt.doctorName}
-                      </div>
+              <div className="flex flex-col items-center">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={donutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={3}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {donutData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex items-center gap-4 mt-2">
+                  {donutData.map((entry, i) => (
+                    <div key={entry.name} className="flex items-center gap-1.5">
+                      <div
+                        className="w-2.5 h-2.5"
+                        style={{ backgroundColor: STATUS_COLORS[i] }}
+                      />
+                      <span className="text-xs text-gray-500">
+                        {entry.name} <span className="font-medium text-gray-900">{entry.value}</span>
+                      </span>
                     </div>
-                    <div className="text-right ml-3 shrink-0">
-                      <div className="text-xs text-gray-600">
-                        {new Date(apt.slotTime).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                      <div className="text-[10px] text-gray-400">
-                        {new Date(apt.slotTime).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Upcoming Appointments */}
+      <div className="border border-gray-200">
+        <div className="px-5 py-4 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900">Upcoming Appointments</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Next scheduled visits</p>
+        </div>
+        <div>
+          {analytics.upcomingAppointments.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">No upcoming appointments</p>
+          ) : (
+            analytics.upcomingAppointments.map((apt) => (
+              <div
+                key={apt.id}
+                className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-gray-600">
+                      {apt.patientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{apt.patientName}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(apt.slotTime).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}{' '}
+                      at{' '}
+                      {new Date(apt.slotTime).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  variant={
+                    apt.status === 'confirmed'
+                      ? 'default'
+                      : apt.status === 'cancelled'
+                      ? 'destructive'
+                      : 'secondary'
+                  }
+                  className="text-[10px] shrink-0"
+                >
+                  {apt.status}
+                </Badge>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
