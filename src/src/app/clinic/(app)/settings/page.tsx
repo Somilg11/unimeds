@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Settings, Save, Globe, Clock, Bell, Webhook } from 'lucide-react';
+import { Settings, Save, Globe, Clock, Bell, Webhook, MapPin, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TIMEZONES = [
@@ -56,6 +56,12 @@ interface ClinicSettings {
     recordUploaded: string;
     notificationBase: string;
   };
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  latitude: string;
+  longitude: string;
 }
 
 const defaultSettings: ClinicSettings = {
@@ -71,6 +77,12 @@ const defaultSettings: ClinicSettings = {
     recordUploaded: '',
     notificationBase: '',
   },
+  address: '',
+  city: '',
+  state: '',
+  zipCode: '',
+  latitude: '',
+  longitude: '',
 };
 
 export default function ClinicAdminSettings() {
@@ -107,6 +119,12 @@ export default function ClinicAdminSettings() {
           recordUploaded: w?.recordUploaded || '',
           notificationBase: w?.notificationBase || '',
         },
+        address: clinic?.address || '',
+        city: clinic?.city || '',
+        state: clinic?.state || '',
+        zipCode: clinic?.zipCode || '',
+        latitude: clinic?.latitude != null ? String(clinic.latitude) : '',
+        longitude: clinic?.longitude != null ? String(clinic.longitude) : '',
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch settings';
@@ -133,6 +151,12 @@ export default function ClinicAdminSettings() {
           },
         },
         n8nWebhookUrls: settings.webhooks,
+        address: settings.address || undefined,
+        city: settings.city || undefined,
+        state: settings.state || undefined,
+        zipCode: settings.zipCode || undefined,
+        latitude: settings.latitude ? Number(settings.latitude) : undefined,
+        longitude: settings.longitude ? Number(settings.longitude) : undefined,
       });
       setSuccessMessage('Settings saved successfully');
       toast.success('Settings saved successfully');
@@ -148,6 +172,27 @@ export default function ClinicAdminSettings() {
 
   function toggleFeature(key: keyof Pick<ClinicSettings, 'voiceReminders' | 'emailNotifications' | 'whatsappNotifications'>) {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function handleUseCurrentLocation() {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setSettings((prev) => ({
+          ...prev,
+          latitude: String(position.coords.latitude),
+          longitude: String(position.coords.longitude),
+        }));
+        toast.success('Current location set');
+      },
+      (err) => {
+        toast.error(`Failed to get location: ${err.message}`);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   function updateWebhook(key: keyof ClinicSettings['webhooks'], value: string) {
@@ -227,6 +272,90 @@ export default function ClinicAdminSettings() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </div>
+
+        {/* Location Settings */}
+        <div className="border border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              Location
+            </h2>
+          </div>
+          <div className="p-4 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Street Address</Label>
+              <Input
+                value={settings.address}
+                onChange={(e) => setSettings((prev) => ({ ...prev, address: e.target.value }))}
+                placeholder="Street address"
+                className="bg-gray-50 border border-gray-200"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600">City</Label>
+                <Input
+                  value={settings.city}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, city: e.target.value }))}
+                  placeholder="City"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600">State</Label>
+                <Input
+                  value={settings.state}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, state: e.target.value }))}
+                  placeholder="State"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600">Zip Code</Label>
+                <Input
+                  value={settings.zipCode}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, zipCode: e.target.value }))}
+                  placeholder="Zip"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600">Latitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={settings.latitude}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, latitude: e.target.value }))}
+                  placeholder="e.g. 40.7128"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600">Longitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={settings.longitude}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, longitude: e.target.value }))}
+                  placeholder="e.g. -74.0060"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleUseCurrentLocation}
+              className="border-dashed"
+            >
+              <Navigation className="w-3 h-3 mr-2" />
+              Use Current Location
+            </Button>
           </div>
         </div>
 

@@ -242,11 +242,17 @@ export const updateClinicSettings = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'No clinic associated with this account' });
     }
 
-    const { settings, n8nWebhookUrls } = req.body;
+    const { settings, n8nWebhookUrls, address, city, state, zipCode, latitude, longitude } = req.body;
 
     const updatePayload: Record<string, unknown> = { updatedAt: new Date() };
     if (settings) updatePayload.settings = settings;
     if (n8nWebhookUrls) updatePayload.n8nWebhookUrls = n8nWebhookUrls;
+    if (address !== undefined) updatePayload.address = address || null;
+    if (city !== undefined) updatePayload.city = city || null;
+    if (state !== undefined) updatePayload.state = state || null;
+    if (zipCode !== undefined) updatePayload.zipCode = zipCode || null;
+    if (latitude !== undefined) updatePayload.latitude = latitude != null ? Number(latitude) : null;
+    if (longitude !== undefined) updatePayload.longitude = longitude != null ? Number(longitude) : null;
 
     const [updatedClinic] = await db
       .update(clinics)
@@ -416,18 +422,35 @@ export const addDoctorToClinic = async (req: Request, res: Response) => {
     const authId = randomBytes(16).toString('hex');
     const passwordHash = await bcrypt.hash(randomBytes(8).toString('hex'), 10);
 
+    // Fetch clinic address to inherit into doctor's profile
+    const [clinicRecord] = await db
+      .select()
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
+    const doctorProfileData: {
+      name: string;
+      email: string;
+      phone?: string;
+      specialization?: string;
+      licenseNumber?: string;
+      address?: string;
+    } = {
+      name,
+      email,
+    };
+    if (phone) doctorProfileData.phone = phone;
+    if (specialization) doctorProfileData.specialization = specialization;
+    if (licenseNumber) doctorProfileData.licenseNumber = licenseNumber;
+    if (clinicRecord?.address) doctorProfileData.address = clinicRecord.address;
+
     const [newUser] = await db
       .insert(users)
       .values({
         authId,
         role: 'doctor',
-        profileData: {
-          name,
-          email,
-          phone: phone || undefined,
-          specialization: specialization || undefined,
-          licenseNumber: licenseNumber || undefined,
-        },
+        profileData: doctorProfileData,
       })
       .returning();
 
@@ -774,7 +797,7 @@ export const markNotificationRead = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const notificationId = req.params.notificationId as string;
+    const { notificationId } = req.body;
     if (!notificationId) {
       return res.status(400).json({ error: 'notificationId is required' });
     }

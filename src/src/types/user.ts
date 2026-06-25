@@ -9,7 +9,7 @@ export interface TimelineItem {
   date: string;
   title: string;
   description?: string;
-  status?: 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'processing';
+  status?: 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'processing' | 'reschedule_proposed';
   metadata?: {
     doctorName?: string;
     location?: string;
@@ -18,6 +18,7 @@ export interface TimelineItem {
     fileSize?: number;
     appointmentTime?: string;
     clinicName?: string;
+    status?: string;
   };
 }
 
@@ -46,7 +47,7 @@ export interface Appointment {
   clinicName: string;
   date: string;
   time: string;
-  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'reschedule_proposed';
   type: 'consultation' | 'follow_up' | 'emergency' | 'routine_checkup';
   reason?: string;
   notes?: string;

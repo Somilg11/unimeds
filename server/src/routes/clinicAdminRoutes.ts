@@ -33,13 +33,6 @@ router.get('/records', ...requireClinicAdmin, clinicController.getClinicRecords)
 
 // Notifications
 router.get('/notifications', ...requireClinicAdmin, clinicController.getNotifications);
-router.put('/notifications', ...requireClinicAdmin, (req, res) => {
-  const { notificationId } = req.body;
-  if (notificationId) {
-    req.params = { ...req.params, notificationId };
-    return clinicController.markNotificationRead(req, res);
-  }
-  res.status(400).json({ error: 'notificationId is required' });
-});
+router.put('/notifications', ...requireClinicAdmin, clinicController.markNotificationRead);
 
 export default router;

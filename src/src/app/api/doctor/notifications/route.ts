@@ -1,22 +1,17 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export async function GET(request: Request) {
   try {
-    const session = await auth() as any;
-    if (!session?.accessToken) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const queryString = searchParams.toString();
-    const backendUrl = `${BACKEND_URL}/api/v1/hospital/admin/notifications${queryString ? `?${queryString}` : ''}`;
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/hospital/notifications`;
 
     const res = await fetch(backendUrl, {
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        Authorization: authHeader,
         'Content-Type': 'application/json',
       },
     });
@@ -35,25 +30,22 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth() as any;
-    if (!session?.accessToken) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { notificationId } = body;
 
-    if (!notificationId) {
-      return NextResponse.json({ error: 'notificationId is required' }, { status: 400 });
-    }
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/hospital/notifications`;
 
-    const res = await fetch(`${BACKEND_URL}/api/v1/hospital/admin/notifications`, {
+    const res = await fetch(backendUrl, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        Authorization: authHeader,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ notificationId }),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {

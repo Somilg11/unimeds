@@ -1,13 +1,13 @@
-import { pgTable, uuid, text, timestamp, jsonb, pgEnum, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, jsonb, pgEnum, boolean, integer, real } from 'drizzle-orm/pg-core';
 
 // User roles enum
 export const userRoleEnum = pgEnum('user_role', ['patient', 'doctor', 'clinic_admin', 'super_admin']);
 
 // Appointment status enum
-export const appointmentStatusEnum = pgEnum('appointment_status', ['pending', 'confirmed', 'cancelled']);
+export const appointmentStatusEnum = pgEnum('appointment_status', ['pending', 'confirmed', 'cancelled', 'reschedule_proposed']);
 
 // Notification types enum
-export const notificationTypeEnum = pgEnum('notification_type', ['appointment_reminder', 'appointment_booked', 'appointment_cancelled', 'record_uploaded', 'lab_result_ready', 'general']);
+export const notificationTypeEnum = pgEnum('notification_type', ['appointment_reminder', 'appointment_booked', 'appointment_cancelled', 'appointment_completed', 'record_uploaded', 'lab_result_ready', 'general']);
 
 // Users table - manages platform identities across all supported roles
 export const users = pgTable('users', {
@@ -36,6 +36,12 @@ export const clinics = pgTable('clinics', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   email: text('email'), // Gmail account of clinic admin (used for Google OAuth login)
+  address: text('address'),
+  city: text('city'),
+  state: text('state'),
+  zipCode: text('zip_code'),
+  latitude: real('latitude'),
+  longitude: real('longitude'),
   isActive: boolean('is_active').default(false), // Whether clinic has been activated via invitation
   activationToken: text('activation_token'), // Token sent via email for activation
   activatedAt: timestamp('activated_at'), // When the clinic activated their account
@@ -92,6 +98,9 @@ export const appointments = pgTable('appointments', {
   slotTime: timestamp('slot_time').notNull(),
   status: appointmentStatusEnum('status').notNull().default('pending'),
   notes: text('notes'), // Consultation notes added by doctor
+  proposedTime: timestamp('proposed_time'),
+  proposedBy: uuid('proposed_by').references(() => users.id, { onDelete: 'set null' }),
+  rescheduleReason: text('reschedule_reason'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -100,6 +109,7 @@ export const appointments = pgTable('appointments', {
 export const records = pgTable('records', {
   id: uuid('id').defaultRandom().primaryKey(),
   patientId: uuid('patient_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
   fileUrl: text('file_url').notNull(), // Cloudinary asset URL
   recordType: text('record_type').notNull(), // Document category (e.g., 'prescription', 'lab_report', 'imaging')
   ocrData: jsonb('ocr_data').$type<{
@@ -134,6 +144,18 @@ export const auditLogs = pgTable('audit_logs', {
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 
+// Doctor availability table - weekly recurring schedule for doctors
+export const doctorAvailability = pgTable('doctor_availability', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
+  dayOfWeek: integer('day_of_week').notNull(), // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime: text('start_time').notNull(), // "09:00"
+  endTime: text('end_time').notNull(), // "17:00"
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Type exports for TypeScript
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -155,3 +177,6 @@ export type NewClinicDoctor = typeof clinicDoctors.$inferInsert;
 
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+
+export type DoctorAvailability = typeof doctorAvailability.$inferSelect;
+export type NewDoctorAvailability = typeof doctorAvailability.$inferInsert;

@@ -25,6 +25,12 @@ export type User = {
 export type Clinic = {
   id: string;
   name: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   n8nWebhookUrls: {
     appointmentBooked?: string;
     appointmentCancelled?: string;
@@ -59,7 +65,7 @@ export type Notification = {
   id: string;
   userId: string;
   clinicId?: string;
-  type: 'appointment_reminder' | 'appointment_booked' | 'appointment_cancelled' | 'record_uploaded' | 'lab_result_ready' | 'general';
+  type: 'appointment_reminder' | 'appointment_booked' | 'appointment_cancelled' | 'appointment_completed' | 'record_uploaded' | 'lab_result_ready' | 'general';
   title: string;
   message: string;
   data?: Record<string, unknown>;

@@ -1,17 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { BentoCard } from './bento-card';
-import { Calendar, Clock, MapPin, User, Check, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Check, ChevronRight, ChevronLeft, Loader2, Navigation } from 'lucide-react';
 import { BookingWizardState, AppointmentSlot } from '@/types/user';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
+import { useGeolocation } from '@/lib/hooks/useGeolocation';
 
 interface Clinic {
   id: string;
   name: string;
   address?: string;
+  city?: string;
+  state?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  distance?: number;
   settings?: {
     timezone?: string;
     bookingWindowDays?: number;
@@ -48,6 +54,11 @@ export function BookingClient({ userName }: BookingClientProps) {
   const [isLoadingClinics, setIsLoadingClinics] = useState(true);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [searchMode, setSearchMode] = useState<'all' | 'nearby'>('all');
+  const [manualLocation, setManualLocation] = useState('');
+  const [isSearchingNearby, setIsSearchingNearby] = useState(false);
+
+  const { latitude, longitude, error: geoError, loading: geoLoading, requestLocation } = useGeolocation();
 
   useEffect(() => {
     fetchClinics();
@@ -62,6 +73,40 @@ export function BookingClient({ userName }: BookingClientProps) {
     } finally {
       setIsLoadingClinics(false);
     }
+  };
+
+  const fetchNearbyClinics = useCallback(async (lat: number, lng: number) => {
+    setIsSearchingNearby(true);
+    try {
+      const response = await apiClient.get('/user/clinics/nearby', {
+        params: { lat, lng, radiusKm: 50 },
+      });
+      setClinics(response.data.clinics || []);
+      setSearchMode('nearby');
+    } catch (error) {
+      console.error('Failed to fetch nearby clinics:', error);
+      toast.error('Failed to find nearby clinics');
+    } finally {
+      setIsSearchingNearby(false);
+    }
+  }, []);
+
+  const handleNearMe = () => {
+    requestLocation();
+  };
+
+  useEffect(() => {
+    if (latitude && longitude) {
+      fetchNearbyClinics(latitude, longitude);
+    }
+  }, [latitude, longitude, fetchNearbyClinics]);
+
+  const handleManualSearch = () => {
+    // For manual search, we'll use a geocoding approach
+    // For now, just show all clinics since we don't have a geocoding service
+    toast.info('Showing all clinics. Use "Near Me" for location-based results.');
+    fetchClinics();
+    setSearchMode('all');
   };
 
   const fetchDoctors = async (clinicId: string) => {
@@ -207,32 +252,104 @@ export function BookingClient({ userName }: BookingClientProps) {
           {/* Step 1: Select Clinic */}
           {wizardState.step === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
-                {clinics.map((clinic) => (
-                  <button
-                    key={clinic.id}
-                    onClick={() => {
-                      setSelectedClinic(clinic.id);
-                      handleNext();
-                    }}
-                    className={`p-6 text-left transition-colors ${
-                      selectedClinic === clinic.id
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-white hover:bg-gray-50'
-                    }`}
+              {/* Location Search Bar */}
+              <div className="flex items-center gap-3 mb-4">
+                <Button
+                  variant={searchMode === 'nearby' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={handleNearMe}
+                  disabled={geoLoading || isSearchingNearby}
+                  className={searchMode === 'nearby' ? 'bg-gray-900 text-white' : 'border-dashed'}
+                >
+                  {geoLoading || isSearchingNearby ? (
+                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                  ) : (
+                    <Navigation className="w-3 h-3 mr-2" />
+                  )}
+                  Near Me
+                </Button>
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter city or address..."
+                    value={manualLocation}
+                    onChange={(e) => setManualLocation(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
+                    className="flex-1 px-3 py-1.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleManualSearch}
+                    className="border-dashed"
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className={`w-4 h-4 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`} />
-                      <h3 className="text-sm font-semibold tracking-tight">
-                        {clinic.name}
-                      </h3>
-                    </div>
-                    <p className={`text-xs ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-500'}`}>
-                      {clinic.address}
-                    </p>
-                  </button>
-                ))}
+                    Search
+                  </Button>
+                </div>
+                {searchMode === 'nearby' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchMode('all');
+                      fetchClinics();
+                    }}
+                    className="text-xs text-gray-500"
+                  >
+                    Show All
+                  </Button>
+                )}
               </div>
+              {geoError && (
+                <p className="text-xs text-yellow-600 mb-2">{geoError}</p>
+              )}
+
+              {isSearchingNearby ? (
+                <div className="text-center py-12">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">Finding nearby clinics...</p>
+                </div>
+              ) : clinics.length === 0 ? (
+                <div className="text-center py-12 border border-dashed border-gray-300">
+                  <MapPin className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                  <p className="text-sm text-gray-500">No clinics found</p>
+                  <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
+                    Try a different location or show all clinics
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
+                  {clinics.map((clinic) => (
+                    <button
+                      key={clinic.id}
+                      onClick={() => {
+                        setSelectedClinic(clinic.id);
+                        handleNext();
+                      }}
+                      className={`p-6 text-left transition-colors ${
+                        selectedClinic === clinic.id
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className={`w-4 h-4 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`} />
+                        <h3 className="text-sm font-semibold tracking-tight">
+                          {clinic.name}
+                        </h3>
+                      </div>
+                      <p className={`text-xs ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-500'}`}>
+                        {[clinic.address, clinic.city, clinic.state].filter(Boolean).join(', ') || 'Address not set'}
+                      </p>
+                      {clinic.distance != null && (
+                        <p className={`text-[11px] font-mono mt-2 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`}>
+                          {clinic.distance.toFixed(1)} km away
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

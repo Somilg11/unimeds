@@ -65,12 +65,13 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'notificationId is required' }, { status: 400 });
     }
 
-    const res = await fetch(`${BACKEND_URL}/api/v1/admin/notifications/${notificationId}/read`, {
+    const res = await fetch(`${BACKEND_URL}/api/v1/admin/notifications`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ notificationId }),
     });
 
     if (!res.ok) {

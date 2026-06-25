@@ -18,8 +18,14 @@ router.get('/timeline', authenticate, patientController.getTimeline);
 // GET /api/v1/user/clinics - Get all clinics
 router.get('/clinics', authenticate, patientController.getClinics);
 
+// GET /api/v1/user/clinics/nearby - Search clinics by location
+router.get('/clinics/nearby', authenticate, patientController.searchClinicsByLocation);
+
 // GET /api/v1/user/doctors - Get doctors (optionally filtered by clinic)
 router.get('/doctors', authenticate, patientController.getDoctors);
+
+// GET /api/v1/user/doctors/nearby - Search doctors by location
+router.get('/doctors/nearby', authenticate, patientController.searchDoctorsByLocation);
 
 // GET /api/v1/user/slots - Get available slots for a doctor
 router.get('/slots', authenticate, patientController.getAvailableSlots);
@@ -32,6 +38,15 @@ router.post('/records/:id/process-ocr', authenticate, patientController.processO
 
 // POST /api/v1/user/appointments/book - Book appointment
 router.post('/appointments/book', authenticate, patientController.bookAppointment);
+
+// POST /api/v1/user/appointments/:id/respond-reschedule - Respond to reschedule proposal
+router.post('/appointments/:id/respond-reschedule', authenticate, patientController.respondToReschedule);
+
+// POST /api/v1/user/appointments/:id/cancel - Cancel appointment
+router.post('/appointments/:id/cancel', authenticate, patientController.cancelAppointment);
+
+// GET /api/v1/user/medical-history - Get patient medical history
+router.get('/medical-history', authenticate, patientController.getMedicalHistory);
 
 // PUT /api/v1/user/profile - Update patient profile
 router.put('/profile', authenticate, patientController.updateProfile);

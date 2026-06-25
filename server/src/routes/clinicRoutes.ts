@@ -28,6 +28,6 @@ router.get('/admin/records', ...requireClinicAdmin, clinicController.getClinicRe
 
 // Notifications
 router.get('/admin/notifications', ...requireClinicAdmin, clinicController.getNotifications);
-router.put('/admin/notifications/:notificationId/read', ...requireClinicAdmin, clinicController.markNotificationRead);
+router.put('/admin/notifications', ...requireClinicAdmin, clinicController.markNotificationRead);
 
 export default router;

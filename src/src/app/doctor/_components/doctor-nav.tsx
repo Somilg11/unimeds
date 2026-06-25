@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Calendar, Users, LayoutDashboard, Stethoscope, FileText, Menu, X } from 'lucide-react';
+import { Calendar, Users, LayoutDashboard, Stethoscope, FileText, Menu, X, Clock } from 'lucide-react';
 import { LogoutButton } from '@/components/logout-button';
 import { NotificationBell } from '@/components/notification-bell';
 
@@ -19,6 +18,11 @@ const navItems = [
     href: '/doctor/appointments',
     label: 'Appointments',
     icon: Calendar,
+  },
+  {
+    href: '/doctor/availability',
+    label: 'Availability',
+    icon: Clock,
   },
   {
     href: '/doctor/patients',
@@ -109,7 +113,7 @@ export function DoctorNav({ userName }: DoctorNavProps) {
                   <p className="text-[11px] font-mono uppercase text-gray-400">Doctor</p>
                 </div>
               </div>
-              <NotificationBell apiPrefix="/doctor" />
+              <NotificationBell apiPrefix="/hospital" />
             </div>
             <LogoutButton
               redirectTo="/doctor"
@@ -175,7 +179,7 @@ export function DoctorNav({ userName }: DoctorNavProps) {
               <p className="text-sm font-medium text-gray-900 truncate">{userName || 'Doctor'}</p>
               <p className="text-[10px] font-mono uppercase text-gray-400 tracking-wider">Doctor</p>
             </div>
-            <NotificationBell apiPrefix="/doctor" />
+            <NotificationBell apiPrefix="/hospital" />
           </div>
           <LogoutButton
             redirectTo="/doctor"

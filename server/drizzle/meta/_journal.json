@@ -15,6 +15,13 @@
       "when": 1781194090506,
       "tag": "0001_damp_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782208104483,
+      "tag": "0002_slimy_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

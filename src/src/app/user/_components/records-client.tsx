@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UploadZone } from './upload-zone';
 import { BentoCard } from './bento-card';
-import { FileText, Download, Trash2, Search, Calendar, Loader2 } from 'lucide-react';
+import { FileText, Download, Trash2, Search, Calendar, Loader2, UserPlus } from 'lucide-react';
 import { MedicalRecord } from '@/types/user';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
@@ -14,8 +14,13 @@ interface RecordsClientProps {
   userName?: string;
 }
 
+interface EnrichedRecord extends MedicalRecord {
+  uploadedBy?: string | null;
+  uploaderName?: string | null;
+}
+
 export function RecordsClient({ userName }: RecordsClientProps) {
-  const [records, setRecords] = useState<MedicalRecord[]>([]);
+  const [records, setRecords] = useState<EnrichedRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'lab_report' | 'prescription' | 'imaging'>('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +34,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
       const response = await apiClient.get('/user/timeline');
       const timeline = response.data.timeline || [];
       
-      const medicalRecords: MedicalRecord[] = timeline
+      const medicalRecords: EnrichedRecord[] = timeline
         .filter((item: any) => item.type === 'record')
         .map((item: any) => ({
           id: item.data.id,
@@ -46,6 +51,8 @@ export function RecordsClient({ userName }: RecordsClientProps) {
             diagnoses: item.data.ocrData.diagnoses,
           } : undefined,
           s3Url: item.data.fileUrl,
+          uploadedBy: item.data.uploadedBy,
+          uploaderName: item.data.uploaderName,
         }));
       
       setRecords(medicalRecords);
@@ -206,6 +213,12 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                       <div>
                         {(record.fileSize / 1024 / 1024).toFixed(2)} MB
                       </div>
+                      {record.uploaderName && (
+                        <div className="flex items-center gap-1">
+                          <UserPlus className="w-3 h-3" />
+                          by {record.uploaderName}
+                        </div>
+                      )}
                     </div>
 
                     {record.ocrData?.keyFindings && record.ocrStatus === 'completed' && (

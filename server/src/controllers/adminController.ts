@@ -79,7 +79,7 @@ export const superAdminLogin = async (req: Request, res: Response) => {
 
 export const createClinic = async (req: Request, res: Response) => {
   try {
-    const { name, email, n8nWebhookUrls, settings } = req.body;
+    const { name, email, n8nWebhookUrls, settings, address, city, state, zipCode, latitude, longitude } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ error: 'Clinic name and email are required' });
@@ -107,6 +107,12 @@ export const createClinic = async (req: Request, res: Response) => {
         activationToken,
         n8nWebhookUrls,
         settings,
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        zipCode: zipCode || null,
+        latitude: latitude != null ? Number(latitude) : null,
+        longitude: longitude != null ? Number(longitude) : null,
       })
       .returning();
 
@@ -243,6 +249,12 @@ export const getClinics = async (req: Request, res: Response) => {
         id: clinics.id,
         name: clinics.name,
         email: clinics.email,
+        address: clinics.address,
+        city: clinics.city,
+        state: clinics.state,
+        zipCode: clinics.zipCode,
+        latitude: clinics.latitude,
+        longitude: clinics.longitude,
         isActive: clinics.isActive,
         activatedAt: clinics.activatedAt,
         n8nWebhookUrls: clinics.n8nWebhookUrls,
@@ -328,6 +340,37 @@ export const assignDoctorToClinic = async (req: Request, res: Response) => {
 
     if (!assignment) {
       return res.status(500).json({ error: 'Failed to assign doctor to clinic' });
+    }
+
+    // Inherit clinic address into doctor's profileData
+    const [clinicRecord] = await db
+      .select()
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
+    if (clinicRecord) {
+      const [doctorRecord] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, doctorId))
+        .limit(1);
+
+      if (doctorRecord) {
+        const profile = (doctorRecord.profileData as Record<string, unknown>) || {};
+        const newProfile: Record<string, unknown> = { ...profile };
+        const clinicAddress = clinicRecord.address || (profile.address as string);
+        if (clinicAddress) {
+          newProfile.address = clinicAddress;
+        }
+        await db
+          .update(users)
+          .set({
+            profileData: newProfile,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, doctorId));
+      }
     }
 
     const clinicAdmins = await db
@@ -613,11 +656,13 @@ export const markNotificationRead = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const id = String(req.params.id);
+    const { notificationId } = req.body;
 
-    if (!id) {
+    if (!notificationId) {
       return res.status(400).json({ error: 'Notification ID is required' });
     }
+
+    const id = notificationId;
 
     const existingNotification = await db
       .select()
@@ -644,7 +689,12 @@ export const markNotificationRead = async (req: Request, res: Response) => {
         isRead: true,
         readAt: new Date(),
       })
-      .where(eq(notifications.id, id))
+      .where(
+        and(
+          eq(notifications.id, id),
+          eq(notifications.userId, userId)
+        )
+      )
       .returning();
 
     res.json({ success: true, notification: updatedNotification });

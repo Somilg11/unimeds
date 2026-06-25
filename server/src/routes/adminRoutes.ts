@@ -29,6 +29,6 @@ router.delete('/audit-logs', ...requireAdmin, adminController.clearAuditLogs);
 
 // Notifications
 router.get('/notifications', ...requireAdmin, adminController.getNotifications);
-router.put('/notifications/:id/read', ...requireAdmin, adminController.markNotificationRead);
+router.put('/notifications', ...requireAdmin, adminController.markNotificationRead);
 
 export default router;

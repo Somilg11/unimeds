@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { FileText, Calendar, User, LayoutDashboard, Menu, X } from 'lucide-react';
+import { FileText, Calendar, User, LayoutDashboard, Menu, X, ClipboardList } from 'lucide-react';
 import { LogoutButton } from '@/components/logout-button';
 import { NotificationBell } from '@/components/notification-bell';
 
@@ -18,6 +18,11 @@ const navItems = [
     href: '/user/records',
     label: 'Records',
     icon: FileText,
+  },
+  {
+    href: '/user/medical-history',
+    label: 'Medical History',
+    icon: ClipboardList,
   },
   {
     href: '/user/book',

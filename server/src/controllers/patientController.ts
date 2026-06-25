@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { db } from '../db/db.js';
-import { users, records, appointments, clinics, clinicDoctors, notifications } from '../db/schema.js';
-import { eq, and, desc, or, gte, lte, isNotNull, isNull, inArray, count } from 'drizzle-orm';
+import { users, records, appointments, clinics, clinicDoctors, notifications, doctorAvailability } from '../db/schema.js';
+import { eq, and, desc, or, gte, lte, isNotNull, isNull, inArray, count, sql } from 'drizzle-orm';
 import { generateSignedUploadUrl } from '../lib/cloudinary.js';
 
 export const syncUser = async (req: Request, res: Response) => {
@@ -89,6 +89,7 @@ export const uploadRecord = async (req: Request, res: Response) => {
     // Create record entry with pending status
     const [newRecord] = await db.insert(records).values({
       patientId: userId,
+      uploadedBy: userId,
       fileUrl: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/${publicId}`,
       recordType: recordType || 'general',
       fileName,
@@ -205,6 +206,18 @@ export const bookAppointment = async (req: Request, res: Response) => {
       notes: appointmentNotes,
     }).returning();
 
+    // Notify doctor
+    if (newAppointment) {
+      await db.insert(notifications).values({
+        userId: doctorId,
+        clinicId,
+        type: 'appointment_booked',
+        title: 'New Appointment Booked',
+        message: `A patient has booked an appointment.`,
+        data: { appointmentId: newAppointment.id, slotTime: slotDate.toISOString() },
+      });
+    }
+
     res.json({ success: true, appointment: newAppointment });
   } catch (error) {
     console.error('Error booking appointment:', error);
@@ -243,6 +256,12 @@ export const getClinics = async (req: Request, res: Response) => {
       .select({
         id: clinics.id,
         name: clinics.name,
+        address: clinics.address,
+        city: clinics.city,
+        state: clinics.state,
+        zipCode: clinics.zipCode,
+        latitude: clinics.latitude,
+        longitude: clinics.longitude,
         settings: clinics.settings,
       })
       .from(clinics);
@@ -304,6 +323,26 @@ export const getAvailableSlots = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Date is required' });
     }
 
+    const requestedDate = new Date(date);
+    const dayOfWeek = requestedDate.getDay();
+
+    // Get doctor's availability for this day of week
+    const availability = await db
+      .select()
+      .from(doctorAvailability)
+      .where(
+        and(
+          eq(doctorAvailability.doctorId, doctorId),
+          eq(doctorAvailability.dayOfWeek, dayOfWeek),
+          eq(doctorAvailability.isActive, true)
+        )
+      );
+
+    // If no availability set, fall back to default 9-5
+    const timeBlocks = availability.length > 0
+      ? availability.map((a) => ({ start: a.startTime, end: a.endTime }))
+      : [{ start: '09:00', end: '17:00' }];
+
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -327,30 +366,39 @@ export const getAvailableSlots = async (req: Request, res: Response) => {
 
     const bookedTimes = new Set(bookedSlots.map(s => s.slotTime.toISOString()));
 
-    // Generate available slots (9 AM to 5 PM, 30-minute intervals)
+    // Generate available slots based on availability blocks
     const availableSlots = [];
     const slotDuration = 30; // minutes
-    const startHour = 9;
-    const endHour = 17;
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += slotDuration) {
-        const slotTime = new Date(date);
-        slotTime.setHours(hour, minute, 0, 0);
-        
-        // Skip if slot is in the past
-        if (slotTime < new Date()) continue;
+    for (const block of timeBlocks) {
+      const parts = block.start.split(':').map(Number);
+      const endParts = block.end.split(':').map(Number);
+      const startHour = parts[0] ?? 9;
+      const startMin = parts[1] ?? 0;
+      const endHour = endParts[0] ?? 17;
+      const endMin = endParts[1] ?? 0;
 
-        const slotTimeISO = slotTime.toISOString();
-        if (!bookedTimes.has(slotTimeISO)) {
-          availableSlots.push({
-            id: `${doctorId}-${slotTimeISO}`,
-            doctorId,
-            date,
-            startTime: slotTime.toTimeString().slice(0, 5),
-            endTime: new Date(slotTime.getTime() + slotDuration * 60000).toTimeString().slice(0, 5),
-            available: true,
-          });
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = (hour === startHour ? startMin : 0); minute < 60; minute += slotDuration) {
+          if (hour === endHour - 1 && minute >= endMin) break;
+
+          const slotTime = new Date(date);
+          slotTime.setHours(hour, minute, 0, 0);
+
+          // Skip if slot is in the past
+          if (slotTime < new Date()) continue;
+
+          const slotTimeISO = slotTime.toISOString();
+          if (!bookedTimes.has(slotTimeISO)) {
+            availableSlots.push({
+              id: `${doctorId}-${slotTimeISO}`,
+              doctorId,
+              date,
+              startTime: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+              endTime: new Date(slotTime.getTime() + slotDuration * 60000).toTimeString().slice(0, 5),
+              available: true,
+            });
+          }
         }
       }
     }
@@ -437,5 +485,341 @@ export const markNotificationRead = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error marking notification as read:', error);
     res.status(500).json({ error: 'Failed to mark notification as read' });
+  }
+};
+
+export const getMedicalHistory = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const userRecords = await db
+      .select({
+        id: records.id,
+        fileUrl: records.fileUrl,
+        recordType: records.recordType,
+        fileName: records.fileName,
+        fileSize: records.fileSize,
+        mimeType: records.mimeType,
+        ocrData: records.ocrData,
+        uploadedBy: records.uploadedBy,
+        createdAt: records.createdAt,
+        uploaderName: sql<string>`(${users.profileData})::json->>'name'`,
+      })
+      .from(records)
+      .leftJoin(users, eq(records.uploadedBy, users.id))
+      .where(eq(records.patientId, userId))
+      .orderBy(desc(records.createdAt));
+
+    const userAppointments = await db
+      .select({
+        id: appointments.id,
+        slotTime: appointments.slotTime,
+        status: appointments.status,
+        notes: appointments.notes,
+        proposedTime: appointments.proposedTime,
+        proposedBy: appointments.proposedBy,
+        rescheduleReason: appointments.rescheduleReason,
+        doctorName: sql<string>`(${users.profileData})::json->>'name'`,
+        clinicName: clinics.name,
+      })
+      .from(appointments)
+      .innerJoin(users, eq(appointments.doctorId, users.id))
+      .innerJoin(clinics, eq(appointments.clinicId, clinics.id))
+      .where(eq(appointments.patientId, userId))
+      .orderBy(desc(appointments.slotTime));
+
+    res.json({
+      records: userRecords,
+      appointments: userAppointments,
+    });
+  } catch (error) {
+    console.error('Error fetching medical history:', error);
+    res.status(500).json({ error: 'Failed to fetch medical history' });
+  }
+};
+
+export const respondToReschedule = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { id } = req.params;
+    const { accept } = req.body;
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid appointment ID' });
+    }
+
+    if (typeof accept !== 'boolean') {
+      return res.status(400).json({ error: 'accept (boolean) is required' });
+    }
+
+    const [appointment] = await db
+      .select()
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.id, id),
+          eq(appointments.patientId, userId),
+          eq(appointments.status, 'reschedule_proposed')
+        )
+      );
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found or not in reschedule_proposed status' });
+    }
+
+    if (accept) {
+      // Check for conflicts at the proposed time
+      const proposedTime = appointment.proposedTime;
+      if (!proposedTime) {
+        return res.status(400).json({ error: 'No proposed time found' });
+      }
+
+      const [conflict] = await db
+        .select()
+        .from(appointments)
+        .where(
+          and(
+            eq(appointments.doctorId, appointment.doctorId),
+            eq(appointments.clinicId, appointment.clinicId),
+            eq(appointments.slotTime, proposedTime),
+            or(
+              eq(appointments.status, 'confirmed'),
+              eq(appointments.status, 'pending')
+            ),
+            sql`${appointments.id} != ${id}`
+          )
+        );
+
+      if (conflict) {
+        return res.status(409).json({ error: 'The proposed time slot is no longer available' });
+      }
+
+      // Accept reschedule: update slot time, reset status, clear proposal fields
+      const [updated] = await db
+        .update(appointments)
+        .set({
+          slotTime: proposedTime,
+          status: 'pending',
+          proposedTime: null,
+          proposedBy: null,
+          rescheduleReason: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(appointments.id, id))
+        .returning();
+
+      // Notify doctor
+      await db.insert(notifications).values({
+        userId: appointment.doctorId,
+        clinicId: appointment.clinicId,
+        type: 'general',
+        title: 'Reschedule Accepted',
+        message: `Patient has accepted the rescheduled appointment.`,
+        data: { appointmentId: id, newTime: proposedTime },
+      });
+
+      res.json({ success: true, appointment: updated });
+    } else {
+      // Decline reschedule: cancel appointment
+      const [updated] = await db
+        .update(appointments)
+        .set({
+          status: 'cancelled',
+          proposedTime: null,
+          proposedBy: null,
+          rescheduleReason: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(appointments.id, id))
+        .returning();
+
+      // Notify doctor
+      await db.insert(notifications).values({
+        userId: appointment.doctorId,
+        clinicId: appointment.clinicId,
+        type: 'appointment_cancelled',
+        title: 'Reschedule Declined',
+        message: `Patient has declined the rescheduled appointment. The appointment has been cancelled.`,
+        data: { appointmentId: id },
+      });
+
+      res.json({ success: true, appointment: updated });
+    }
+  } catch (error) {
+    console.error('Error responding to reschedule:', error);
+    res.status(500).json({ error: 'Failed to respond to reschedule' });
+  }
+};
+
+export const cancelAppointment = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { id } = req.params;
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid appointment ID' });
+    }
+
+    const [appointment] = await db
+      .select()
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.id, id),
+          eq(appointments.patientId, userId)
+        )
+      );
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    if (appointment.status === 'cancelled') {
+      return res.status(400).json({ error: 'Appointment is already cancelled' });
+    }
+
+    const [updated] = await db
+      .update(appointments)
+      .set({
+        status: 'cancelled',
+        updatedAt: new Date(),
+      })
+      .where(eq(appointments.id, id))
+      .returning();
+
+    await db.insert(notifications).values({
+      userId: appointment.doctorId,
+      clinicId: appointment.clinicId,
+      type: 'appointment_cancelled',
+      title: 'Appointment Cancelled',
+      message: `Patient has cancelled the appointment.`,
+      data: { appointmentId: id },
+    });
+
+    res.json({ success: true, appointment: updated });
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    res.status(500).json({ error: 'Failed to cancel appointment' });
+  }
+};
+
+export const searchClinicsByLocation = async (req: Request, res: Response) => {
+  try {
+    const { lat, lng, radiusKm } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'lat and lng are required' });
+    }
+
+    const latitude = parseFloat(lat as string);
+    const longitude = parseFloat(lng as string);
+    const radius = parseFloat(radiusKm as string) || 25;
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({ error: 'Invalid latitude or longitude' });
+    }
+
+    const haversineExpr = sql`(6371 * acos(cos(radians(${latitude})) * cos(radians(COALESCE(${clinics.latitude}, 0))) * cos(radians(COALESCE(${clinics.longitude}, 0)) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(COALESCE(${clinics.latitude}, 0)))))`;
+
+    const nearbyClinics = await db
+      .select({
+        id: clinics.id,
+        name: clinics.name,
+        address: clinics.address,
+        city: clinics.city,
+        state: clinics.state,
+        zipCode: clinics.zipCode,
+        latitude: clinics.latitude,
+        longitude: clinics.longitude,
+        distance: sql<number>`${haversineExpr}`,
+      })
+      .from(clinics)
+      .where(
+        and(
+          eq(clinics.isActive, true),
+          sql`${clinics.latitude} IS NOT NULL`,
+          sql`${clinics.longitude} IS NOT NULL`,
+          sql`${haversineExpr} <= ${radius}`
+        )
+      )
+      .orderBy(sql`${haversineExpr}`);
+
+    res.json({ clinics: nearbyClinics });
+  } catch (error) {
+    console.error('Error searching clinics by location:', error);
+    res.status(500).json({ error: 'Failed to search clinics by location' });
+  }
+};
+
+export const searchDoctorsByLocation = async (req: Request, res: Response) => {
+  try {
+    const { lat, lng, radiusKm, specialization } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'lat and lng are required' });
+    }
+
+    const latitude = parseFloat(lat as string);
+    const longitude = parseFloat(lng as string);
+    const radius = parseFloat(radiusKm as string) || 25;
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({ error: 'Invalid latitude or longitude' });
+    }
+
+    const haversineExpr = sql`(6371 * acos(cos(radians(${latitude})) * cos(radians(COALESCE(${clinics.latitude}, 0))) * cos(radians(COALESCE(${clinics.longitude}, 0)) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(COALESCE(${clinics.latitude}, 0)))))`;
+
+    let query = db
+      .select({
+        id: users.id,
+        profileData: users.profileData,
+        clinicId: clinicDoctors.clinicId,
+        clinicName: clinics.name,
+        clinicAddress: clinics.address,
+        clinicCity: clinics.city,
+        distance: sql<number>`${haversineExpr}`,
+      })
+      .from(users)
+      .innerJoin(clinicDoctors, eq(users.id, clinicDoctors.doctorId))
+      .innerJoin(clinics, eq(clinicDoctors.clinicId, clinics.id))
+      .where(
+        and(
+          eq(users.role, 'doctor'),
+          eq(clinicDoctors.isActive, true),
+          eq(clinics.isActive, true),
+          sql`${clinics.latitude} IS NOT NULL`,
+          sql`${clinics.longitude} IS NOT NULL`,
+          sql`${haversineExpr} <= ${radius}`
+        )
+      )
+      .orderBy(sql`${haversineExpr}`);
+
+    const doctors = await query;
+
+    // Filter by specialization in memory (since it's in JSONB)
+    const filtered = specialization
+      ? doctors.filter((d) => {
+          const profile = d.profileData as Record<string, unknown> | null;
+          return profile?.specialization
+            ?.toString()
+            .toLowerCase()
+            .includes((specialization as string).toLowerCase());
+        })
+      : doctors;
+
+    res.json({ doctors: filtered });
+  } catch (error) {
+    console.error('Error searching doctors by location:', error);
+    res.status(500).json({ error: 'Failed to search doctors by location' });
   }
 };

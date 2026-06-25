@@ -19,6 +19,12 @@ export default function AdminOnboardClinic() {
   
   const [formData, setFormData] = useState({
     name: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    latitude: '',
+    longitude: '',
     n8nWebhookUrls: '',
     settings: '',
   });
@@ -50,6 +56,12 @@ export default function AdminOnboardClinic() {
         },
         body: JSON.stringify({
           name: formData.name,
+          address: formData.address || undefined,
+          city: formData.city || undefined,
+          state: formData.state || undefined,
+          zipCode: formData.zipCode || undefined,
+          latitude: formData.latitude ? Number(formData.latitude) : undefined,
+          longitude: formData.longitude ? Number(formData.longitude) : undefined,
           n8nWebhookUrls,
           settings,
         }),
@@ -63,7 +75,7 @@ export default function AdminOnboardClinic() {
       const resJson = await res.json();
       setSuccess(resJson);
       // Reset form
-      setFormData({ name: '', n8nWebhookUrls: '', settings: '' });
+      setFormData({ name: '', address: '', city: '', state: '', zipCode: '', latitude: '', longitude: '', n8nWebhookUrls: '', settings: '' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       console.error('Error onboarding clinic:', err);
@@ -98,6 +110,75 @@ export default function AdminOnboardClinic() {
               className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 mb-2">Address</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              placeholder="Street address"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-2">City</label>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-2">State</label>
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-2">Zip Code</label>
+              <input
+                type="text"
+                name="zipCode"
+                value={formData.zipCode}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-2">Latitude</label>
+              <input
+                type="number"
+                step="any"
+                name="latitude"
+                value={formData.latitude}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                placeholder="e.g. 40.7128"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-2">Longitude</label>
+              <input
+                type="number"
+                step="any"
+                name="longitude"
+                value={formData.longitude}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                placeholder="e.g. -74.0060"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 mb-2">N8N Webhook URLs (JSON)</label>

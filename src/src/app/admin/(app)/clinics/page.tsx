@@ -7,13 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Building2, Plus, Search, Users, Copy, Check, MoreHorizontal, Power, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, Plus, Search, Users, Copy, Check, MoreHorizontal, Power, ChevronLeft, ChevronRight, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Clinic {
   id: string;
   name: string;
   email?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -29,6 +35,12 @@ export default function AdminClinics() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [clinicName, setClinicName] = useState('');
   const [clinicEmail, setClinicEmail] = useState('');
+  const [clinicAddress, setClinicAddress] = useState('');
+  const [clinicCity, setClinicCity] = useState('');
+  const [clinicState, setClinicState] = useState('');
+  const [clinicZipCode, setClinicZipCode] = useState('');
+  const [clinicLatitude, setClinicLatitude] = useState('');
+  const [clinicLongitude, setClinicLongitude] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [activationLink, setActivationLink] = useState<string | null>(null);
@@ -59,6 +71,24 @@ export default function AdminClinics() {
     }
   }
 
+  function handleUseCurrentLocation() {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setClinicLatitude(String(position.coords.latitude));
+        setClinicLongitude(String(position.coords.longitude));
+        toast.success('Current location set');
+      },
+      (err) => {
+        toast.error(`Failed to get location: ${err.message}`);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
   async function handleAddClinic(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -68,6 +98,12 @@ export default function AdminClinics() {
       const res = await apiClient.post('/admin/tenants/onboard', {
         name: clinicName,
         email: clinicEmail,
+        address: clinicAddress || undefined,
+        city: clinicCity || undefined,
+        state: clinicState || undefined,
+        zipCode: clinicZipCode || undefined,
+        latitude: clinicLatitude ? Number(clinicLatitude) : undefined,
+        longitude: clinicLongitude ? Number(clinicLongitude) : undefined,
       });
       const data = res.data;
       if (data.activationLink) {
@@ -75,6 +111,12 @@ export default function AdminClinics() {
       }
       setClinicName('');
       setClinicEmail('');
+      setClinicAddress('');
+      setClinicCity('');
+      setClinicState('');
+      setClinicZipCode('');
+      setClinicLatitude('');
+      setClinicLongitude('');
       setShowAddForm(false);
       fetchClinics();
       toast.success('Clinic created successfully');
@@ -212,6 +254,78 @@ export default function AdminClinics() {
                 </p>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label className="font-mono text-[10px] uppercase text-gray-500">Address</Label>
+              <Input
+                value={clinicAddress}
+                onChange={(e) => setClinicAddress(e.target.value)}
+                placeholder="Street address"
+                className="bg-gray-50 border border-gray-200"
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="font-mono text-[10px] uppercase text-gray-500">City</Label>
+                <Input
+                  value={clinicCity}
+                  onChange={(e) => setClinicCity(e.target.value)}
+                  placeholder="City"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-mono text-[10px] uppercase text-gray-500">State</Label>
+                <Input
+                  value={clinicState}
+                  onChange={(e) => setClinicState(e.target.value)}
+                  placeholder="State"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-mono text-[10px] uppercase text-gray-500">Zip Code</Label>
+                <Input
+                  value={clinicZipCode}
+                  onChange={(e) => setClinicZipCode(e.target.value)}
+                  placeholder="Zip"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-mono text-[10px] uppercase text-gray-500">Latitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={clinicLatitude}
+                  onChange={(e) => setClinicLatitude(e.target.value)}
+                  placeholder="e.g. 40.7128"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-mono text-[10px] uppercase text-gray-500">Longitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={clinicLongitude}
+                  onChange={(e) => setClinicLongitude(e.target.value)}
+                  placeholder="e.g. -74.0060"
+                  className="bg-gray-50 border border-gray-200"
+                />
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleUseCurrentLocation}
+              className="border-dashed"
+            >
+              <Navigation className="w-3 h-3 mr-2" />
+              Use Current Location
+            </Button>
             <div className="flex items-center gap-2 pt-2">
               <Button type="submit" disabled={submitting} size="sm">
                 {submitting ? 'Creating...' : 'Create & Send Invitation'}
@@ -298,6 +412,7 @@ export default function AdminClinics() {
                   <tr className="border-b border-gray-200">
                     <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500">Clinic Name</th>
                     <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden sm:table-cell">Email</th>
+                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden lg:table-cell">Location</th>
                     <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500">Status</th>
                     <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden md:table-cell">Doctors</th>
                     <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden lg:table-cell">Created</th>
@@ -313,6 +428,15 @@ export default function AdminClinics() {
                       </td>
                       <td className="py-3 px-3 sm:px-4 text-gray-600 truncate max-w-[200px] hidden sm:table-cell">
                         {clinic.email || <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="py-3 px-3 sm:px-4 text-gray-500 text-xs hidden lg:table-cell">
+                        {clinic.address || clinic.city ? (
+                          <div className="truncate max-w-[180px]">
+                            {clinic.address}{clinic.city ? `, ${clinic.city}` : ''}{clinic.state ? `, ${clinic.state}` : ''}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="py-3 px-3 sm:px-4">
                         <Badge

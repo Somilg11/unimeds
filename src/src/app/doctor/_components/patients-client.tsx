@@ -29,10 +29,11 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
     fetchPatients();
   }, [token]);
 
-  async function fetchPatients() {
+  async function fetchPatients(query?: string) {
     try {
       setLoading(true);
-      const res = await fetch('/api/doctor/patients/search?q=', {
+      const url = query ? `/api/doctor/patients/search?q=${encodeURIComponent(query)}` : '/api/doctor/patients/search';
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
@@ -46,11 +47,13 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
     }
   }
 
-  const filtered = patients.filter(p =>
-    p.name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.email?.toLowerCase().includes(search.toLowerCase()) ||
-    p.phone?.includes(search)
-  );
+  const filtered = search
+    ? patients.filter(p =>
+        p.name?.toLowerCase().includes(search.toLowerCase()) ||
+        p.email?.toLowerCase().includes(search.toLowerCase()) ||
+        p.phone?.includes(search)
+      )
+    : patients;
 
   return (
     <div>
