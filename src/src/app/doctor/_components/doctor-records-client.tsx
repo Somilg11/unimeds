@@ -20,11 +20,12 @@ interface Record {
 }
 
 interface Patient {
-  id: string;
-  profileData?: {
-    name?: string;
-    email?: string;
-  };
+  patientId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: string;
 }
 
 interface DoctorRecordsClientProps {
@@ -102,7 +103,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          patientId: selectedPatient.id,
+          patientId: selectedPatient.patientId,
           fileName: file.name,
           fileType: file.type,
           recordType,
@@ -265,14 +266,14 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                   <div className="border border-gray-200 max-h-48 overflow-y-auto">
                     {patients.map((patient) => (
                       <button
-                        key={patient.id}
+                        key={patient.patientId}
                         onClick={() => setSelectedPatient(patient)}
                         className="w-full text-left p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0"
                       >
                         <div className="text-sm font-medium text-gray-900">
-                          {patient.profileData?.name || 'Unknown'}
+                          {patient.name || 'Unknown'}
                         </div>
-                        <div className="text-xs text-gray-500">{patient.profileData?.email}</div>
+                        <div className="text-xs text-gray-500">{patient.email}</div>
                       </button>
                     ))}
                   </div>
@@ -285,9 +286,9 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
               <div className="space-y-4">
                 <div className="p-3 bg-gray-50 border border-gray-200">
                   <p className="text-sm font-medium text-gray-900">
-                    {selectedPatient.profileData?.name}
+                    {selectedPatient.name}
                   </p>
-                  <p className="text-xs text-gray-500">{selectedPatient.profileData?.email}</p>
+                  <p className="text-xs text-gray-500">{selectedPatient.email}</p>
                 </div>
 
                 <div>

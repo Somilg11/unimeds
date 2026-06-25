@@ -26,6 +26,7 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const readIdsRef = useRef<Set<string>>(new Set());
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -37,7 +38,12 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
   }, [apiPrefix]);
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    if (
+      containerRef.current && 
+      !containerRef.current.contains(e.target as Node) &&
+      dropdownRef.current &&
+      !dropdownRef.current.contains(e.target as Node)
+    ) {
       setIsOpen(false);
     }
   }, []);
@@ -110,11 +116,7 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
     try {
-      await Promise.all(
-        unreadIds.map((id) =>
-          apiClient.put(`${apiPrefix}/notifications`, { notificationId: id })
-        )
-      );
+      await apiClient.put(`${apiPrefix}/notifications`, { all: true });
     } catch {
       // optimistic update stays
     }
@@ -123,6 +125,7 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
   const dropdown = isOpen
     ? createPortal(
         <div
+          ref={dropdownRef}
           className="fixed w-80 bg-white border border-gray-200 shadow-lg z-[9999] flex flex-col"
           style={{
             bottom: `${window.innerHeight - dropdownPos.top + 8}px`,

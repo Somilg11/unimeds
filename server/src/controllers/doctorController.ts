@@ -721,7 +721,16 @@ export const markNotificationRead = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { notificationId } = req.body;
+    const { notificationId, all } = req.body;
+
+    if (all) {
+      await db
+        .update(notifications)
+        .set({ isRead: true, readAt: new Date() })
+        .where(eq(notifications.userId, userId));
+      return res.json({ success: true });
+    }
+
     if (!notificationId) {
       return res.status(400).json({ error: 'notificationId is required' });
     }

@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Users, Search, Calendar, Phone, Mail } from 'lucide-react';
 
 interface Patient {
-  id: string;
+  patientId: string;
   name: string;
   email: string;
   phone: string;
-  lastAppointmentDate: string | null;
+  dateOfBirth?: string;
+  gender?: string;
+  lastAppointment: string | null;
   totalAppointments: number;
 }
 
@@ -103,7 +105,7 @@ export default function ClinicAdminPatients() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
           {filteredPatients.map((patient) => (
-            <div key={patient.id} className="bg-white p-4">
+            <div key={patient.patientId} className="bg-white p-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">{patient.name}</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -118,8 +120,8 @@ export default function ClinicAdminPatients() {
                   <Calendar className="w-3.5 h-3.5 text-gray-400" />
                   <span>
                     Last:{' '}
-                    {patient.lastAppointmentDate
-                      ? new Date(patient.lastAppointmentDate).toLocaleDateString()
+                    {patient.lastAppointment
+                      ? new Date(patient.lastAppointment).toLocaleDateString()
                       : 'Never'}
                   </span>
                 </div>

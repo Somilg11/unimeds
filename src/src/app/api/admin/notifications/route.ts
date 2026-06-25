@@ -60,9 +60,10 @@ export async function PUT(request: Request) {
 
     const body = await request.json();
     const notificationId = body.id || body.notificationId;
+    const { all } = body;
 
-    if (!notificationId) {
-      return NextResponse.json({ error: 'notificationId is required' }, { status: 400 });
+    if (!notificationId && !all) {
+      return NextResponse.json({ error: 'notificationId or all parameter is required' }, { status: 400 });
     }
 
     const res = await fetch(`${BACKEND_URL}/api/v1/admin/notifications`, {
@@ -71,7 +72,7 @@ export async function PUT(request: Request) {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ notificationId }),
+      body: JSON.stringify({ notificationId, all }),
     });
 
     if (!res.ok) {
