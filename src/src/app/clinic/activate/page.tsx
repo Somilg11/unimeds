@@ -81,7 +81,7 @@ function ActivateClinicContent() {
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white border border-zinc-200">
         <CardHeader className="text-center p-6">
-          <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-zinc-100  flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-6 h-6 text-zinc-600" />
           </div>
           <CardTitle className="text-xl font-black text-zinc-900 tracking-tight">
@@ -101,11 +101,11 @@ function ActivateClinicContent() {
 
           {status === 'ready' && (
             <div className="space-y-4">
-              <div className="p-3 bg-zinc-50 rounded-lg border border-zinc-200">
+              <div className="p-3 bg-zinc-50  border border-zinc-200">
                 <p className="text-xs text-zinc-500">Clinic Name</p>
                 <p className="text-sm font-medium text-zinc-900">{clinicName}</p>
               </div>
-              <div className="p-3 bg-zinc-50 rounded-lg border border-zinc-200">
+              <div className="p-3 bg-zinc-50  border border-zinc-200">
                 <p className="text-xs text-zinc-500">Admin Email</p>
                 <p className="text-sm font-medium text-zinc-900">{clinicEmail}</p>
               </div>
@@ -131,7 +131,7 @@ function ActivateClinicContent() {
 
           {status === 'success' && (
             <div className="text-center py-6">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 bg-green-100  flex items-center justify-center mx-auto mb-4">
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <h3 className="text-lg font-semibold text-zinc-900 mb-2">
@@ -151,7 +151,7 @@ function ActivateClinicContent() {
 
           {status === 'error' && (
             <div className="text-center py-6">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 bg-red-100  flex items-center justify-center mx-auto mb-4">
                 <X className="w-6 h-6 text-red-600" />
               </div>
               <h3 className="text-lg font-semibold text-zinc-900 mb-2">Activation Failed</h3>

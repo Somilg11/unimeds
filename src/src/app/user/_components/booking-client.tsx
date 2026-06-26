@@ -259,7 +259,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                   size="sm"
                   onClick={handleNearMe}
                   disabled={geoLoading || isSearchingNearby}
-                  className={searchMode === 'nearby' ? 'bg-gray-900 text-white' : 'border-dashed'}
+                  className={`rounded-none ${searchMode === 'nearby' ? 'bg-gray-900 text-white' : 'border-dashed'}`}
                 >
                   {geoLoading || isSearchingNearby ? (
                     <Loader2 className="w-3 h-3 mr-2 animate-spin" />
@@ -281,7 +281,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                     variant="outline"
                     size="sm"
                     onClick={handleManualSearch}
-                    className="border-dashed"
+                    className="rounded-none border-dashed"
                   >
                     Search
                   </Button>
@@ -294,7 +294,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                       setSearchMode('all');
                       fetchClinics();
                     }}
-                    className="text-xs text-gray-500"
+                    className="rounded-none text-xs text-gray-500"
                   >
                     Show All
                   </Button>
@@ -396,7 +396,7 @@ export function BookingClient({ userName }: BookingClientProps) {
               <Button
                 variant="outline"
                 onClick={handleBack}
-                className="mt-4 border-dashed"
+                className="mt-4 rounded-none border-dashed"
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
                 Back
@@ -474,7 +474,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                 <Button
                   variant="outline"
                   onClick={handleBack}
-                  className="border-dashed"
+                  className="rounded-none border-dashed"
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Back
@@ -482,7 +482,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                 <Button
                   onClick={handleNext}
                   disabled={!selectedSlot}
-                  className="bg-gray-900 text-white hover:bg-gray-800"
+                  className="rounded-none bg-gray-900 text-white hover:bg-gray-800"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-2" />
@@ -558,7 +558,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                 <Button
                   variant="outline"
                   onClick={handleBack}
-                  className="border-dashed"
+                  className="rounded-none border-dashed"
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Back
@@ -566,7 +566,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                 <Button
                   onClick={handleSubmit}
                   disabled={!reason}
-                  className="bg-gray-900 text-white hover:bg-gray-800 flex-1"
+                  className="rounded-none bg-gray-900 text-white hover:bg-gray-800 flex-1"
                 >
                   Confirm Booking
                   <Check className="w-4 h-4 ml-2" />

@@ -107,7 +107,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
         <Button
           onClick={() => setIsEditing(!isEditing)}
           variant={isEditing ? 'outline' : 'default'}
-          className={isEditing ? 'border-dashed' : 'bg-gray-900 text-white hover:bg-gray-800'}
+          className={`rounded-none ${isEditing ? 'border-dashed' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
         >
           {isEditing ? 'Cancel' : 'Edit Profile'}
         </Button>
@@ -245,7 +245,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
               {isEditing && (
                 <Button
                   onClick={handleSave}
-                  className="w-full bg-gray-900 text-white hover:bg-gray-800"
+                  className="w-full rounded-none bg-gray-900 text-white hover:bg-gray-800"
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Save Changes
@@ -298,7 +298,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
                     <Button
                       onClick={addAllergy}
                       variant="outline"
-                      className="border-dashed"
+                      className="rounded-none border-dashed"
                     >
                       Add
                     </Button>

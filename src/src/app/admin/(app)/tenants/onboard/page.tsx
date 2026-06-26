@@ -88,17 +88,17 @@ export default function AdminOnboardClinic() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Onboard New Clinic</h1>
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded mb-4">
+        <div className="bg-green-50 border border-green-200 text-green-800 p-4  mb-4">
           <p>Clinic onboarded successfully!</p>
-          <pre className="mt-2 text-xs bg-green-100 p-2 rounded">{JSON.stringify(success, null, 2)}</pre>
+          <pre className="mt-2 text-xs bg-green-100 p-2 ">{JSON.stringify(success, null, 2)}</pre>
         </div>
       )}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded mb-4">
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4  mb-4">
           <p>Error: {error}</p>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-zinc-200 p-6">
+      <form onSubmit={handleSubmit} className="bg-white  border border-zinc-200 p-6">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700 mb-2">Clinic Name</label>
@@ -107,7 +107,7 @@ export default function AdminOnboardClinic() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
               required
             />
           </div>
@@ -118,7 +118,7 @@ export default function AdminOnboardClinic() {
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
               placeholder="Street address"
             />
           </div>
@@ -130,7 +130,7 @@ export default function AdminOnboardClinic() {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
               />
             </div>
             <div>
@@ -140,7 +140,7 @@ export default function AdminOnboardClinic() {
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function AdminOnboardClinic() {
                 name="zipCode"
                 value={formData.zipCode}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
               />
             </div>
             <div>
@@ -163,7 +163,7 @@ export default function AdminOnboardClinic() {
                 name="latitude"
                 value={formData.latitude}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
                 placeholder="e.g. 40.7128"
               />
             </div>
@@ -175,7 +175,7 @@ export default function AdminOnboardClinic() {
                 name="longitude"
                 value={formData.longitude}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500"
                 placeholder="e.g. -74.0060"
               />
             </div>
@@ -186,7 +186,7 @@ export default function AdminOnboardClinic() {
               name="n8nWebhookUrls"
               value={formData.n8nWebhookUrls}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 h-32"
+              className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500 h-32"
               placeholder='{"appointmentBooked": "https://example.com/webhook1", "appointmentCancelled": "https://example.com/webhook2"}'
             />
           </div>
@@ -196,14 +196,14 @@ export default function AdminOnboardClinic() {
               name="settings"
               value={formData.settings}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 h-32"
+              className="w-full px-4 py-2 border border-zinc-300  focus:outline-none focus:ring-2 focus:ring-zinc-500 h-32"
               placeholder='{"timezone": "UTC", "bookingWindowDays": 30, "cancellationHours": 24, "features": {"voiceReminders": true, "emailNotifications": true, "whatsappNotifications": false}}'
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50"
+            className="w-full px-4 py-2 bg-zinc-900 text-white  hover:bg-zinc-800 transition-colors disabled:opacity-50"
           >
             {loading ? 'Onboarding...' : 'Onboard Clinic'}
           </button>

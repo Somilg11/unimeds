@@ -41,7 +41,7 @@ export const generateSignedUploadUrl = (
   const signature = generateUploadSignature(publicId, timestamp);
 
   return {
-    uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+    uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
     signature,
     timestamp,
     publicId,

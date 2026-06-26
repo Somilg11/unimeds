@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Calendar, Clock, X, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -116,7 +118,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
   };
 
   return (
-    <div>
+    <div className="p-4 lg:p-10">
       <div className="mb-8">
         <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
           Doctor Portal
@@ -249,35 +251,35 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                 <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
                   New Date
                 </label>
-                <input
+                <Input
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                  className="bg-white border border-gray-300"
                 />
               </div>
               <div>
                 <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
                   New Time
                 </label>
-                <input
+                <Input
                   type="time"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                  className="bg-white border border-gray-300"
                 />
               </div>
               <div>
                 <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
                   Reason (Optional)
                 </label>
-                <textarea
+                <Textarea
                   value={rescheduleReason}
                   onChange={(e) => setRescheduleReason(e.target.value)}
                   placeholder="e.g., Emergency case, schedule conflict..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-gray-900 resize-none"
+                  className="bg-white border border-gray-300 resize-none"
                 />
               </div>
             </div>

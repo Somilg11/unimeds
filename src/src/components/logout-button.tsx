@@ -43,7 +43,7 @@ export function LogoutButton({
       onClick={handleLogout}
       variant={variant}
       size={size}
-      className={cn(className)}
+      className={cn('rounded-none border border-dashed border-red-400 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-600', className)}
     >
       {children ?? (
         <>

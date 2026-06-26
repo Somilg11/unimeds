@@ -30,9 +30,21 @@ export function UploadZone({
         return;
       }
 
-      if (accept && !file.type.match(accept.replace('*', '.*'))) {
-        toast.error('Invalid file type');
-        return;
+      if (accept) {
+        const accepted = accept.split(',').map((t) => t.trim());
+        const isAccepted = accepted.some((a) => {
+          if (a.startsWith('.')) {
+            return file.name.toLowerCase().endsWith(a.toLowerCase());
+          }
+          if (a.endsWith('/*')) {
+            return file.type.startsWith(a.replace('/*', '/'));
+          }
+          return file.type === a;
+        });
+        if (!isAccepted) {
+          toast.error('Invalid file type');
+          return;
+        }
       }
 
       setIsUploading(true);

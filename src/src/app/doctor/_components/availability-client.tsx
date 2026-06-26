@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Loader2, Save } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Trash2, Loader2, Save, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AvailabilitySlot {
@@ -163,14 +164,17 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
+      <div className="p-4 lg:p-10">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Availability</h1>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="p-4 lg:p-10">
       <div className="mb-8">
         <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
           Doctor Portal
@@ -211,7 +215,10 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
           {DAYS.map((day, dayIndex) => (
             <div key={dayIndex} className="border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900">{day}</h3>
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  {day}
+                </h3>
                 <button
                   onClick={() => addTimeSlot(dayIndex)}
                   className="text-xs text-gray-500 hover:text-gray-900 flex items-center gap-1"
@@ -227,18 +234,18 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
                 <div className="space-y-2">
                   {schedule[dayIndex].map((slot, slotIndex) => (
                     <div key={slotIndex} className="flex items-center gap-3">
-                      <input
+                      <Input
                         type="time"
                         value={slot.startTime}
                         onChange={(e) => updateTimeSlot(dayIndex, slotIndex, 'startTime', e.target.value)}
-                        className="px-3 py-1.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                        className="w-32 bg-white border border-gray-300"
                       />
                       <span className="text-xs text-gray-400">to</span>
-                      <input
+                      <Input
                         type="time"
                         value={slot.endTime}
                         onChange={(e) => updateTimeSlot(dayIndex, slotIndex, 'endTime', e.target.value)}
-                        className="px-3 py-1.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                        className="w-32 bg-white border border-gray-300"
                       />
                       <button
                         onClick={() => removeTimeSlot(dayIndex, slotIndex)}

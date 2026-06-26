@@ -189,8 +189,8 @@ export default function ClinicAdminRecords() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedRecords.map((record) => (
-                    <tr key={record.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                  {paginatedRecords.map((record, index) => (
+                    <tr key={`${record.id}-${index}`} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
                       <td className="p-3 text-sm text-gray-900 font-medium">
                         {record.patientName}
                       </td>

@@ -33,6 +33,9 @@ router.get('/slots', authenticate, patientController.getAvailableSlots);
 // POST /api/v1/user/records/upload - Upload medical record
 router.post('/records/upload', authenticate, patientController.uploadRecord);
 
+// DELETE /api/v1/user/records/:id - Delete medical record
+router.delete('/records/:id', authenticate, patientController.deleteRecord);
+
 // POST /api/v1/user/records/:id/process-ocr - Process OCR for record
 router.post('/records/:id/process-ocr', authenticate, patientController.processOCR);
 

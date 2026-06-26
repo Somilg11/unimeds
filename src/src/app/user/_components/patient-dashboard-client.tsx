@@ -9,6 +9,13 @@ import { TimelineItem } from '@/types/user';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface RescheduleProposal {
   appointmentId: string;
@@ -17,6 +24,14 @@ interface RescheduleProposal {
   doctorName?: string;
   clinicName?: string;
 }
+
+const RECORD_TYPES = [
+  { value: 'general', label: 'General' },
+  { value: 'lab_report', label: 'Lab Report' },
+  { value: 'prescription', label: 'Prescription' },
+  { value: 'imaging', label: 'Imaging' },
+  { value: 'discharge_summary', label: 'Discharge Summary' },
+];
 
 interface PatientDashboardClientProps {
   initialTimeline: TimelineItem[];
@@ -29,6 +44,7 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  const [uploadRecordType, setUploadRecordType] = useState('general');
 
   useEffect(() => {
     // Extract reschedule proposals from timeline
@@ -50,17 +66,37 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
 
   const handleFileUpload = async (file: File) => {
     try {
+      // Step 1: Get signed upload URL from backend
+      const uploadRes = await apiClient.post('/user/records/upload', {
+        fileName: file.name,
+        fileType: file.type,
+        recordType: uploadRecordType,
+      });
+      const { uploadUrl, signature, timestamp: ts, publicId } = uploadRes.data;
+
+      // Step 2: Upload file directly to Cloudinary
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('fileName', file.name);
-      formData.append('fileType', file.type);
-      formData.append('recordType', 'general');
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '');
+      formData.append('timestamp', String(ts));
+      formData.append('public_id', publicId);
+      formData.append('upload_preset', 'medical_uploads');
+      formData.append('signature', signature);
 
-      await apiClient.post('/user/records/upload', formData);
+      const cloudinaryRes = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!cloudinaryRes.ok) {
+        throw new Error('Failed to upload file to Cloudinary');
+      }
+
+      toast.success('Record uploaded successfully');
       window.location.reload();
     } catch (error) {
       console.error('Failed to upload file:', error);
-      toast.error('Failed to upload file. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload file. Please try again.');
     }
   };
 
@@ -211,6 +247,23 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
         {/* Left Column: Upload + Timeline */}
         <div className="lg:col-span-8 space-y-6">
           <BentoCard title="Upload Records" icon={<Activity className="w-4 h-4" />}>
+            <div className="mb-4">
+              <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                Record Type
+              </label>
+              <Select value={uploadRecordType} onValueChange={setUploadRecordType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECORD_TYPES.map((rt) => (
+                    <SelectItem key={rt.value} value={rt.value}>
+                      {rt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <UploadZone onUpload={handleFileUpload} />
           </BentoCard>
 

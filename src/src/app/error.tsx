@@ -17,7 +17,7 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="max-w-md w-full space-y-4">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <div className="border border-red-200 bg-red-50 p-6">
           <h2 className="text-xl font-semibold text-red-900 mb-2">
             Something went wrong
           </h2>

@@ -95,7 +95,6 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
 
     setUploading(true);
     try {
-      // Step 1: Get signed upload URL from backend
       const uploadRes = await fetch('/api/doctor/records/upload', {
         method: 'POST',
         headers: {
@@ -117,13 +116,13 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
 
       const { uploadUrl, signature, timestamp: ts, publicId } = await uploadRes.json();
 
-      // Step 2: Upload file to Cloudinary
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '');
-      formData.append('timestamp', ts);
+      formData.append('timestamp', String(ts));
+      formData.append('public_id', publicId);
+      formData.append('upload_preset', 'medical_uploads');
       formData.append('signature', signature);
-      formData.append('folder', 'medical-records');
 
       const cloudinaryRes = await fetch(uploadUrl, {
         method: 'POST',
@@ -134,7 +133,6 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
         throw new Error('Failed to upload to Cloudinary');
       }
 
-      // Success
       toast.success('Record uploaded successfully');
       setShowUploadModal(false);
       setSelectedPatient(null);
@@ -156,7 +154,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
   );
 
   return (
-    <div>
+    <div className="p-4 lg:p-10">
       <div className="mb-8">
         <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
           Doctor Portal
@@ -176,7 +174,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
             placeholder="Search records..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-white border border-gray-200"
+            className="pl-10 bg-white border border-gray-300"
           />
         </div>
         <Button
@@ -259,7 +257,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                     placeholder="Type patient name or email..."
                     value={patientSearch}
                     onChange={(e) => setPatientSearch(e.target.value)}
-                    className="bg-white border border-gray-200"
+                    className="bg-white border border-gray-300"
                   />
                 </div>
                 {patients.length > 0 && (

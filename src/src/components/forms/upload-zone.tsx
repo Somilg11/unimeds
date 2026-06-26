@@ -28,9 +28,21 @@ export function UploadZone({
       }
 
       // Validate file type
-      if (accept && !file.type.match(accept.replace('*', '.*'))) {
-        alert('Invalid file type');
-        return;
+      if (accept) {
+        const accepted = accept.split(',').map((t) => t.trim());
+        const isAccepted = accepted.some((a) => {
+          if (a.startsWith('.')) {
+            return file.name.toLowerCase().endsWith(a.toLowerCase());
+          }
+          if (a.endsWith('/*')) {
+            return file.type.startsWith(a.replace('/*', '/'));
+          }
+          return file.type === a;
+        });
+        if (!isAccepted) {
+          alert('Invalid file type');
+          return;
+        }
       }
 
       onUpload(file);
@@ -75,7 +87,7 @@ export function UploadZone({
   return (
     <div
       className={cn(
-        'border-2 border-dashed border-border rounded-lg p-4 sm:p-6 lg:p-8 text-center',
+        'border-2 border-dashed border-border p-4 sm:p-6 lg:p-8 text-center',
         'hover:bg-muted/50 transition-colors cursor-pointer',
         'hover-lift',
         disabled && 'opacity-50 cursor-not-allowed',

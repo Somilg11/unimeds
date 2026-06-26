@@ -54,7 +54,7 @@ export function PortalWelcome({
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-border/50 shadow-sm animate-subtle">
           <CardHeader className="p-6 text-center">
-            <div className="w-12 h-12 bg-muted rounded-lg mb-4 mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 bg-muted mb-4 mx-auto flex items-center justify-center">
               <Icon className="w-6 h-6 text-foreground" />
             </div>
             <CardTitle className="text-2xl">{title}</CardTitle>

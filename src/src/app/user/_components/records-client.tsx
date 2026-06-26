@@ -9,6 +9,23 @@ import { FileText, Download, Trash2, Search, Calendar, Loader2, UserPlus } from 
 import { MedicalRecord } from '@/types/user';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface RecordsClientProps {
   userName?: string;
@@ -19,11 +36,22 @@ interface EnrichedRecord extends MedicalRecord {
   uploaderName?: string | null;
 }
 
+const RECORD_TYPES = [
+  { value: 'general', label: 'General' },
+  { value: 'lab_report', label: 'Lab Report' },
+  { value: 'prescription', label: 'Prescription' },
+  { value: 'imaging', label: 'Imaging' },
+  { value: 'discharge_summary', label: 'Discharge Summary' },
+];
+
 export function RecordsClient({ userName }: RecordsClientProps) {
   const [records, setRecords] = useState<EnrichedRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'lab_report' | 'prescription' | 'imaging'>('all');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'lab_report' | 'prescription' | 'imaging' | 'discharge_summary'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [uploadRecordType, setUploadRecordType] = useState('general');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<EnrichedRecord | null>(null);
 
   useEffect(() => {
     fetchRecords();
@@ -65,17 +93,52 @@ export function RecordsClient({ userName }: RecordsClientProps) {
 
   const handleFileUpload = async (file: File) => {
     try {
+      // Step 1: Get signed upload URL from backend
+      const uploadRes = await apiClient.post('/user/records/upload', {
+        fileName: file.name,
+        fileType: file.type,
+        recordType: uploadRecordType,
+      });
+      const { uploadUrl, signature, timestamp: ts, publicId } = uploadRes.data;
+
+      // Step 2: Upload file directly to Cloudinary
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('fileName', file.name);
-      formData.append('fileType', file.type);
-      formData.append('recordType', 'general');
-      
-      await apiClient.post('/user/records/upload', formData);
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '');
+      formData.append('timestamp', String(ts));
+      formData.append('public_id', publicId);
+      formData.append('upload_preset', 'medical_uploads');
+      formData.append('signature', signature);
+
+      const cloudinaryRes = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!cloudinaryRes.ok) {
+        throw new Error('Failed to upload file to Cloudinary');
+      }
+
+      toast.success('Record uploaded successfully');
       fetchRecords();
     } catch (error) {
       console.error('Failed to upload file:', error);
-      toast.error('Failed to upload file. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload file. Please try again.');
+    }
+  };
+
+  const handleDeleteRecord = async (recordId: string) => {
+    setDeletingId(recordId);
+    try {
+      await apiClient.delete(`/user/records/${recordId}`);
+      toast.success('Record deleted');
+      setRecords((prev) => prev.filter((r) => r.id !== recordId));
+    } catch (error) {
+      console.error('Failed to delete record:', error);
+      toast.error('Failed to delete record. Please try again.');
+    } finally {
+      setDeletingId(null);
+      setDeleteTarget(null);
     }
   };
 
@@ -124,6 +187,31 @@ export function RecordsClient({ userName }: RecordsClientProps) {
 
   return (
     <div>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deleteTarget?.fileName}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingId === deleteTarget?.id}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletingId === deleteTarget?.id}
+              onClick={() => deleteTarget && handleDeleteRecord(deleteTarget.id)}
+            >
+              {deletingId === deleteTarget?.id ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Page Header */}
       <div className="mb-8">
         <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
@@ -142,6 +230,23 @@ export function RecordsClient({ userName }: RecordsClientProps) {
         {/* Upload Section */}
         <div className="lg:col-span-4">
           <BentoCard title="Upload Documents" icon={<FileText className="w-4 h-4" />}>
+            <div className="mb-4">
+              <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                Record Type
+              </label>
+              <Select value={uploadRecordType} onValueChange={setUploadRecordType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECORD_TYPES.map((rt) => (
+                    <SelectItem key={rt.value} value={rt.value}>
+                      {rt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <UploadZone onUpload={handleFileUpload} />
           </BentoCard>
         </div>
@@ -162,13 +267,13 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                 />
               </div>
               <div className="flex gap-px bg-gray-200 border border-gray-200">
-                {(['all', 'lab_report', 'prescription', 'imaging'] as const).map((filter) => (
+                {(['all', 'lab_report', 'prescription', 'imaging', 'discharge_summary'] as const).map((filter) => (
                   <Button
                     key={filter}
                     variant={selectedFilter === filter ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setSelectedFilter(filter)}
-                    className={`text-[11px] font-mono uppercase tracking-wider h-9 ${
+                    className={`text-[11px] font-mono uppercase tracking-wider h-10 rounded-none ${
                       selectedFilter === filter
                         ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -237,20 +342,27 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                     )}
 
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-[11px] font-mono uppercase tracking-wider h-8 border-dashed"
+                      <a
+                        href={record.s3Url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 inline-flex items-center justify-center text-[11px] font-mono uppercase tracking-wider h-8 border border-dashed border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                       >
                         <Download className="w-3 h-3 mr-2" />
                         Download
-                      </Button>
+                      </a>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-[11px] font-mono uppercase tracking-wider h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        disabled={deletingId === record.id}
+                        onClick={() => setDeleteTarget(record)}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        {deletingId === record.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3" />
+                        )}
                       </Button>
                     </div>
                   </div>

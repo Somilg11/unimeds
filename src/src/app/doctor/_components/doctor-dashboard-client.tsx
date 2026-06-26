@@ -51,7 +51,7 @@ export function DoctorDashboardClient({ userName, token }: DoctorDashboardClient
   const uniquePatients = new Set(appointments.map(a => a.patientName)).size;
 
   return (
-    <div>
+    <div className="p-4 lg:p-10">
       <div className="mb-8">
         <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
           Doctor Portal

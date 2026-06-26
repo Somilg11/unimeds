@@ -110,7 +110,7 @@ export function UserNav({ userName }: UserNavProps) {
             </div>
             <LogoutButton
               redirectTo="/user"
-              className="w-full justify-start text-sm h-10 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="w-full justify-start text-sm h-10"
             >
               <span>Logout</span>
             </LogoutButton>
@@ -175,7 +175,7 @@ export function UserNav({ userName }: UserNavProps) {
           </div>
           <LogoutButton
             redirectTo="/user"
-            className="w-full justify-start text-sm h-10 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            className="w-full justify-start text-sm h-10"
           >
             <span>Logout</span>
           </LogoutButton>

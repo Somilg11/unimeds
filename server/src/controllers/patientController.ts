@@ -116,6 +116,37 @@ export const uploadRecord = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteRecord = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid record ID' });
+    }
+
+    const [record] = await db
+      .select()
+      .from(records)
+      .where(and(eq(records.id, id), eq(records.patientId, userId)));
+
+    if (!record) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    await db.delete(records).where(eq(records.id, id));
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting record:', error);
+    res.status(500).json({ error: 'Failed to delete record' });
+  }
+};
+
 export const processOCR = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
