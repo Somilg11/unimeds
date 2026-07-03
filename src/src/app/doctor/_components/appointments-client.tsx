@@ -25,7 +25,7 @@ interface AppointmentsClientProps {
 export function AppointmentsClient({ userName, token }: AppointmentsClientProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled' | 'reschedule_proposed'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled' | 'reschedule_proposed' | 'completed'>('all');
   const [rescheduleModal, setRescheduleModal] = useState<{ appointmentId: string; patientName: string } | null>(null);
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
@@ -132,7 +132,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
       </div>
 
       <div className="flex gap-px bg-gray-200 border border-gray-200 mb-6 flex-wrap">
-        {(['all', 'pending', 'confirmed', 'cancelled', 'reschedule_proposed'] as const).map((f) => (
+        {(['all', 'pending', 'confirmed', 'cancelled', 'reschedule_proposed', 'completed'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}

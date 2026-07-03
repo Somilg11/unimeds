@@ -4,7 +4,7 @@ import { pgTable, uuid, text, timestamp, jsonb, pgEnum, boolean, integer, real }
 export const userRoleEnum = pgEnum('user_role', ['patient', 'doctor', 'clinic_admin', 'super_admin']);
 
 // Appointment status enum
-export const appointmentStatusEnum = pgEnum('appointment_status', ['pending', 'confirmed', 'cancelled', 'reschedule_proposed']);
+export const appointmentStatusEnum = pgEnum('appointment_status', ['pending', 'confirmed', 'cancelled', 'reschedule_proposed', 'completed']);
 
 // Notification types enum
 export const notificationTypeEnum = pgEnum('notification_type', ['appointment_reminder', 'appointment_booked', 'appointment_cancelled', 'appointment_completed', 'record_uploaded', 'lab_result_ready', 'general']);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BentoCard } from './bento-card';
 import { Calendar, Clock, MapPin, User, Check, ChevronRight, ChevronLeft, Loader2, Navigation } from 'lucide-react';
@@ -8,6 +8,7 @@ import { BookingWizardState, AppointmentSlot } from '@/types/user';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
 import { useGeolocation } from '@/lib/hooks/useGeolocation';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 
 interface Clinic {
   id: string;
@@ -29,7 +30,23 @@ interface Doctor {
   profileData?: {
     name?: string;
     specialty?: string;
+    specialization?: string;
   };
+}
+
+interface DoctorSearchResult {
+  id: string;
+  profileData?: {
+    name?: string;
+    specialization?: string;
+  };
+  clinics: Array<{
+    id: string;
+    name: string;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+  }>;
 }
 
 interface BookingClientProps {
@@ -55,14 +72,45 @@ export function BookingClient({ userName }: BookingClientProps) {
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [searchMode, setSearchMode] = useState<'all' | 'nearby'>('all');
-  const [manualLocation, setManualLocation] = useState('');
   const [isSearchingNearby, setIsSearchingNearby] = useState(false);
 
+  // Doctor search state
+  const [doctorSearchQuery, setDoctorSearchQuery] = useState('');
+  const [doctorSearchResults, setDoctorSearchResults] = useState<DoctorSearchResult[]>([]);
+  const [isSearchingDoctors, setIsSearchingDoctors] = useState(false);
+  const [searchTab, setSearchTab] = useState<'clinic' | 'doctor'>('clinic');
+  const [selectedDoctorFromSearch, setSelectedDoctorFromSearch] = useState<DoctorSearchResult | null>(null);
+
+  // Clinic search state
+  const [clinicSearchQuery, setClinicSearchQuery] = useState('');
+  const [isSearchingClinics, setIsSearchingClinics] = useState(false);
+
   const { latitude, longitude, error: geoError, loading: geoLoading, requestLocation } = useGeolocation();
+
+  const debouncedClinicQuery = useDebounce(clinicSearchQuery, 300);
+  const debouncedDoctorQuery = useDebounce(doctorSearchQuery, 300);
 
   useEffect(() => {
     fetchClinics();
   }, []);
+
+  // Auto-search clinics when debounced query changes
+  useEffect(() => {
+    if (debouncedClinicQuery.trim().length > 0) {
+      searchClinicsByQuery(debouncedClinicQuery);
+    } else {
+      fetchClinics();
+    }
+  }, [debouncedClinicQuery]);
+
+  // Auto-search doctors when debounced query changes
+  useEffect(() => {
+    if (debouncedDoctorQuery.trim().length >= 2) {
+      searchDoctors(debouncedDoctorQuery);
+    } else {
+      setDoctorSearchResults([]);
+    }
+  }, [debouncedDoctorQuery]);
 
   const fetchClinics = async () => {
     try {
@@ -101,12 +149,54 @@ export function BookingClient({ userName }: BookingClientProps) {
     }
   }, [latitude, longitude, fetchNearbyClinics]);
 
-  const handleManualSearch = () => {
-    // For manual search, we'll use a geocoding approach
-    // For now, just show all clinics since we don't have a geocoding service
-    toast.info('Showing all clinics. Use "Near Me" for location-based results.');
-    fetchClinics();
-    setSearchMode('all');
+  const searchClinicsByQuery = async (query: string) => {
+    setIsSearchingClinics(true);
+    try {
+      const response = await apiClient.get('/user/clinics/search', {
+        params: { q: query.trim() },
+      });
+      setClinics(response.data.clinics || []);
+    } catch (error) {
+      console.error('Failed to search clinics:', error);
+    } finally {
+      setIsSearchingClinics(false);
+    }
+  };
+
+  const searchDoctors = async (query: string) => {
+    if (!query.trim()) {
+      setDoctorSearchResults([]);
+      return;
+    }
+    setIsSearchingDoctors(true);
+    try {
+      const response = await apiClient.get('/user/doctors/search', {
+        params: { q: query.trim() },
+      });
+      setDoctorSearchResults(response.data.doctors || []);
+    } catch (error) {
+      console.error('Failed to search doctors:', error);
+      toast.error('Failed to search doctors');
+    } finally {
+      setIsSearchingDoctors(false);
+    }
+  };
+
+  const handleDoctorSelect = (doctor: DoctorSearchResult) => {
+    setSelectedDoctorFromSearch(doctor);
+    setSelectedDoctor(doctor.id);
+    // If doctor has only one clinic, auto-select it and proceed
+    if (doctor.clinics.length === 1) {
+      setSelectedClinic(doctor.clinics[0].id);
+      setWizardState({ step: 2 });
+      fetchAvailableSlots(doctor.id, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDoctorClinicSelect = (clinicId: string) => {
+    setSelectedClinic(clinicId);
+    setWizardState({ step: 2 });
+    fetchAvailableSlots(selectedDoctor, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
   };
 
   const fetchDoctors = async (clinicId: string) => {
@@ -139,6 +229,12 @@ export function BookingClient({ userName }: BookingClientProps) {
 
   const handleNext = () => {
     if (wizardState.step === 1 && selectedClinic) {
+      // If coming from doctor search flow, skip Step 2 (doctor already selected)
+      if (selectedDoctorFromSearch) {
+        fetchAvailableSlots(selectedDoctor, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+        setWizardState({ ...wizardState, step: 3 as 1 | 2 | 3 | 4 });
+        return;
+      }
       fetchDoctors(selectedClinic);
     } else if (wizardState.step === 2 && selectedDoctor) {
       const tomorrow = new Date();
@@ -153,6 +249,11 @@ export function BookingClient({ userName }: BookingClientProps) {
 
   const handleBack = () => {
     if (wizardState.step > 1) {
+      // If coming from doctor search flow and at Step 3, go back to Step 1
+      if (selectedDoctorFromSearch && wizardState.step === 3) {
+        setWizardState({ ...wizardState, step: 1 as 1 | 2 | 3 | 4 });
+        return;
+      }
       setWizardState({ ...wizardState, step: wizardState.step - 1 as 1 | 2 | 3 | 4 });
     }
   };
@@ -179,9 +280,12 @@ export function BookingClient({ userName }: BookingClientProps) {
   };
 
   const getStepTitle = () => {
+    if (selectedDoctorFromSearch && wizardState.step === 2) {
+      return 'Pick Time Slot';
+    }
     switch (wizardState.step) {
       case 1:
-        return 'Select Clinic';
+        return searchTab === 'doctor' ? 'Search Doctor' : 'Select Clinic';
       case 2:
         return 'Choose Doctor';
       case 3:
@@ -211,35 +315,45 @@ export function BookingClient({ userName }: BookingClientProps) {
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-start">
-          {[1, 2, 3, 4].map((step, i) => (
+          {(selectedDoctorFromSearch ? [1, 3, 4] : [1, 2, 3, 4]).map((step, i) => (
             <div key={step} className="flex-1 flex flex-col items-center">
               <div className="flex items-center w-full">
                 {i > 0 && (
                   <div
                     className={`flex-1 h-px ${
-                      wizardState.step > step ? 'bg-gray-900' : 'bg-gray-200'
+                      wizardState.step > step || (selectedDoctorFromSearch && step === 3 && wizardState.step >= 3)
+                        ? 'bg-gray-900'
+                        : 'bg-gray-200'
                     }`}
                   />
                 )}
                 <div
                   className={`w-8 h-8 flex items-center justify-center text-xs font-bold shrink-0 ${
-                    wizardState.step >= step
+                    wizardState.step >= step || (selectedDoctorFromSearch && step === 3 && wizardState.step >= 3)
                       ? 'bg-gray-900 text-white'
                       : 'bg-gray-200 text-gray-500'
                   }`}
                 >
-                  {wizardState.step > step ? <Check className="w-4 h-4" /> : step}
+                  {(wizardState.step > step || (selectedDoctorFromSearch && step === 3 && wizardState.step > 3)) ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    selectedDoctorFromSearch ? (step === 1 ? 1 : step === 3 ? 2 : 3) : step
+                  )}
                 </div>
-                {i < 3 && (
+                {i < (selectedDoctorFromSearch ? 2 : 3) && (
                   <div
                     className={`flex-1 h-px ${
-                      wizardState.step > step ? 'bg-gray-900' : 'bg-gray-200'
+                      wizardState.step > step || (selectedDoctorFromSearch && step === 3 && wizardState.step >= 3)
+                        ? 'bg-gray-900'
+                        : 'bg-gray-200'
                     }`}
                   />
                 )}
               </div>
               <span className="text-[10px] font-mono uppercase text-gray-400 tracking-wider mt-2 text-center">
-                {['Clinic', 'Doctor', 'Time', 'Confirm'][i]}
+                {selectedDoctorFromSearch
+                  ? ['Select', 'Time', 'Confirm'][i]
+                  : ['Clinic', 'Doctor', 'Time', 'Confirm'][i]}
               </span>
             </div>
           ))}
@@ -252,103 +366,260 @@ export function BookingClient({ userName }: BookingClientProps) {
           {/* Step 1: Select Clinic */}
           {wizardState.step === 1 && (
             <div className="space-y-4">
-              {/* Location Search Bar */}
-              <div className="flex items-center gap-3 mb-4">
-                <Button
-                  variant={searchMode === 'nearby' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={handleNearMe}
-                  disabled={geoLoading || isSearchingNearby}
-                  className={`rounded-none ${searchMode === 'nearby' ? 'bg-gray-900 text-white' : 'border-dashed'}`}
+              {/* Search Tabs */}
+              <div className="flex items-center gap-1 mb-4 border border-gray-200 p-1 w-fit">
+                <button
+                  onClick={() => setSearchTab('clinic')}
+                  className={`px-4 py-1.5 text-xs font-mono uppercase tracking-wider transition-colors ${
+                    searchTab === 'clinic'
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
                 >
-                  {geoLoading || isSearchingNearby ? (
-                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                  ) : (
-                    <Navigation className="w-3 h-3 mr-2" />
-                  )}
-                  Near Me
-                </Button>
-                <div className="flex-1 flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter city or address..."
-                    value={manualLocation}
-                    onChange={(e) => setManualLocation(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
-                    className="flex-1 px-3 py-1.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleManualSearch}
-                    className="rounded-none border-dashed"
-                  >
-                    Search
-                  </Button>
-                </div>
-                {searchMode === 'nearby' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSearchMode('all');
-                      fetchClinics();
-                    }}
-                    className="rounded-none text-xs text-gray-500"
-                  >
-                    Show All
-                  </Button>
-                )}
+                  <MapPin className="w-3 h-3 mr-1.5 inline" />
+                  By Clinic
+                </button>
+                <button
+                  onClick={() => setSearchTab('doctor')}
+                  className={`px-4 py-1.5 text-xs font-mono uppercase tracking-wider transition-colors ${
+                    searchTab === 'doctor'
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <User className="w-3 h-3 mr-1.5 inline" />
+                  By Doctor
+                </button>
               </div>
-              {geoError && (
-                <p className="text-xs text-yellow-600 mb-2">{geoError}</p>
+
+              {/* Clinic Search Tab */}
+              {searchTab === 'clinic' && (
+                <>
+                  {/* Location Search Bar */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <Button
+                      variant={searchMode === 'nearby' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={handleNearMe}
+                      disabled={geoLoading || isSearchingNearby}
+                      className={`rounded-none ${searchMode === 'nearby' ? 'bg-gray-900 text-white' : 'border-dashed'}`}
+                    >
+                      {geoLoading || isSearchingNearby ? (
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                      ) : (
+                        <Navigation className="w-3 h-3 mr-2" />
+                      )}
+                      Near Me
+                    </Button>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search by clinic name, city or address..."
+                          value={clinicSearchQuery}
+                          onChange={(e) => setClinicSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-1.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                        />
+                      </div>
+                    </div>
+                    {searchMode === 'nearby' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSearchMode('all');
+                          setClinicSearchQuery('');
+                          fetchClinics();
+                        }}
+                        className="rounded-none text-xs text-gray-500"
+                      >
+                        Show All
+                      </Button>
+                    )}
+                  </div>
+                  {geoError && (
+                    <p className="text-xs text-yellow-600 mb-2">{geoError}</p>
+                  )}
+
+                  {isSearchingNearby || isSearchingClinics ? (
+                    <div className="text-center py-12">
+                      <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
+                      <p className="text-sm text-gray-500">{isSearchingNearby ? 'Finding nearby clinics...' : 'Searching clinics...'}</p>
+                    </div>
+                  ) : clinics.length === 0 ? (
+                    <div className="text-center py-12 border border-dashed border-gray-300">
+                      <MapPin className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-500">
+                        {clinicSearchQuery ? `No clinics found for "${clinicSearchQuery}"` : 'No clinics found'}
+                      </p>
+                      <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
+                        {clinicSearchQuery ? 'Try a different search term' : 'Try a different location or show all clinics'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
+                      {clinics.map((clinic) => (
+                        <button
+                          key={clinic.id}
+                          onClick={() => {
+                            setSelectedClinic(clinic.id);
+                            handleNext();
+                          }}
+                          className={`p-6 text-left transition-colors ${
+                            selectedClinic === clinic.id
+                              ? 'bg-gray-900 text-white'
+                              : 'bg-white hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <MapPin className={`w-4 h-4 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`} />
+                            <h3 className="text-sm font-semibold tracking-tight">
+                              {clinic.name}
+                            </h3>
+                          </div>
+                          <p className={`text-xs ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {[clinic.address, clinic.city, clinic.state].filter(Boolean).join(', ') || 'Address not set'}
+                          </p>
+                          {clinic.distance != null && (
+                            <p className={`text-[11px] font-mono mt-2 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`}>
+                              {clinic.distance.toFixed(1)} km away
+                            </p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
 
-              {isSearchingNearby ? (
-                <div className="text-center py-12">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-500">Finding nearby clinics...</p>
-                </div>
-              ) : clinics.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-gray-300">
-                  <MapPin className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500">No clinics found</p>
-                  <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
-                    Try a different location or show all clinics
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
-                  {clinics.map((clinic) => (
-                    <button
-                      key={clinic.id}
-                      onClick={() => {
-                        setSelectedClinic(clinic.id);
-                        handleNext();
-                      }}
-                      className={`p-6 text-left transition-colors ${
-                        selectedClinic === clinic.id
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-white hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <MapPin className={`w-4 h-4 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`} />
-                        <h3 className="text-sm font-semibold tracking-tight">
-                          {clinic.name}
-                        </h3>
+              {/* Doctor Search Tab */}
+              {searchTab === 'doctor' && (
+                <>
+                  {/* Doctor Search Bar */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search by doctor name..."
+                          value={doctorSearchQuery}
+                          onChange={(e) => setDoctorSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-1.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-900"
+                        />
                       </div>
-                      <p className={`text-xs ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-500'}`}>
-                        {[clinic.address, clinic.city, clinic.state].filter(Boolean).join(', ') || 'Address not set'}
+                    </div>
+                  </div>
+
+                  {/* Doctor Search Results */}
+                  {isSearchingDoctors ? (
+                    <div className="text-center py-12">
+                      <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-300 mb-3" />
+                      <p className="text-sm text-gray-500">Searching doctors...</p>
+                    </div>
+                  ) : selectedDoctorFromSearch ? (
+                    /* Show clinics for selected doctor */
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 flex items-center justify-center bg-gray-200">
+                            <User className="w-5 h-5 text-gray-500" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold tracking-tight">
+                              {selectedDoctorFromSearch.profileData?.name || 'Unknown Doctor'}
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                              {selectedDoctorFromSearch.profileData?.specialization || 'General Practice'}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedDoctorFromSearch(null);
+                            setSelectedDoctor('');
+                          }}
+                          className="rounded-none text-xs text-gray-500"
+                        >
+                          Change Doctor
+                        </Button>
+                      </div>
+                      <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">
+                        Select a clinic where this doctor practices:
                       </p>
-                      {clinic.distance != null && (
-                        <p className={`text-[11px] font-mono mt-2 ${selectedClinic === clinic.id ? 'text-gray-300' : 'text-gray-400'}`}>
-                          {clinic.distance.toFixed(1)} km away
-                        </p>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 border border-gray-200">
+                        {selectedDoctorFromSearch.clinics.map((clinic) => (
+                          <button
+                            key={clinic.id}
+                            onClick={() => handleDoctorClinicSelect(clinic.id)}
+                            className="p-6 text-left transition-colors bg-white hover:bg-gray-50"
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <MapPin className="w-4 h-4 text-gray-400" />
+                              <h3 className="text-sm font-semibold tracking-tight">
+                                {clinic.name}
+                              </h3>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              {[clinic.address, clinic.city, clinic.state].filter(Boolean).join(', ') || 'Address not set'}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : doctorSearchQuery.trim() && doctorSearchResults.length === 0 ? (
+                    <div className="text-center py-12 border border-dashed border-gray-300">
+                      <User className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-500">No doctors found matching &quot;{doctorSearchQuery}&quot;</p>
+                      <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
+                        Try a different search term
+                      </p>
+                    </div>
+                  ) : doctorSearchResults.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-200 border border-gray-200">
+                      {doctorSearchResults.map((doctor) => (
+                        <button
+                          key={doctor.id}
+                          onClick={() => handleDoctorSelect(doctor)}
+                          className="p-6 text-left transition-colors bg-white hover:bg-gray-50"
+                        >
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 flex items-center justify-center bg-gray-200">
+                              <User className="w-5 h-5 text-gray-500" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-semibold tracking-tight">
+                                {doctor.profileData?.name || 'Unknown Doctor'}
+                              </h3>
+                              <p className="text-xs text-gray-500">
+                                {doctor.profileData?.specialization || 'General Practice'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3 h-3 text-gray-400" />
+                            <p className="text-[11px] text-gray-400">
+                              {doctor.clinics.length === 1
+                                ? `1 clinic available`
+                                : `${doctor.clinics.length} clinics available`}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 border border-dashed border-gray-300">
+                      <User className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-500">Search for a doctor by name</p>
+                      <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mt-1">
+                        Type at least 2 characters to search
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

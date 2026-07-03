@@ -18,11 +18,17 @@ router.get('/timeline', authenticate, patientController.getTimeline);
 // GET /api/v1/user/clinics - Get all clinics
 router.get('/clinics', authenticate, patientController.getClinics);
 
+// GET /api/v1/user/clinics/search?q=<query> - Search clinics by name/address/city
+router.get('/clinics/search', authenticate, patientController.searchClinics);
+
 // GET /api/v1/user/clinics/nearby - Search clinics by location
 router.get('/clinics/nearby', authenticate, patientController.searchClinicsByLocation);
 
 // GET /api/v1/user/doctors - Get doctors (optionally filtered by clinic)
 router.get('/doctors', authenticate, patientController.getDoctors);
+
+// GET /api/v1/user/doctors/search?q=<query> - Search doctors by name with their clinics
+router.get('/doctors/search', authenticate, patientController.searchDoctors);
 
 // GET /api/v1/user/doctors/nearby - Search doctors by location
 router.get('/doctors/nearby', authenticate, patientController.searchDoctorsByLocation);

@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { db } from '../db/db.js';
 import { users, records, appointments, clinics, clinicDoctors, notifications, doctorAvailability } from '../db/schema.js';
 import { eq, and, desc, or, gte, lte, isNotNull, isNull, inArray, count, sql } from 'drizzle-orm';
-import { generateSignedUploadUrl } from '../lib/cloudinary.js';
+import { generateSignedUploadUrl, deleteAsset } from '../lib/cloudinary.js';
 
 export const syncUser = async (req: Request, res: Response) => {
   try {
@@ -90,7 +90,7 @@ export const uploadRecord = async (req: Request, res: Response) => {
     const [newRecord] = await db.insert(records).values({
       patientId: userId,
       uploadedBy: userId,
-      fileUrl: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/${publicId}`,
+      fileUrl: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/auto/upload/${publicId}`,
       recordType: recordType || 'general',
       fileName,
       mimeType: fileType,
@@ -138,6 +138,10 @@ export const deleteRecord = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Record not found' });
     }
 
+    // Delete from Cloudinary first
+    await deleteAsset(record.fileUrl);
+
+    // Then delete from DB
     await db.delete(records).where(eq(records.id, id));
 
     res.json({ success: true });
@@ -301,6 +305,56 @@ export const getClinics = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching clinics:', error);
     res.status(500).json({ error: 'Failed to fetch clinics' });
+  }
+};
+
+export const searchClinics = async (req: Request, res: Response) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+      const allClinics = await db
+        .select({
+          id: clinics.id,
+          name: clinics.name,
+          address: clinics.address,
+          city: clinics.city,
+          state: clinics.state,
+          zipCode: clinics.zipCode,
+          latitude: clinics.latitude,
+          longitude: clinics.longitude,
+          settings: clinics.settings,
+        })
+        .from(clinics);
+      return res.json({ clinics: allClinics });
+    }
+
+    const searchTerm = `%${q.trim().toLowerCase()}%`;
+
+    const results = await db
+      .select({
+        id: clinics.id,
+        name: clinics.name,
+        address: clinics.address,
+        city: clinics.city,
+        state: clinics.state,
+        zipCode: clinics.zipCode,
+        latitude: clinics.latitude,
+        longitude: clinics.longitude,
+        settings: clinics.settings,
+      })
+      .from(clinics)
+      .where(
+        sql`LOWER(${clinics.name}) LIKE ${searchTerm}
+            OR LOWER(${clinics.address}) LIKE ${searchTerm}
+            OR LOWER(${clinics.city}) LIKE ${searchTerm}
+            OR LOWER(${clinics.state}) LIKE ${searchTerm}`
+      );
+
+    res.json({ clinics: results });
+  } catch (error) {
+    console.error('Error searching clinics:', error);
+    res.status(500).json({ error: 'Failed to search clinics' });
   }
 };
 
@@ -798,6 +852,81 @@ export const searchClinicsByLocation = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error searching clinics by location:', error);
     res.status(500).json({ error: 'Failed to search clinics by location' });
+  }
+};
+
+export const searchDoctors = async (req: Request, res: Response) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+      return res.status(400).json({ error: 'Search query (q) is required' });
+    }
+
+    const searchTerm = q.trim().toLowerCase();
+
+    // Search doctors by name in profileData JSONB, return with their clinics
+    const results = await db
+      .select({
+        id: users.id,
+        profileData: users.profileData,
+        clinicId: clinicDoctors.clinicId,
+        clinicName: clinics.name,
+        clinicAddress: clinics.address,
+        clinicCity: clinics.city,
+        clinicState: clinics.state,
+      })
+      .from(users)
+      .innerJoin(clinicDoctors, eq(users.id, clinicDoctors.doctorId))
+      .innerJoin(clinics, eq(clinicDoctors.clinicId, clinics.id))
+      .where(
+        and(
+          eq(users.role, 'doctor'),
+          eq(clinicDoctors.isActive, true),
+          eq(clinics.isActive, true),
+          sql`LOWER((${users.profileData})::json->>'name') LIKE ${`%${searchTerm}%`}`
+        )
+      )
+      .orderBy(sql`LOWER((${users.profileData})::json->>'name')`);
+
+    // Group by doctor to show unique doctors with all their clinics
+    const doctorMap = new Map<string, {
+      id: string;
+      profileData: unknown;
+      clinics: Array<{ id: string; name: string; address: string | null; city: string | null; state: string | null }>;
+    }>();
+
+    for (const row of results) {
+      const existing = doctorMap.get(row.id);
+      if (existing) {
+        existing.clinics.push({
+          id: row.clinicId,
+          name: row.clinicName,
+          address: row.clinicAddress,
+          city: row.clinicCity,
+          state: row.clinicState,
+        });
+      } else {
+        doctorMap.set(row.id, {
+          id: row.id,
+          profileData: row.profileData,
+          clinics: [{
+            id: row.clinicId,
+            name: row.clinicName,
+            address: row.clinicAddress,
+            city: row.clinicCity,
+            state: row.clinicState,
+          }],
+        });
+      }
+    }
+
+    const doctors = Array.from(doctorMap.values());
+
+    res.json({ doctors });
+  } catch (error) {
+    console.error('Error searching doctors:', error);
+    res.status(500).json({ error: 'Failed to search doctors' });
   }
 };
 

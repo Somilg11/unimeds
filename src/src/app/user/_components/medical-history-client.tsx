@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar, Clock, User, Loader2, Download, Stethoscope } from 'lucide-react';
+import { FileText, Calendar, Clock, User, Loader2, Eye, Stethoscope } from 'lucide-react';
 import apiClient from '@/lib/api-client';
+import { DocumentViewer } from '@/app/doctor/_components/document-viewer';
 
 interface MedicalRecord {
   id: string;
@@ -44,6 +45,7 @@ export function MedicalHistoryClient({ userName }: MedicalHistoryClientProps) {
   const [appointments, setAppointments] = useState<MedicalAppointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'records' | 'appointments'>('all');
+  const [viewingRecord, setViewingRecord] = useState<MedicalRecord | null>(null);
 
   useEffect(() => {
     fetchMedicalHistory();
@@ -175,15 +177,13 @@ export function MedicalHistoryClient({ userName }: MedicalHistoryClientProps) {
                   </p>
                 )}
                 <div className="flex gap-2 mt-3">
-                  <a
-                    href={item.data.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setViewingRecord(item.data)}
                     className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-gray-600 hover:text-gray-900 border border-dashed border-gray-300 px-3 py-1.5"
                   >
-                    <Download className="w-3 h-3" />
+                    <Eye className="w-3 h-3" />
                     View
-                  </a>
+                  </button>
                 </div>
               </div>
             ) : (
@@ -225,6 +225,16 @@ export function MedicalHistoryClient({ userName }: MedicalHistoryClientProps) {
             )
           )}
         </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {viewingRecord && (
+        <DocumentViewer
+          fileUrl={viewingRecord.fileUrl}
+          fileName={viewingRecord.fileName}
+          mimeType={viewingRecord.mimeType || 'application/pdf'}
+          onClose={() => setViewingRecord(null)}
+        />
       )}
     </div>
   );

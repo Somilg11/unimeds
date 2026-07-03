@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UploadZone } from './upload-zone';
 import { BentoCard } from './bento-card';
-import { FileText, Download, Trash2, Search, Calendar, Loader2, UserPlus } from 'lucide-react';
+import { FileText, Eye, Trash2, Search, Calendar, Loader2, UserPlus } from 'lucide-react';
 import { MedicalRecord } from '@/types/user';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
+import { DocumentViewer } from '@/app/doctor/_components/document-viewer';
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
   const [uploadRecordType, setUploadRecordType] = useState('general');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EnrichedRecord | null>(null);
+  const [viewingRecord, setViewingRecord] = useState<EnrichedRecord | null>(null);
 
   useEffect(() => {
     fetchRecords();
@@ -342,15 +344,13 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                     )}
 
                     <div className="flex gap-2">
-                      <a
-                        href={record.s3Url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setViewingRecord(record)}
                         className="flex-1 inline-flex items-center justify-center text-[11px] font-mono uppercase tracking-wider h-8 border border-dashed border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                       >
-                        <Download className="w-3 h-3 mr-2" />
-                        Download
-                      </a>
+                        <Eye className="w-3 h-3 mr-2" />
+                        View
+                      </button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -380,6 +380,16 @@ export function RecordsClient({ userName }: RecordsClientProps) {
           </BentoCard>
         </div>
       </div>
+
+      {/* Document Viewer Modal */}
+      {viewingRecord && (
+        <DocumentViewer
+          fileUrl={viewingRecord.s3Url || ''}
+          fileName={viewingRecord.fileName}
+          mimeType={viewingRecord.fileType}
+          onClose={() => setViewingRecord(null)}
+        />
+      )}
     </div>
   );
 }

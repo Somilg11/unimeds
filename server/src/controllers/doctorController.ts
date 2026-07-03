@@ -3,7 +3,7 @@ import { db } from '../db/db.js';
 import { users, records, appointments, clinics, auditLogs, notifications, doctorAvailability, clinicDoctors } from '../db/schema.js';
 import { eq, or, ilike, desc, and, sql, inArray } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
-import { generateSignedUploadUrl } from '../lib/cloudinary.js';
+import { generateSignedUploadUrl, deleteAsset } from '../lib/cloudinary.js';
 
 export const doctorLogin = async (req: Request, res: Response) => {
   try {
@@ -145,10 +145,24 @@ export const getPatientContext = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Patient not found' });
     }
 
-    // Get patient's records
+    // Get patient's records (only for active appointments)
     const patientRecords = await db
-      .select()
+      .select({
+        id: records.id,
+        fileUrl: records.fileUrl,
+        recordType: records.recordType,
+        fileName: records.fileName,
+        fileSize: records.fileSize,
+        mimeType: records.mimeType,
+        ocrData: records.ocrData,
+        createdAt: records.createdAt,
+      })
       .from(records)
+      .innerJoin(appointments, and(
+        eq(records.patientId, appointments.patientId),
+        eq(appointments.doctorId, doctorId),
+        sql`${appointments.status} IN ('pending', 'confirmed', 'reschedule_proposed')`
+      ))
       .where(eq(records.patientId, id))
       .orderBy(desc(records.createdAt));
 
@@ -287,7 +301,8 @@ export const getDoctorRecords = async (req: Request, res: Response) => {
       .from(records)
       .innerJoin(appointments, and(
         eq(records.patientId, appointments.patientId),
-        eq(appointments.doctorId, doctorId)
+        eq(appointments.doctorId, doctorId),
+        sql`${appointments.status} IN ('pending', 'confirmed', 'reschedule_proposed')`
       ))
       .innerJoin(users, eq(records.patientId, users.id))
       .groupBy(records.id, users.id)
@@ -348,7 +363,7 @@ export const uploadRecordForPatient = async (req: Request, res: Response) => {
     const [newRecord] = await db.insert(records).values({
       patientId,
       uploadedBy: doctorId,
-      fileUrl: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/${publicId}`,
+      fileUrl: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/auto/upload/${publicId}`,
       recordType: recordType || 'general',
       fileName,
       mimeType: fileType,
@@ -438,7 +453,13 @@ export const getPatientMedicalHistory = async (req: Request, res: Response) => {
       })
       .from(records)
       .leftJoin(users, eq(records.uploadedBy, users.id))
+      .innerJoin(appointments, and(
+        eq(records.patientId, appointments.patientId),
+        eq(appointments.doctorId, doctorId),
+        sql`${appointments.status} IN ('pending', 'confirmed', 'reschedule_proposed')`
+      ))
       .where(eq(records.patientId, patientId))
+      .groupBy(records.id, users.id)
       .orderBy(desc(records.createdAt));
 
     const patientAppointments = await db
@@ -789,14 +810,40 @@ export const completeAppointment = async (req: Request, res: Response) => {
 
     const [updated] = await db
       .update(appointments)
-      .set({ status: 'confirmed', updatedAt: new Date() })
+      .set({ status: 'completed', updatedAt: new Date() })
       .where(eq(appointments.id, id))
       .returning();
+
+    // Delete patient-uploaded records from Cloudinary and DB
+    const patientRecords = await db
+      .select({ id: records.id, fileUrl: records.fileUrl })
+      .from(records)
+      .where(
+        and(
+          eq(records.patientId, appointment.patientId),
+          sql`${records.uploadedBy} != ${doctorId}`
+        )
+      );
+
+    for (const record of patientRecords) {
+      await deleteAsset(record.fileUrl);
+    }
+
+    if (patientRecords.length > 0) {
+      await db
+        .delete(records)
+        .where(
+          and(
+            eq(records.patientId, appointment.patientId),
+            sql`${records.uploadedBy} != ${doctorId}`
+          )
+        );
+    }
 
     await db.insert(notifications).values({
       userId: appointment.patientId,
       clinicId: appointment.clinicId,
-      type: 'general',
+      type: 'appointment_completed',
       title: 'Appointment Completed',
       message: `Your appointment has been marked as completed by the doctor.`,
       data: { appointmentId: id },

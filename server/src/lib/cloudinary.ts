@@ -48,4 +48,30 @@ export const generateSignedUploadUrl = (
   };
 };
 
+export const deleteAsset = async (fileUrl: string): Promise<boolean> => {
+  try {
+    // Extract public_id from Cloudinary URL
+    // URL format: https://res.cloudinary.com/{cloud_name}/{type}/upload/{public_id}.{ext}
+    const urlParts = fileUrl.split('/');
+    const uploadIndex = urlParts.indexOf('upload');
+    if (uploadIndex === -1 || uploadIndex + 1 >= urlParts.length) {
+      console.error('Invalid Cloudinary URL format:', fileUrl);
+      return false;
+    }
+
+    // Get everything after 'upload/' and remove file extension
+    const pathWithExtension = urlParts.slice(uploadIndex + 1).join('/');
+    const publicId = pathWithExtension.replace(/\.[^.]+$/, '');
+
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: 'auto',
+    });
+
+    return result.result === 'ok';
+  } catch (error) {
+    console.error('Error deleting Cloudinary asset:', error);
+    return false;
+  }
+};
+
 export default cloudinary;

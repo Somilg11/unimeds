@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Search, Download, Upload, X, Loader2 } from 'lucide-react';
+import { FileText, Search, Upload, X, Loader2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import { DocumentViewer } from './document-viewer';
 
 interface Record {
   id: string;
@@ -43,6 +44,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [uploading, setUploading] = useState(false);
   const [recordType, setRecordType] = useState('general');
+  const [viewingRecord, setViewingRecord] = useState<Record | null>(null);
 
   useEffect(() => {
     fetchRecords();
@@ -214,14 +216,13 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                   <div className="text-xs text-gray-400">
                     {new Date(record.createdAt).toLocaleDateString()}
                   </div>
-                  <a
-                    href={record.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setViewingRecord(record)}
                     className="text-gray-500 hover:text-gray-900"
+                    title="View document"
                   >
-                    <Download className="w-4 h-4" />
-                  </a>
+                    <Eye className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -332,6 +333,16 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
             )}
           </div>
         </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {viewingRecord && (
+        <DocumentViewer
+          fileUrl={viewingRecord.fileUrl}
+          fileName={viewingRecord.fileName}
+          mimeType={viewingRecord.mimeType}
+          onClose={() => setViewingRecord(null)}
+        />
       )}
     </div>
   );
