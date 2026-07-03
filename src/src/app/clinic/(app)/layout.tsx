@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ClinicAdminNav } from './clinic-admin-nav';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { LayoutDashboard, Calendar, Users, FileText, Settings, BarChart3, UserCog } from 'lucide-react';
+
+const clinicNavItems = [
+  { href: '/clinic/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/clinic/appointments', label: 'Appointments', icon: Calendar },
+  { href: '/clinic/patients', label: 'Patients', icon: Users },
+  { href: '/clinic/records', label: 'Records', icon: FileText },
+  { href: '/clinic/settings', label: 'Settings', icon: Settings },
+];
 
 export default function ClinicAdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,33 +26,33 @@ export default function ClinicAdminLayout({ children }: { children: React.ReactN
     try {
       const res = await fetch('/api/clinic-admin/settings');
       if (!res.ok) {
-        router.push('/clinic');
+        router.push('/auth/signin?role=clinic');
         return;
       }
       const data = await res.json();
       setUserName(data?.clinic?.name || 'Clinic Admin');
       setChecking(false);
     } catch {
-      router.push('/clinic');
+      router.push('/auth/signin?role=clinic');
     }
   }
 
   if (checking) {
     return (
-      <div className="flex min-h-screen bg-white items-center justify-center">
+      <div className="flex min-h-screen bg-neutral-50 items-center justify-center">
         <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <ClinicAdminNav userName={userName} />
-      <div className="flex-1 flex flex-col pt-13 lg:pt-0">
-        <main className="flex-1 max-w-[1400px] mx-auto w-full p-4 lg:p-10">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      navItems={clinicNavItems}
+      userName={userName}
+      roleLabel="Clinic Admin"
+      logoutHref="/"
+    >
+      {children}
+    </DashboardLayout>
   );
 }

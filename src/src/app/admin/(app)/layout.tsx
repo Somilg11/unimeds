@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminNav } from './admin-nav';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { LayoutDashboard, Building2, Users, ScrollText, Settings } from 'lucide-react';
+
+const adminNavItems = [
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/clinics', label: 'Clinics', icon: Building2 },
+  { href: '/admin/doctors', label: 'Doctors', icon: Users },
+  { href: '/admin/audit-logs', label: 'Audit Logs', icon: ScrollText },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
+];
 
 export default function AdminAppLayout({
   children,
@@ -16,7 +25,7 @@ export default function AdminAppLayout({
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
     if (!token) {
-      router.push('/admin');
+      router.push('/auth/signin?role=admin');
       return;
     }
 
@@ -33,20 +42,20 @@ export default function AdminAppLayout({
 
   if (checking) {
     return (
-      <div className="flex min-h-screen bg-white items-center justify-center">
+      <div className="flex min-h-screen bg-neutral-50 items-center justify-center">
         <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <AdminNav userName={userName} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 pt-13 lg:pt-0 p-4 lg:p-10 overflow-y-auto max-w-[1400px] w-full">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      navItems={adminNavItems}
+      userName={userName}
+      roleLabel="Super Admin"
+      logoutHref="/"
+    >
+      {children}
+    </DashboardLayout>
   );
 }

@@ -1,6 +1,15 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { UserNav } from '@/app/user/_components/user-nav';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { FileText, Calendar, User, LayoutDashboard, ClipboardList } from 'lucide-react';
+
+const userNavItems = [
+  { href: '/user/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/user/records', label: 'Records', icon: FileText },
+  { href: '/user/medical-history', label: 'History', icon: ClipboardList },
+  { href: '/user/book', label: 'Book', icon: Calendar },
+  { href: '/user/profile', label: 'Profile', icon: User },
+];
 
 export default async function UserLayout({
   children,
@@ -10,19 +19,17 @@ export default async function UserLayout({
   const session = await auth();
   
   if (!session?.user) {
-    redirect('/user');
+    redirect('/auth/signin?role=patient');
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <UserNav userName={session.user.name || 'User'} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 pt-19 lg:pt-8">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      navItems={userNavItems}
+      userName={session.user.name || 'Patient'}
+      roleLabel="Patient Portal"
+      logoutHref="/"
+    >
+      {children}
+    </DashboardLayout>
   );
 }
