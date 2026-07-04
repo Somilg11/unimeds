@@ -203,7 +203,10 @@ export default function AdminClinics() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Clinics</h1>
           </div>
         </div>
-        <Button onClick={() => { setShowAddForm(!showAddForm); setSubmitError(null); setActivationLink(null); }} size="sm">
+        <Button 
+          onClick={() => { setShowAddForm(!showAddForm); setSubmitError(null); setActivationLink(null); }}
+          className="rounded-xl bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm h-10 px-4"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add Clinic
         </Button>
@@ -373,23 +376,23 @@ export default function AdminClinics() {
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search clinics..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pl-10 bg-white border border-gray-200"
+            className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
           />
         </div>
-        <div className="flex gap-px bg-gray-200 border border-gray-200">
+        <div className="flex p-1 bg-gray-100/80 rounded-xl border border-gray-100 self-start">
           {(['all', 'active', 'pending'] as const).map((filter) => (
             <button
               key={filter}
               onClick={() => { setStatusFilter(filter); setCurrentPage(1); }}
-              className={`px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+              className={`px-4 py-1.5 text-[13px] font-medium capitalize rounded-lg transition-all ${
                 statusFilter === filter
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'bg-white text-[#36565F] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
               }`}
             >
               {filter}
@@ -398,53 +401,53 @@ export default function AdminClinics() {
         </div>
       </div>
 
-      <div className="border border-gray-200">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         {filteredClinics.length === 0 ? (
-          <div className="p-12 text-center">
-            <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">No clinics found</p>
+          <div className="text-center py-16 border-b border-gray-100 bg-gray-50/50 m-4 rounded-3xl border-dashed">
+            <Building2 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-[15px] font-semibold text-gray-900 mb-1">No clinics found</p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-gray-50 z-10">
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500">Clinic Name</th>
-                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden sm:table-cell">Email</th>
-                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden lg:table-cell">Location</th>
-                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500">Status</th>
-                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden md:table-cell">Doctors</th>
-                    <th className="text-left py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500 hidden lg:table-cell">Created</th>
-                    <th className="text-right py-3 px-3 sm:px-4 font-mono text-[10px] uppercase text-gray-500">Actions</th>
+              <table className="w-full text-left">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Clinic Name</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Email</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Doctors</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Created</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100/80">
                   {paginatedClinics.map((clinic) => (
-                    <tr key={clinic.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-3 sm:px-4 font-medium text-gray-900">
+                    <tr key={clinic.id} className="group hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-4 font-semibold text-gray-900 text-[14px]">
                         <div className="truncate max-w-[150px] sm:max-w-[200px]">{clinic.name}</div>
-                        <div className="text-xs text-gray-500 sm:hidden mt-0.5 truncate max-w-[150px]">{clinic.email || '—'}</div>
+                        <div className="text-[12px] font-normal text-gray-500 sm:hidden mt-0.5 truncate max-w-[150px]">{clinic.email || '—'}</div>
                       </td>
-                      <td className="py-3 px-3 sm:px-4 text-gray-600 truncate max-w-[200px] hidden sm:table-cell">
-                        {clinic.email || <span className="text-gray-400">—</span>}
+                      <td className="px-5 py-4 text-gray-600 text-[13px] truncate max-w-[200px] hidden sm:table-cell">
+                        {clinic.email || <span className="text-gray-400 italic">—</span>}
                       </td>
-                      <td className="py-3 px-3 sm:px-4 text-gray-500 text-xs hidden lg:table-cell">
+                      <td className="px-5 py-4 text-gray-500 text-[13px] hidden lg:table-cell">
                         {clinic.address || clinic.city ? (
                           <div className="truncate max-w-[180px]">
                             {clinic.address}{clinic.city ? `, ${clinic.city}` : ''}{clinic.state ? `, ${clinic.state}` : ''}
                           </div>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-gray-400 italic">—</span>
                         )}
                       </td>
-                      <td className="py-3 px-3 sm:px-4">
+                      <td className="px-5 py-4">
                         <Badge
                           variant={clinic.isActive ? 'default' : 'secondary'}
-                          className={`text-[10px] ${
+                          className={`text-[10px] font-medium px-2 py-0.5 ${
                             clinic.isActive
-                              ? 'bg-green-100 text-green-700 border-green-200'
-                              : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : 'bg-yellow-50 text-yellow-700 border-yellow-200'
                           }`}
                         >
                           {clinic.isActive ? 'Active' : 'Pending'}
@@ -465,31 +468,35 @@ export default function AdminClinics() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7"
+                              className="h-8 w-8 rounded-lg hover:bg-gray-100 transition-colors"
                               disabled={togglingClinicId === clinic.id}
                             >
                               {togglingClinicId === clinic.id ? (
-                                <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+                                <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
                               ) : (
-                                <MoreHorizontal className="w-4 h-4" />
+                                <MoreHorizontal className="w-4 h-4 text-gray-500" />
                               )}
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleToggleClinicStatus(clinic)}>
+                          <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-gray-100 min-w-[160px] p-1.5">
+                            <DropdownMenuItem
+                              onClick={() => handleToggleClinicStatus(clinic)}
+                              className={`rounded-lg cursor-pointer text-[13px] ${clinic.isActive ? 'text-orange-600 hover:text-orange-700 hover:bg-orange-50' : 'text-green-600 hover:text-green-700 hover:bg-green-50'}`}
+                            >
                               <Power className="w-4 h-4 mr-2" />
                               {clinic.isActive ? 'Deactivate' : 'Activate'}
                             </DropdownMenuItem>
                             {!clinic.isActive && clinic.activationToken && (
                               <>
-                                <DropdownMenuSeparator />
+                                <DropdownMenuSeparator className="my-1 border-gray-100" />
                                 <DropdownMenuItem
                                   onClick={() => {
                                     const link = `${window.location.origin}/clinic/activate?token=${clinic.activationToken}`;
                                     handleCopyClinicLink(link, clinic.id);
                                   }}
+                                  className="rounded-lg cursor-pointer text-[13px] text-gray-700 hover:bg-gray-50"
                                 >
-                                  <Copy className="w-4 h-4 mr-2" />
+                                  <Copy className="w-4 h-4 mr-2 text-gray-400" />
                                   Copy Activation Link
                                 </DropdownMenuItem>
                               </>
@@ -503,30 +510,30 @@ export default function AdminClinics() {
               </table>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 gap-2">
-              <p className="text-xs text-gray-500">
-                Page {safeCurrentPage} of {totalPages} ({filteredClinics.length} total)
+            <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-gray-100/80 bg-gray-50/30 gap-4">
+              <p className="text-[13px] text-gray-500 font-medium">
+                Page {safeCurrentPage} of {totalPages} <span className="text-gray-400">({filteredClinics.length} total)</span>
               </p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-9 px-4 rounded-xl text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm"
                   disabled={safeCurrentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 >
-                  <ChevronLeft className="w-3 h-3 mr-1" />
+                  <ChevronLeft className="w-4 h-4 mr-1.5" />
                   Prev
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-9 px-4 rounded-xl text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm"
                   disabled={safeCurrentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 >
                   Next
-                  <ChevronRight className="w-3 h-3 ml-1" />
+                  <ChevronRight className="w-4 h-4 ml-1.5" />
                 </Button>
               </div>
             </div>

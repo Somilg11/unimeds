@@ -190,20 +190,20 @@ export default function AdminDashboard() {
       <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200">
-        {summaryCards.map((card) => {
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        {summaryCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={card.title} className="bg-white p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-7 h-7 ${card.bg} flex items-center justify-center`}>
-                  <Icon className={`w-3.5 h-3.5 ${card.color}`} />
+            <div key={card.title} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: `${i * 50}ms` }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-2xl ${card.bg} flex items-center justify-center`}>
+                  <Icon className={`w-5 h-5 ${card.color}`} />
                 </div>
+                <span className="text-[13px] font-medium text-gray-500">{card.title}</span>
               </div>
-              <p className="font-mono text-[10px] uppercase text-gray-400 tracking-wider mb-1">{card.title}</p>
-              <div className="text-xl font-bold text-gray-900">{card.value.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-gray-900">{card.value.toLocaleString()}</div>
               {card.note && (
-                <p className="text-[10px] text-gray-400 mt-1">{card.note}</p>
+                <p className="text-[11px] text-gray-400 mt-2">{card.note}</p>
               )}
             </div>
           );
@@ -213,12 +213,12 @@ export default function AdminDashboard() {
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Platform Overview Bar Chart */}
-        <div className="lg:col-span-2 border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Platform Overview</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Entity counts across the platform</p>
+        <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="mb-6">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Platform Overview</h2>
+            <p className="text-[13px] text-gray-500 mt-1">Entity counts across the platform</p>
           </div>
-          <div className="p-5">
+          <div className="pt-2">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={platformData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
@@ -246,12 +246,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Clinic Status Donut */}
-        <div className="border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Clinic Status</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Active vs inactive clinics</p>
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="mb-6">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Clinic Status</h2>
+            <p className="text-[13px] text-gray-500 mt-1">Active vs inactive clinics</p>
           </div>
-          <div className="p-5">
+          <div className="pt-2">
             {clinicStatusData.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-12">No clinics yet</p>
             ) : (
@@ -297,12 +297,12 @@ export default function AdminDashboard() {
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Distribution Pie */}
-        <div className="border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">User Distribution</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Doctors vs patients ratio</p>
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="mb-6">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">User Distribution</h2>
+            <p className="text-[13px] text-gray-500 mt-1">Doctors vs patients ratio</p>
           </div>
-          <div className="p-5">
+          <div className="pt-2">
             {userDistData.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-12">No users yet</p>
             ) : (
@@ -344,12 +344,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Doctor Specialization Breakdown */}
-        <div className="border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Doctor Specializations</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Distribution by specialty</p>
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="mb-6">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Doctor Specializations</h2>
+            <p className="text-[13px] text-gray-500 mt-1">Distribution by specialty</p>
           </div>
-          <div className="p-5">
+          <div className="pt-2">
             {specData.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-12">No doctors yet</p>
             ) : (

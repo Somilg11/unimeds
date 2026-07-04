@@ -195,9 +195,12 @@ export default function ClinicAdminStaff() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-bold text-gray-900">Staff Management</h1>
-        <Button onClick={() => { setShowAddForm(!showAddForm); setCreatedAuthId(null); }} size="sm">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">Clinic Portal</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Staff Management</h1>
+        </div>
+        <Button onClick={() => { setShowAddForm(!showAddForm); setCreatedAuthId(null); }} className="rounded-xl bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm h-10 px-5">
           <UserPlus className="w-4 h-4 mr-2" />
           Add Doctor
         </Button>
@@ -217,9 +220,9 @@ export default function ClinicAdminStaff() {
 
       {/* Add Doctor Form */}
       {showAddForm && (
-        <div className="border border-gray-200 mb-6">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Add New Doctor</h2>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900">Add New Doctor</h2>
           </div>
           <div className="p-4">
             {createdAuthId && (
@@ -256,67 +259,67 @@ export default function ClinicAdminStaff() {
               </div>
             )}
 
-            <form onSubmit={handleAddDoctor} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleAddDoctor} className="space-y-4 px-1 py-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">Name *</Label>
+                  <Label className="text-[13px] font-medium text-gray-700">Name <span className="text-red-500">*</span></Label>
                   <Input
                     required
                     value={formData.name}
                     onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Dr. Name"
-                    className="bg-gray-50 border border-gray-200"
+                    className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">Email *</Label>
+                  <Label className="text-[13px] font-medium text-gray-700">Email <span className="text-red-500">*</span></Label>
                   <Input
                     required
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="doctor@example.com"
-                    className="bg-gray-50 border border-gray-200"
+                    className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">Phone</Label>
+                  <Label className="text-[13px] font-medium text-gray-700">Phone</Label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                     placeholder="+1 234 567 890"
-                    className="bg-gray-50 border border-gray-200"
+                    className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">Specialization *</Label>
+                  <Label className="text-[13px] font-medium text-gray-700">Specialization <span className="text-red-500">*</span></Label>
                   <Input
                     required
                     value={formData.specialization}
                     onChange={(e) => setFormData((prev) => ({ ...prev, specialization: e.target.value }))}
                     placeholder="e.g. General Practice"
-                    className="bg-gray-50 border border-gray-200"
+                    className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">License Number *</Label>
+                  <Label className="text-[13px] font-medium text-gray-700">License Number <span className="text-red-500">*</span></Label>
                   <Input
                     required
                     value={formData.licenseNumber}
                     onChange={(e) => setFormData((prev) => ({ ...prev, licenseNumber: e.target.value }))}
                     placeholder="License #"
-                    className="bg-gray-50 border border-gray-200"
+                    className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2 pt-2">
-                <Button type="submit" disabled={submitting} size="sm">
+              <div className="flex items-center gap-3 pt-4 border-t border-gray-100 mt-6">
+                <Button type="submit" disabled={submitting} className="rounded-xl h-10 px-6 bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm">
                   {submitting ? 'Adding...' : 'Add Doctor'}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  className="rounded-xl h-10 px-5 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => { setShowAddForm(false); setCreatedAuthId(null); setSubmitError(null); }}
                 >
                   Cancel
@@ -330,60 +333,70 @@ export default function ClinicAdminStaff() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search by name, email, or specialization..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pl-10 bg-white border border-gray-200"
+            className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
           />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
-          <SelectTrigger className="w-[160px] bg-white border border-gray-200">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
+        
+        <div className="flex p-1 bg-gray-100/80 rounded-xl border border-gray-100 self-start w-fit">
+          {[
+            { id: 'all', label: 'All Status' },
+            { id: 'active', label: 'Active' },
+            { id: 'inactive', label: 'Inactive' }
+          ].map((status) => (
+            <button
+              key={status.id}
+              onClick={() => { setStatusFilter(status.id); setCurrentPage(1); }}
+              className={`px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all ${
+                statusFilter === status.id
+                  ? 'bg-white text-[#36565F] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+              }`}
+            >
+              {status.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
-      <div className="border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider">Doctor Name</th>
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden md:table-cell">Specialization</th>
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden lg:table-cell">License #</th>
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden xl:table-cell">Auth ID</th>
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-[11px] font-mono uppercase text-gray-400 tracking-wider">Actions</th>
+          <table className="w-full text-left">
+            <thead className="bg-gray-50/50 border-b border-gray-100">
+              <tr>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Doctor Name</th>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Email</th>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Specialization</th>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">License #</th>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden xl:table-cell">Auth ID</th>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedDoctors.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-5 py-16 text-center">
                     <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No doctors found</p>
+                    <p className="text-[15px] font-semibold text-gray-900 mb-1">No doctors found</p>
                   </td>
                 </tr>
               ) : (
                 paginatedDoctors.map((doctor) => (
-                  <tr key={doctor.doctorId} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                    <td className="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">{doctor.name}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden sm:table-cell">{doctor.email}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">{doctor.specialization}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden lg:table-cell">{doctor.licenseNumber}</td>
-                    <td className="px-4 py-3 whitespace-nowrap hidden xl:table-cell">
+                  <tr key={doctor.doctorId} className="hover:bg-gray-50/50 border-b border-gray-100/80 last:border-b-0 transition-colors">
+                    <td className="px-5 py-4 text-[14px] text-gray-900 font-medium whitespace-nowrap">{doctor.name}</td>
+                    <td className="px-5 py-4 text-[13px] text-gray-600 whitespace-nowrap hidden sm:table-cell">{doctor.email}</td>
+                    <td className="px-5 py-4 text-[13px] text-gray-600 whitespace-nowrap hidden md:table-cell">{doctor.specialization}</td>
+                    <td className="px-5 py-4 text-[13px] text-gray-600 whitespace-nowrap hidden lg:table-cell">{doctor.licenseNumber}</td>
+                    <td className="px-5 py-4 whitespace-nowrap hidden xl:table-cell">
                       {doctor.authId ? (
                         <div className="flex items-center gap-1.5">
-                          <code className="text-xs bg-gray-50 px-2 py-0.5 border border-gray-100 max-w-[120px] truncate">
+                          <code className="text-[12px] bg-gray-50 px-2 py-1 rounded-md border border-gray-100 max-w-[120px] truncate text-gray-700">
                             {visibleAuthIds.has(doctor.doctorId) ? doctor.authId : '••••••••'}
                           </code>
                           <button
@@ -396,7 +409,7 @@ export default function ClinicAdminStaff() {
                                 return next;
                               });
                             }}
-                            className="shrink-0 text-gray-400 hover:text-gray-600"
+                            className="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                             title={visibleAuthIds.has(doctor.doctorId) ? 'Hide' : 'Reveal'}
                           >
                             {visibleAuthIds.has(doctor.doctorId) ? (
@@ -408,7 +421,7 @@ export default function ClinicAdminStaff() {
                           <button
                             type="button"
                             onClick={() => handleCopyAuthId(doctor.authId!)}
-                            className="shrink-0 text-gray-400 hover:text-gray-600"
+                            className="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                             title="Copy"
                           >
                             {copiedId ? (
@@ -419,40 +432,40 @@ export default function ClinicAdminStaff() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-[13px] text-gray-400 italic">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <Badge
                         variant={doctor.isActive ? 'default' : 'secondary'}
-                        className={`text-[10px] ${
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
                           doctor.isActive
-                            ? 'bg-green-100 text-green-700 border-green-200'
+                            ? 'bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0]'
                             : 'bg-gray-100 text-gray-500 border-gray-200'
                         }`}
                       >
                         {doctor.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="h-7 text-xs"
+                          className="rounded-xl h-8 px-3 text-[12px] font-medium border-gray-200 shadow-sm"
                           disabled={togglingId === doctor.doctorId}
                           onClick={() => handleToggle(doctor.doctorId, doctor.isActive)}
                         >
                           {doctor.isActive ? 'Deactivate' : 'Activate'}
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="rounded-xl h-8 px-3 text-[12px] font-medium border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 shadow-sm"
                           disabled={deletingId === doctor.doctorId}
                           onClick={() => handleDelete(doctor.doctorId)}
                         >
-                          <Trash2 className="w-3 h-3 mr-1" />
+                          <Trash2 className="w-3.5 h-3.5 mr-1" />
                           {deletingId === doctor.doctorId ? '...' : 'Remove'}
                         </Button>
                       </div>
@@ -467,27 +480,29 @@ export default function ClinicAdminStaff() {
 
       {/* Pagination */}
       {filteredDoctors.length > PAGE_SIZE && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-xs text-gray-500">
+        <div className="flex items-center justify-between mt-6 px-1">
+          <p className="text-[13px] font-medium text-gray-500">
             Page {safePage} of {totalPages} ({filteredDoctors.length} total)
           </p>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outline"
               disabled={safePage <= 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-xl h-9 px-4 text-[12px] font-medium border-gray-200 shadow-sm"
             >
-              <ChevronLeft className="w-3 h-3" />
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
               Prev
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               disabled={safePage >= totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-xl h-9 px-4 text-[12px] font-medium border-gray-200 shadow-sm"
             >
               Next
-              <ChevronRight className="w-3 h-3" />
-            </button>
+              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
           </div>
         </div>
       )}

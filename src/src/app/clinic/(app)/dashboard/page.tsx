@@ -101,8 +101,11 @@ export default function ClinicDashboard() {
   ];
 
   return (
-    <div>
-      <h1 className="text-lg font-bold text-gray-900 mb-6">Dashboard</h1>
+    <div className="pb-10">
+      <div className="mb-8">
+        <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">Clinic Portal</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+      </div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
@@ -110,50 +113,66 @@ export default function ClinicDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 border border-gray-200 mb-8">
-        {stats.map((stat) => {
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-white p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className="w-4 h-4 text-gray-400" />
-                <span className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">{stat.label}</span>
+            <div key={stat.label} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: `${i * 50}ms` }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[13px] font-medium text-gray-500">{stat.label}</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+              <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
             </div>
           );
         })}
       </div>
 
       {/* Recent Appointments */}
-      <div className="border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="text-sm font-semibold text-gray-900">Recent Appointments</h2>
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Recent Appointments</h2>
         </div>
-        <div>
+        <div className="space-y-3">
           {appointments.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">No appointments yet</p>
+            <div className="text-center py-8 border border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
+              <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500">No appointments yet</p>
+            </div>
           ) : (
             appointments.slice(0, 10).map((apt) => (
               <div
                 key={apt.id}
-                className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                className="flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">
+                  <div className="text-sm font-semibold text-gray-900 truncate">
                     {apt.patientName || 'Patient'}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">
+                  <div className="text-xs text-gray-500 truncate mt-1">
                     {apt.doctorName || 'Doctor'}
                   </div>
                 </div>
-                <div className="text-right ml-4">
-                  <div className="text-xs text-gray-600">
-                    {new Date(apt.slotTime).toLocaleString()}
+                <div className="text-right ml-4 shrink-0 flex flex-col items-end gap-1">
+                  <div className="text-xs font-medium text-gray-500">
+                    {new Date(apt.slotTime).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <Badge
                     variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'}
-                    className="text-[10px]"
+                    className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
+                      apt.status === 'confirmed'
+                        ? 'bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0]'
+                        : apt.status === 'pending'
+                        ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        : apt.status === 'cancelled'
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : 'bg-gray-50 text-gray-600 border-gray-200'
+                    }`}
                   >
                     {apt.status}
                   </Badge>

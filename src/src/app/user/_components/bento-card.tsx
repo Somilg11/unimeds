@@ -15,17 +15,16 @@ export function BentoCard({ children, className, title, icon, action }: BentoCar
   return (
     <div
       className={cn(
-        'relative bg-white border border-gray-200 p-6',
-        'transition-colors hover:bg-gray-50/50',
+        'relative bg-white border border-gray-100 p-6 sm:p-8 rounded-3xl shadow-sm transition-all hover-lift',
         className
       )}
     >
       {(title || icon || action) && (
         <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2.5">
-            {icon && <div className="text-blue-600">{icon}</div>}
+          <div className="flex items-center gap-3">
+            {icon && <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">{icon}</div>}
             {title && (
-              <h3 className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">
+              <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
                 {title}
               </h3>
             )}

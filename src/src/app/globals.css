@@ -49,20 +49,20 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: #E2F0F0;
+  --foreground: #141414;
+  --card: #ffffff;
+  --card-foreground: #141414;
+  --popover: #ffffff;
+  --popover-foreground: #141414;
+  --primary: #36565F;
+  --primary-foreground: #ffffff;
+  --secondary: #5F8190;
+  --secondary-foreground: #ffffff;
+  --muted: #E2F0F0;
+  --muted-foreground: #6B7C84;
+  --accent: #E2F0F0;
+  --accent-foreground: #141414;
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -153,6 +153,24 @@
   .hover-lift:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .bg-glass {
+    @apply bg-background/70 backdrop-blur-md border border-white/20;
+  }
+  .dark .bg-glass {
+    @apply bg-background/50 backdrop-blur-md border border-white/10;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-primary to-secondary;
+  }
+  .dark .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400;
+  }
+  
+  .shadow-apple {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.04);
   }
 }
 

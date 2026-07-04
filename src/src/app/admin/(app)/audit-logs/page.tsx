@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { ScrollText, RefreshCw, X, Eye, ChevronLeft, ChevronRight, Download, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollText, RefreshCw, X, Eye, ChevronLeft, ChevronRight, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AuditLog {
@@ -48,6 +50,7 @@ export default function AdminAuditLogs() {
 
   const [clearModal, setClearModal] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [olderThan, setOlderThan] = useState('');
 
   useEffect(() => {
     fetchAuditLogs();
@@ -131,7 +134,7 @@ export default function AdminAuditLogs() {
       <div className="p-4 lg:p-10">
         <h1 className="text-2xl font-black tracking-tight text-gray-900 mb-6">Audit Logs</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -141,7 +144,7 @@ export default function AdminAuditLogs() {
     <div className="p-4 lg:p-10">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+          <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">
             Admin Portal
           </p>
           <div className="flex items-center gap-3">
@@ -150,15 +153,15 @@ export default function AdminAuditLogs() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button onClick={fetchAuditLogs} variant="outline" size="sm">
+          <Button onClick={fetchAuditLogs} variant="outline" className="rounded-xl h-10 px-4 text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={exportCsv} variant="outline" size="sm" disabled={auditLogs.length === 0}>
+          <Button onClick={exportCsv} variant="outline" disabled={auditLogs.length === 0} className="rounded-xl h-10 px-4 text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm">
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button onClick={() => setClearModal(true)} variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700" disabled={auditLogs.length === 0}>
+          <Button onClick={() => setClearModal(true)} variant="outline" disabled={auditLogs.length === 0} className="rounded-xl h-10 px-4 text-[13px] font-medium text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 shadow-sm">
             <Trash2 className="w-4 h-4 mr-2" />
             Clear
           </Button>
@@ -175,61 +178,53 @@ export default function AdminAuditLogs() {
       )}
 
       {auditLogs.length === 0 ? (
-        <div className="border border-gray-200 p-12 text-center">
-          <ScrollText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No audit logs found</p>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+          <div className="text-center py-16 border border-dashed border-gray-200 rounded-3xl bg-gray-50/50 m-4">
+            <ScrollText className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-[15px] font-semibold text-gray-900 mb-1">No audit logs found</p>
+          </div>
         </div>
       ) : (
-        <div className="border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-gray-50 z-10">
-                <tr className="border-b border-gray-200">
-                  <th className="px-3 sm:px-4 py-3 text-left font-mono text-[10px] uppercase text-gray-500">
-                    Timestamp
-                  </th>
-                  <th className="px-3 sm:px-4 py-3 text-left font-mono text-[10px] uppercase text-gray-500">
-                    User
-                  </th>
-                  <th className="px-3 sm:px-4 py-3 text-left font-mono text-[10px] uppercase text-gray-500">
-                    Action
-                  </th>
-                  <th className="px-3 sm:px-4 py-3 text-left font-mono text-[10px] uppercase text-gray-500">
-                    Target
-                  </th>
-                  <th className="px-3 sm:px-4 py-3 text-left font-mono text-[10px] uppercase text-gray-500">
-                    Details
-                  </th>
+            <table className="w-full text-left">
+              <thead className="bg-gray-50/50 border-b border-gray-100">
+                <tr>
+                  <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Timestamp</th>
+                  <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                  <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Target</th>
+                  <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100/80">
                 {paginatedLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-4 py-3 text-gray-900 whitespace-nowrap text-xs">
+                  <tr key={log.id} className="group hover:bg-gray-50/50 transition-colors">
+                    <td className="px-5 py-4 text-gray-900 whitespace-nowrap text-[13px] font-medium">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
-                    <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap">
+                    <td className="px-5 py-4 text-gray-600 whitespace-nowrap text-[13px]">
                       {log.userName || log.userEmail || 'System'}
                     </td>
-                    <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap">
-                      <span className="text-xs font-mono bg-gray-100 px-1.5 py-0.5">
+                    <td className="px-5 py-4 text-gray-600 whitespace-nowrap">
+                      <span className="text-[11px] font-mono font-medium bg-gray-100/80 text-gray-600 px-2.5 py-1 rounded-md">
                         {log.action}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-3">
+                    <td className="px-5 py-4">
                       <button
                         onClick={() => openTargetDetail(log.targetResource)}
-                        className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                        className="text-[13px] text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
                       >
                         {formatTargetShort(log.targetResource)}
                       </button>
                     </td>
-                    <td className="px-3 sm:px-4 py-3">
+                    <td className="px-5 py-4">
                       <button
                         onClick={() => openMetadataDetail(log.metadata)}
-                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                        className="inline-flex items-center gap-1.5 text-[13px] text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
                       >
-                        <Eye className="w-3 h-3" />
+                        <Eye className="w-3.5 h-3.5" />
                         View
                       </button>
                     </td>
@@ -240,30 +235,30 @@ export default function AdminAuditLogs() {
           </div>
 
           {auditLogs.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 gap-2">
-              <p className="text-xs text-gray-500">
-                Page {safeCurrentPage} of {totalPages} ({auditLogs.length} total)
+            <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-gray-100/80 bg-gray-50/30 gap-4">
+              <p className="text-[13px] text-gray-500 font-medium">
+                Page {safeCurrentPage} of {totalPages} <span className="text-gray-400">({auditLogs.length} total)</span>
               </p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-9 px-4 rounded-xl text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm"
                   disabled={safeCurrentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 >
-                  <ChevronLeft className="w-3 h-3 mr-1" />
+                  <ChevronLeft className="w-4 h-4 mr-1.5" />
                   Prev
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-9 px-4 rounded-xl text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm"
                   disabled={safeCurrentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 >
                   Next
-                  <ChevronRight className="w-3 h-3 ml-1" />
+                  <ChevronRight className="w-4 h-4 ml-1.5" />
                 </Button>
               </div>
             </div>
@@ -273,32 +268,31 @@ export default function AdminAuditLogs() {
 
       {/* Detail Modal */}
       {detailModal.open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             onClick={() => setDetailModal({ open: false, title: '', content: '' })}
           />
-          <div className="relative bg-white border border-gray-200 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900">{detailModal.title}</h3>
+          <div className="relative bg-white border border-gray-100 rounded-3xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="text-[16px] font-semibold text-gray-900 tracking-tight">{detailModal.title}</h3>
               <button
                 onClick={() => setDetailModal({ open: false, title: '', content: '' })}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all font-mono">
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+              <pre className="text-[12px] text-gray-700 whitespace-pre-wrap break-all font-mono bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                 {detailModal.content}
               </pre>
             </div>
-            <div className="px-4 py-3 border-t border-gray-200">
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
               <Button
                 variant="outline"
-                size="sm"
+                className="rounded-xl font-medium w-full"
                 onClick={() => setDetailModal({ open: false, title: '', content: '' })}
-                className="w-full"
               >
                 Close
               </Button>
@@ -309,62 +303,51 @@ export default function AdminAuditLogs() {
 
       {/* Clear Logs Modal */}
       {clearModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => !clearing && setClearModal(false)}
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            onClick={() => setClearModal(false)}
           />
-          <div className="relative bg-white border border-gray-200 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900">Clear Audit Logs</h3>
-              <button
-                onClick={() => !clearing && setClearModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-4 space-y-3">
-              <p className="text-sm text-gray-600">
-                Choose what to clear. This action cannot be undone.
-              </p>
-              <div className="space-y-2">
-                <button
-                  onClick={() => handleClearLogs(30)}
-                  disabled={clearing}
-                  className="w-full text-left px-3 py-2.5 border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  <p className="text-sm font-medium text-gray-900">Older than 30 days</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Keep recent logs, remove everything older</p>
-                </button>
-                <button
-                  onClick={() => handleClearLogs(90)}
-                  disabled={clearing}
-                  className="w-full text-left px-3 py-2.5 border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  <p className="text-sm font-medium text-gray-900">Older than 90 days</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Keep last 3 months, remove everything older</p>
-                </button>
-                <button
-                  onClick={() => handleClearLogs()}
-                  disabled={clearing}
-                  className="w-full text-left px-3 py-2.5 border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
-                >
-                  <p className="text-sm font-medium text-red-700">Clear all logs</p>
-                  <p className="text-xs text-red-500 mt-0.5">Delete every audit log permanently</p>
-                </button>
+          <div className="relative bg-white border border-gray-100 rounded-3xl shadow-xl w-full max-w-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mb-5">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
               </div>
-            </div>
-            <div className="px-4 py-3 border-t border-gray-200">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setClearModal(false)}
-                disabled={clearing}
-                className="w-full"
-              >
-                {clearing ? 'Clearing...' : 'Cancel'}
-              </Button>
+              <h3 className="text-[18px] font-semibold text-gray-900 mb-2 tracking-tight">Clear Audit Logs</h3>
+              <p className="text-[14px] text-gray-500 leading-relaxed mb-6">
+                Are you sure you want to clear audit logs? This action cannot be undone.
+              </p>
+              
+              <div className="space-y-3 mb-8">
+                <Label className="text-[12px] font-semibold uppercase text-gray-500 tracking-wider">Older Than (Days)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={olderThan}
+                  onChange={(e) => setOlderThan(e.target.value)}
+                  placeholder="Leave empty to clear all"
+                  className="h-11 rounded-xl border-gray-200 focus:border-primary/30 focus:ring-primary/30"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setClearModal(false)}
+                  disabled={clearing}
+                  className="rounded-xl border-gray-200 hover:bg-gray-50"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleClearLogs(olderThan ? parseInt(olderThan) : undefined)}
+                  disabled={clearing}
+                  className="rounded-xl shadow-sm"
+                >
+                  {clearing ? 'Clearing...' : 'Clear Logs'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

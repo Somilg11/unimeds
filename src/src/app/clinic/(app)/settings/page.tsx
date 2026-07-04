@@ -214,12 +214,15 @@ export default function ClinicAdminSettings() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-bold text-gray-900">Clinic Settings</h1>
-        <Button onClick={handleSave} disabled={saving} size="sm">
+    <div className="max-w-3xl pb-10">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">Clinic Portal</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Clinic Settings</h1>
+        </div>
+        <Button onClick={handleSave} disabled={saving} className="rounded-xl bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm h-10 px-5">
           <Save className="w-4 h-4 mr-2" />
-          {saving ? 'Saving...' : 'Save'}
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
 
@@ -237,30 +240,30 @@ export default function ClinicAdminSettings() {
 
       <div className="space-y-6">
         {/* General Settings */}
-        <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-[#36565F]" />
               General
             </h2>
           </div>
-          <div className="p-4 space-y-4">
+          <div className="p-5 space-y-5">
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600">Clinic Name</Label>
+              <Label className="text-[13px] font-medium text-gray-700">Clinic Name</Label>
               <Input
                 value={settings.clinicName || ''}
                 onChange={(e) => setSettings((prev) => ({ ...prev, clinicName: e.target.value }))}
                 placeholder="Clinic name"
-                className="bg-gray-50 border border-gray-200"
+                className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600">Timezone</Label>
+              <Label className="text-[13px] font-medium text-gray-700">Timezone</Label>
               <Select
                 value={settings.timezone}
                 onValueChange={(value) => setSettings((prev) => ({ ...prev, timezone: value }))}
               >
-                <SelectTrigger className="w-full bg-gray-50 border border-gray-200">
+                <SelectTrigger className="w-full h-10 rounded-xl bg-gray-50/50 border border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30">
                   <SelectValue placeholder="Select timezone" />
                 </SelectTrigger>
                 <SelectContent>
@@ -276,73 +279,73 @@ export default function ClinicAdminSettings() {
         </div>
 
         {/* Location Settings */}
-        <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#36565F]" />
               Location
             </h2>
           </div>
-          <div className="p-4 space-y-4">
+          <div className="p-5 space-y-5">
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600">Street Address</Label>
+              <Label className="text-[13px] font-medium text-gray-700">Street Address</Label>
               <Input
                 value={settings.address}
                 onChange={(e) => setSettings((prev) => ({ ...prev, address: e.target.value }))}
                 placeholder="Street address"
-                className="bg-gray-50 border border-gray-200"
+                className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">City</Label>
+                <Label className="text-[13px] font-medium text-gray-700">City</Label>
                 <Input
                   value={settings.city}
                   onChange={(e) => setSettings((prev) => ({ ...prev, city: e.target.value }))}
                   placeholder="City"
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">State</Label>
+                <Label className="text-[13px] font-medium text-gray-700">State</Label>
                 <Input
                   value={settings.state}
                   onChange={(e) => setSettings((prev) => ({ ...prev, state: e.target.value }))}
                   placeholder="State"
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">Zip Code</Label>
+                <Label className="text-[13px] font-medium text-gray-700">Zip Code</Label>
                 <Input
                   value={settings.zipCode}
                   onChange={(e) => setSettings((prev) => ({ ...prev, zipCode: e.target.value }))}
                   placeholder="Zip"
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">Latitude</Label>
+                <Label className="text-[13px] font-medium text-gray-700">Latitude</Label>
                 <Input
                   type="number"
                   step="any"
                   value={settings.latitude}
                   onChange={(e) => setSettings((prev) => ({ ...prev, latitude: e.target.value }))}
                   placeholder="e.g. 40.7128"
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">Longitude</Label>
+                <Label className="text-[13px] font-medium text-gray-700">Longitude</Label>
                 <Input
                   type="number"
                   step="any"
                   value={settings.longitude}
                   onChange={(e) => setSettings((prev) => ({ ...prev, longitude: e.target.value }))}
                   placeholder="e.g. -74.0060"
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
             </div>
@@ -351,26 +354,26 @@ export default function ClinicAdminSettings() {
               variant="outline"
               size="sm"
               onClick={handleUseCurrentLocation}
-              className="border-dashed"
+              className="rounded-xl h-10 px-5 text-[13px] font-medium border-dashed border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             >
-              <Navigation className="w-3 h-3 mr-2" />
+              <Navigation className="w-3.5 h-3.5 mr-2" />
               Use Current Location
             </Button>
           </div>
         </div>
 
         {/* Booking Settings */}
-        <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#36565F]" />
               Booking Rules
             </h2>
           </div>
-          <div className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">Booking Window (days)</Label>
+                <Label className="text-[13px] font-medium text-gray-700">Booking Window (days)</Label>
                 <Input
                   type="number"
                   min={1}
@@ -382,11 +385,11 @@ export default function ClinicAdminSettings() {
                       bookingWindowDays: parseInt(e.target.value) || 30,
                     }))
                   }
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600">Cancellation Window (hours)</Label>
+                <Label className="text-[13px] font-medium text-gray-700">Cancellation Window (hours)</Label>
                 <Input
                   type="number"
                   min={1}
@@ -398,7 +401,7 @@ export default function ClinicAdminSettings() {
                       cancellationHours: parseInt(e.target.value) || 24,
                     }))
                   }
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
             </div>
@@ -406,26 +409,26 @@ export default function ClinicAdminSettings() {
         </div>
 
         {/* Notification Features */}
-        <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Bell className="w-4 h-4 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+              <Bell className="w-4 h-4 text-[#36565F]" />
               Notifications
             </h2>
           </div>
-          <div>
+          <div className="divide-y divide-gray-100">
             {[
               { key: 'voiceReminders' as const, label: 'Voice Reminders' },
               { key: 'emailNotifications' as const, label: 'Email Notifications' },
               { key: 'whatsappNotifications' as const, label: 'WhatsApp Notifications' },
             ].map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0">
-                <span className="text-sm text-gray-700">{label}</span>
+              <div key={key} className="flex items-center justify-between px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                <span className="text-[14px] font-medium text-gray-700">{label}</span>
                 <button
                   type="button"
                   onClick={() => toggleFeature(key)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    settings[key] ? 'bg-gray-900' : 'bg-gray-200'
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    settings[key] ? 'bg-[#36565F]' : 'bg-gray-200'
                   }`}
                 >
                   <span
@@ -440,14 +443,14 @@ export default function ClinicAdminSettings() {
         </div>
 
         {/* Webhooks */}
-        <div className="border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Webhook className="w-4 h-4 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+              <Webhook className="w-4 h-4 text-[#36565F]" />
               Webhooks
             </h2>
           </div>
-          <div className="p-4 space-y-4">
+          <div className="p-5 space-y-5">
             {[
               { key: 'appointmentBooked' as const, label: 'Appointment Booked URL' },
               { key: 'appointmentCancelled' as const, label: 'Appointment Cancelled URL' },
@@ -455,12 +458,12 @@ export default function ClinicAdminSettings() {
               { key: 'notificationBase' as const, label: 'Notification Base URL' },
             ].map(({ key, label }) => (
               <div key={key} className="space-y-2">
-                <Label className="text-xs text-gray-600">{label}</Label>
+                <Label className="text-[13px] font-medium text-gray-700">{label}</Label>
                 <Input
                   value={settings.webhooks[key]}
                   onChange={(e) => updateWebhook(key, e.target.value)}
                   placeholder="https://..."
-                  className="bg-gray-50 border border-gray-200"
+                  className="h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                 />
               </div>
             ))}

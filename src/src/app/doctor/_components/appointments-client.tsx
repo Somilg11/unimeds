@@ -131,14 +131,13 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
         </p>
       </div>
 
-      <div className="flex gap-px bg-gray-200 border border-gray-200 mb-6 flex-wrap">
+      <div className="flex p-1 bg-gray-100/80 rounded-xl border border-gray-100 mb-6 flex-wrap self-start w-fit">
         {(['all', 'pending', 'confirmed', 'cancelled', 'reschedule_proposed', 'completed'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-              filter === f ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
+            className={`px-4 py-1.5 text-[13px] font-medium capitalize rounded-lg transition-all ${filter === f ? 'bg-white text-[#36565F] shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+              }`}
           >
             {f.replace('_', ' ')}
           </button>
@@ -150,26 +149,26 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
           <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="border border-gray-200 p-12 text-center">
+        <div className="text-center py-16 border border-gray-100 bg-gray-50/50 rounded-3xl border-dashed">
           <Calendar className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-gray-500 text-sm">No appointments found</p>
+          <p className="text-[15px] font-semibold text-gray-900 mb-1">No appointments found</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {filtered.map((apt) => (
-            <div key={apt.id} className="border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
+            <div key={apt.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all group">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">{apt.patientName}</div>
-                  <div className="text-xs text-gray-500 truncate">{apt.clinicName}</div>
-                  {apt.notes && <div className="text-xs text-gray-400 mt-1 truncate">{apt.notes}</div>}
+                  <div className="text-[15px] font-semibold text-gray-900 truncate">{apt.patientName}</div>
+                  <div className="text-[13px] text-gray-500 truncate mt-0.5">{apt.clinicName}</div>
+                  {apt.notes && <div className="text-[12px] text-gray-400 mt-1.5 truncate">{apt.notes}</div>}
                 </div>
-                <div className="flex items-center gap-3 ml-4 shrink-0">
-                  <div className="text-right">
-                    <div className="text-sm text-gray-900">
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right mr-2">
+                    <div className="text-[14px] font-medium text-gray-900">
                       {new Date(apt.slotTime).toLocaleDateString()}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-[12px] text-gray-500 mt-0.5">
                       {new Date(apt.slotTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     <Badge
@@ -177,29 +176,29 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                         apt.status === 'confirmed'
                           ? 'default'
                           : apt.status === 'cancelled'
-                          ? 'destructive'
-                          : apt.status === 'reschedule_proposed'
-                          ? 'outline'
-                          : 'secondary'
+                            ? 'destructive'
+                            : apt.status === 'reschedule_proposed'
+                              ? 'outline'
+                              : 'secondary'
                       }
-                      className="text-[10px] mt-1"
+                      className="text-[11px] font-medium mt-1.5 rounded-md px-2 py-0.5"
                     >
                       {apt.status.replace('_', ' ')}
                     </Badge>
                   </div>
                   {(apt.status === 'pending' || apt.status === 'confirmed') && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleComplete(apt.id)}
                         disabled={completingId === apt.id}
-                        className="text-[11px] font-mono uppercase tracking-wider h-8 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+                        className="rounded-xl h-9 px-3 text-[12px] font-medium border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 shadow-sm"
                       >
                         {completingId === apt.id ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                         ) : (
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
                         )}
                         Complete
                       </Button>
@@ -209,9 +208,9 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                         onClick={() =>
                           setRescheduleModal({ appointmentId: apt.id, patientName: apt.patientName })
                         }
-                        className="text-[11px] font-mono uppercase tracking-wider h-8 border-dashed"
+                        className="rounded-xl h-9 px-3 text-[12px] font-medium border-dashed shadow-sm hover:bg-gray-50"
                       >
-                        <Clock className="w-3 h-3 mr-1" />
+                        <Clock className="w-3.5 h-3.5 mr-1.5" />
                         Reschedule
                       </Button>
                     </div>
@@ -226,7 +225,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
       {/* Reschedule Modal */}
       {rescheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white border border-gray-200 w-full max-w-md mx-4 p-6">
+          <div className="bg-white border border-gray-100 rounded-3xl shadow-xl w-full max-w-md mx-4 p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">Propose Reschedule</h2>
               <button

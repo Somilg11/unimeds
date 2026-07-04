@@ -143,7 +143,7 @@ export function DocumentViewer({ fileUrl, fileName, mimeType, onClose }: Documen
                 </button>
               </div>
             )}
-            <span className="text-[10px] font-mono uppercase text-gray-400 tracking-wider hidden sm:inline">
+            <span className="text-[11px] font-medium uppercase text-gray-500 tracking-wider hidden sm:inline">
               View Only
             </span>
             <button

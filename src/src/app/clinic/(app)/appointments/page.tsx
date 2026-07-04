@@ -78,9 +78,12 @@ export default function ClinicAdminAppointments() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-bold text-gray-900">Appointments</h1>
-        <span className="text-xs font-mono uppercase text-gray-400">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">Clinic Portal</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Appointments</h1>
+        </div>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#36565F] bg-[#E2F0F0]/50 px-3 py-1.5 rounded-full border border-[#E2F0F0]">
           {filteredAppointments.length} total
         </span>
       </div>
@@ -94,23 +97,23 @@ export default function ClinicAdminAppointments() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search by patient or doctor..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pl-10 bg-white border border-gray-200"
+            className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
           />
         </div>
-        <div className="flex gap-px bg-gray-200 border border-gray-200">
+        <div className="flex p-1 bg-gray-100/80 rounded-xl border border-gray-100 self-start w-fit">
           {['all', 'pending', 'confirmed', 'cancelled'].map((status) => (
             <button
               key={status}
               onClick={() => { setStatusFilter(status); setCurrentPage(1); }}
-              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all ${
                 statusFilter === status
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'bg-white text-[#36565F] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
               }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -120,32 +123,32 @@ export default function ClinicAdminAppointments() {
       </div>
 
       {filteredAppointments.length === 0 ? (
-        <div className="border border-gray-200 p-12 text-center">
+        <div className="text-center py-16 bg-gray-50/50 border border-gray-100 border-dashed rounded-3xl">
           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No appointments found</p>
+          <p className="text-[15px] font-semibold text-gray-900 mb-1">No appointments found</p>
         </div>
       ) : (
         <>
-          <div className="border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left p-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider">Patient</th>
-                    <th className="text-left p-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden sm:table-cell">Doctor</th>
-                    <th className="text-left p-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider">Date & Time</th>
-                    <th className="text-left p-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider">Status</th>
+              <table className="w-full text-left">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Patient</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Doctor</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedAppointments.map((apt) => (
-                    <tr key={apt.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                      <td className="p-3 text-sm text-gray-900">{apt.patientName || '—'}</td>
-                      <td className="p-3 text-sm text-gray-600 hidden sm:table-cell">{apt.doctorName || '—'}</td>
-                      <td className="p-3 text-sm text-gray-600">
-                        {new Date(apt.slotTime).toLocaleString()}
+                    <tr key={apt.id} className="border-b border-gray-100/80 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-4 text-[14px] text-gray-900 font-medium whitespace-nowrap">{apt.patientName || '—'}</td>
+                      <td className="px-5 py-4 text-[13px] text-gray-600 whitespace-nowrap hidden sm:table-cell">{apt.doctorName || '—'}</td>
+                      <td className="px-5 py-4 text-[13px] text-gray-600 whitespace-nowrap">
+                        {new Date(apt.slotTime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
                       </td>
-                      <td className="p-3">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <Badge
                           variant={
                             apt.status === 'confirmed'
@@ -154,7 +157,15 @@ export default function ClinicAdminAppointments() {
                               ? 'destructive'
                               : 'secondary'
                           }
-                          className="text-[10px]"
+                          className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
+                            apt.status === 'confirmed'
+                              ? 'bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0]'
+                              : apt.status === 'pending'
+                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                              : apt.status === 'cancelled'
+                              ? 'bg-red-50 text-red-700 border-red-200'
+                              : 'bg-gray-50 text-gray-600 border-gray-200'
+                          }`}
                         >
                           {apt.status}
                         </Badge>
@@ -167,26 +178,26 @@ export default function ClinicAdminAppointments() {
           </div>
 
           {filteredAppointments.length > PAGE_SIZE && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-xs text-gray-500">
+            <div className="flex items-center justify-between mt-6 px-1">
+              <p className="text-[13px] font-medium text-gray-500">
                 Page {safePage} of {totalPages}
               </p>
               <div className="flex items-center gap-2">
                 <button
                   disabled={safePage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 rounded-xl h-9 px-4 text-[12px] font-medium border border-gray-200 shadow-sm bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
-                  <ChevronLeft className="w-3 h-3" />
+                  <ChevronLeft className="w-3.5 h-3.5 mr-1" />
                   Prev
                 </button>
                 <button
                   disabled={safePage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 rounded-xl h-9 px-4 text-[12px] font-medium border border-gray-200 shadow-sm bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Next
-                  <ChevronRight className="w-3 h-3" />
+                  <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </button>
               </div>
             </div>

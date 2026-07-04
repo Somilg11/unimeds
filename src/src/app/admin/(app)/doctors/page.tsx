@@ -245,7 +245,10 @@ export default function AdminDoctors() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Doctors</h1>
           </div>
         </div>
-        <Button onClick={() => { setShowAddForm(!showAddForm); setCreatedAuthId(null); }} size="sm">
+        <Button 
+          onClick={() => { setShowAddForm(!showAddForm); setCreatedAuthId(null); }}
+          className="rounded-xl bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm h-10 px-4"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Create Doctor
         </Button>
@@ -369,23 +372,23 @@ export default function AdminDoctors() {
 
       <div className="mb-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search doctors..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pl-10 bg-white border border-gray-200"
+            className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
           />
         </div>
-        <div className="flex gap-px bg-gray-200 border border-gray-200 flex-wrap">
+        <div className="flex p-1 bg-gray-100/80 rounded-xl border border-gray-100 self-start">
           {['all', 'active', 'inactive'].map((filter) => (
             <button
               key={filter}
               onClick={() => { setStatusFilter(filter); setCurrentPage(1); }}
-              className={`px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+              className={`px-4 py-1.5 text-[13px] font-medium capitalize rounded-lg transition-all ${
                 statusFilter === filter
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'bg-white text-[#36565F] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
               }`}
             >
               {filter}
@@ -396,7 +399,7 @@ export default function AdminDoctors() {
           value={clinicFilter}
           onValueChange={(value) => { setClinicFilter(value); setCurrentPage(1); }}
         >
-          <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
+          <SelectTrigger className="w-full sm:w-[180px] h-10 bg-white border-gray-200 rounded-xl shadow-sm focus:ring-[#36565F]/30">
             <SelectValue placeholder="All Clinics" />
           </SelectTrigger>
           <SelectContent>
