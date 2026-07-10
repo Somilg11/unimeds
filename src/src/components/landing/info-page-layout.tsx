@@ -13,7 +13,7 @@ export function InfoPageLayout({ children, title }: InfoPageLayoutProps) {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <LandingNav />
 
-      <main className="pt-24 flex-1">
+      <main className="pt-28 flex-1">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
           <p className="text-[11px] font-mono uppercase text-neutral-400 tracking-wider mb-4">
             {title}

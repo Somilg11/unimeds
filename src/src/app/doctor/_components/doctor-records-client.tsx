@@ -258,11 +258,11 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                     placeholder="Type patient name or email..."
                     value={patientSearch}
                     onChange={(e) => setPatientSearch(e.target.value)}
-                    className="bg-white border border-gray-200"
+                    className="bg-white border border-gray-200 rounded-xl h-10 px-4 focus:border-primary/30 focus:ring-primary/20 transition-all"
                   />
                 </div>
                 {patients.length > 0 && (
-                  <div className="border border-gray-200 max-h-48 overflow-y-auto">
+                  <div className="border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto shadow-sm">
                     {patients.map((patient) => (
                       <button
                         key={patient.patientId}
@@ -283,7 +283,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-3 bg-gray-50 border border-gray-200">
+                <div className="p-4 bg-gray-50/50 border border-gray-200 rounded-xl shadow-sm">
                   <p className="text-sm font-medium text-gray-900">
                     {selectedPatient.name}
                   </p>
@@ -297,7 +297,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                   <select
                     value={recordType}
                     onChange={(e) => setRecordType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm rounded-xl"
+                    className="w-full h-10 px-3 border border-gray-200 bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm rounded-xl"
                   >
                     <option value="general">General</option>
                     <option value="lab_report">Lab Report</option>
@@ -319,7 +319,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                       if (file) handleFileUpload(file);
                     }}
                     disabled={uploading}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-200 file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-200 file:rounded-xl file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 cursor-pointer"
                   />
                 </div>
 

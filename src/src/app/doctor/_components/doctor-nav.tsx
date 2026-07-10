@@ -56,10 +56,7 @@ export function DoctorNav({ userName }: DoctorNavProps) {
       {/* Mobile Top Bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center justify-between px-4">
         <Link href="/doctor/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm border border-primary/20">
-            <span className="text-white text-[13px] font-bold">U</span>
-          </div>
-          <span className="text-sm font-bold text-gray-900 tracking-tight">UniMeds</span>
+          <img src="/unimeds_logo.png" alt="UniMeds" className="h-8 object-contain" />
         </Link>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -134,9 +131,7 @@ export function DoctorNav({ userName }: DoctorNavProps) {
         {/* Logo */}
         <div className="h-16 flex items-center px-6 shrink-0 mb-4">
           <Link href="/doctor/dashboard" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm border border-primary/20">
-              <span className="text-white text-[14px] font-bold">U</span>
-            </div>
+            <img src="/unimeds_logo.png" alt="UniMeds" className="w-9 h-9 object-contain" />
             <div>
               <span className="text-[15px] font-bold text-gray-900 tracking-tight">UniMeds</span>
               <p className="text-[11px] text-gray-500 font-medium">Doctor Portal</p>

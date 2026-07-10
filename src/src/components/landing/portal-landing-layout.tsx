@@ -13,7 +13,7 @@ export function PortalLandingLayout({ children, title }: PortalLandingLayoutProp
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <LandingNav />
 
-      <main className="pt-14 md:pt-24 flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
+      <main className="pt-24 md:pt-28 flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
         {children}
       </main>
 

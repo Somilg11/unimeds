@@ -102,9 +102,8 @@ export function UploadZone({
   return (
     <div
       className={cn(
-        'border border-dashed border-gray-300 p-8 sm:p-12 text-center',
-        'bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer',
-        'hover:border-gray-400',
+        'border border-dashed border-gray-200 rounded-2xl p-8 sm:p-12 text-center shadow-sm',
+        'bg-gray-50/50 hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer',
         isDragging && 'bg-gray-100 border-gray-900',
         (disabled || isUploading) && 'opacity-50 cursor-not-allowed',
         className

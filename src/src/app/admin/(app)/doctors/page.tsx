@@ -264,10 +264,10 @@ export default function AdminDoctors() {
       )}
 
       {showAddForm && (
-        <div className="border border-gray-200 p-4 mb-6">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-6 animate-subtle">
           <p className="text-sm font-semibold text-gray-900 mb-4">Create New Doctor</p>
           {createdAuthId && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200">
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-2xl">
               <p className="text-sm text-green-700 font-medium mb-2">
                 Doctor created successfully!
               </p>
@@ -275,13 +275,13 @@ export default function AdminDoctors() {
                 Auth ID (share with the doctor for login):
               </p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-2 py-1 bg-white border border-green-200 text-sm text-gray-900 break-all">
+                <code className="flex-1 px-3 py-2 bg-white border border-green-200 rounded-xl text-sm text-gray-900 break-all font-mono">
                   {createdAuthId}
                 </code>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0"
+                  className="h-8 w-8 shrink-0 rounded-lg"
                   onClick={() => handleCopyAuthId(createdAuthId)}
                 >
                   {copiedId ? (
@@ -295,7 +295,7 @@ export default function AdminDoctors() {
           )}
 
           {submitError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600 rounded-xl">
               {submitError}
             </div>
           )}
@@ -309,7 +309,7 @@ export default function AdminDoctors() {
                   value={formData.name}
                   onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Dr. Name"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -320,7 +320,7 @@ export default function AdminDoctors() {
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="doctor@example.com"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -329,7 +329,7 @@ export default function AdminDoctors() {
                   value={formData.phone}
                   onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                   placeholder="+1 234 567 890"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -339,7 +339,7 @@ export default function AdminDoctors() {
                   value={formData.specialization}
                   onChange={(e) => setFormData((prev) => ({ ...prev, specialization: e.target.value }))}
                   placeholder="e.g. General Practice"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -349,18 +349,18 @@ export default function AdminDoctors() {
                   value={formData.licenseNumber}
                   onChange={(e) => setFormData((prev) => ({ ...prev, licenseNumber: e.target.value }))}
                   placeholder="License #"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
             </div>
             <div className="flex items-center gap-2 pt-2">
-              <Button type="submit" disabled={submitting} size="sm">
+              <Button type="submit" disabled={submitting} className="rounded-xl bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm h-10 px-4">
                 {submitting ? 'Creating...' : 'Create Doctor'}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
+                className="rounded-xl h-10 px-4"
                 onClick={() => { setShowAddForm(false); setCreatedAuthId(null); setSubmitError(null); }}
               >
                 Cancel
@@ -411,22 +411,22 @@ export default function AdminDoctors() {
         </Select>
       </div>
 
-      <div className="border border-gray-200">
+      <div className="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-gray-50 z-10">
-              <tr className="border-b border-gray-200">
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3">Name</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3 hidden sm:table-cell">Email</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3 hidden md:table-cell">Specialization</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3 hidden lg:table-cell">License #</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3 hidden md:table-cell">Clinics</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3">Status</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3 hidden lg:table-cell">Auth ID</th>
-                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-3 sm:px-4 py-3">Actions</th>
+            <thead className="sticky top-0 bg-gray-50/50 border-b border-gray-100 z-10">
+              <tr className="border-b border-gray-100">
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5">Name</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5 hidden sm:table-cell">Email</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5 hidden md:table-cell">Specialization</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5 hidden lg:table-cell">License #</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5 hidden md:table-cell">Clinics</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5">Status</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5 hidden lg:table-cell">Auth ID</th>
+                <th className="text-left font-mono text-[10px] uppercase text-gray-500 px-4 py-3.5">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100/80">
               {paginatedDoctors.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-16 text-center">
@@ -436,19 +436,19 @@ export default function AdminDoctors() {
                 </tr>
               ) : (
                 paginatedDoctors.map((doctor) => (
-                  <tr key={doctor.doctorId} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                    <td className="px-3 sm:px-4 py-3 font-medium text-gray-900">
+                  <tr key={doctor.doctorId} className="group hover:bg-gray-50/50 transition-colors">
+                    <td className="px-4 py-3.5 font-medium text-gray-900">
                       <div>{doctor.name}</div>
                       <div className="text-xs text-gray-500 sm:hidden mt-0.5">{doctor.email}</div>
                     </td>
-                    <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap hidden sm:table-cell">{doctor.email}</td>
-                    <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">{doctor.specialization}</td>
-                    <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap hidden lg:table-cell">{doctor.licenseNumber}</td>
-                    <td className="px-3 sm:px-4 py-3 hidden md:table-cell">
+                    <td className="px-4 py-3.5 text-gray-600 whitespace-nowrap hidden sm:table-cell">{doctor.email}</td>
+                    <td className="px-4 py-3.5 text-gray-600 whitespace-nowrap hidden md:table-cell">{doctor.specialization}</td>
+                    <td className="px-4 py-3.5 text-gray-600 whitespace-nowrap hidden lg:table-cell">{doctor.licenseNumber}</td>
+                    <td className="px-4 py-3.5 hidden md:table-cell">
                       {doctor.assignedClinics && doctor.assignedClinics.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {doctor.assignedClinics.map((clinic) => (
-                            <Badge key={clinic.clinicId} variant="secondary" className="text-[10px] bg-gray-100 text-gray-600 border-gray-200">
+                            <Badge key={clinic.clinicId} variant="secondary" className="text-[10px] bg-gray-100 text-gray-600 border-gray-200 rounded-full px-2.5 py-0.5">
                               <Building2 className="w-2.5 h-2.5 mr-1" />
                               {clinic.clinicName}
                             </Badge>
@@ -458,22 +458,22 @@ export default function AdminDoctors() {
                         <span className="text-gray-400 text-xs">—</span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <Badge
                         variant={doctor.isActive ? 'default' : 'secondary'}
-                        className={`text-[10px] ${
+                        className={`text-[10px] rounded-full px-2.5 py-0.5 ${
                           doctor.isActive
-                            ? 'bg-green-100 text-green-700 border-green-200'
+                            ? 'bg-green-55 bg-green-50 text-green-700 border-green-200'
                             : 'bg-gray-100 text-gray-500 border-gray-200'
                         }`}
                       >
                         {doctor.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </td>
-                    <td className="px-3 sm:px-4 py-3 hidden lg:table-cell">
+                    <td className="px-4 py-3.5 hidden lg:table-cell">
                       {doctor.authId ? (
                         <div className="flex items-center gap-1.5">
-                          <code className="text-xs bg-gray-50 px-1.5 py-0.5 border border-gray-100 max-w-[120px] truncate">
+                          <code className="text-xs bg-gray-50 px-2.5 py-1 border border-gray-100 rounded-lg max-w-[120px] truncate font-mono">
                             {visibleAuthIds.has(doctor.doctorId) ? doctor.authId : '\u2022'.repeat(Math.min(doctor.authId.length, 12))}
                           </code>
                           <button
@@ -486,7 +486,7 @@ export default function AdminDoctors() {
                                 return next;
                               });
                             }}
-                            className="shrink-0 text-gray-400 hover:text-gray-600"
+                            className="shrink-0 text-gray-400 hover:text-gray-600 rounded-md p-0.5"
                             title={visibleAuthIds.has(doctor.doctorId) ? 'Hide' : 'Reveal'}
                           >
                             {visibleAuthIds.has(doctor.doctorId) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -494,7 +494,7 @@ export default function AdminDoctors() {
                           <button
                             type="button"
                             onClick={() => handleCopyAuthId(doctor.authId!)}
-                            className="shrink-0 text-gray-400 hover:text-gray-600"
+                            className="shrink-0 text-gray-400 hover:text-gray-600 rounded-md p-0.5"
                             title="Copy"
                           >
                             {copiedId ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -504,23 +504,23 @@ export default function AdminDoctors() {
                         <span className="text-gray-400 text-xs">—</span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <DropdownMenu
                         open={openDropdownDoctorId === doctor.doctorId}
                         onOpenChange={(open) => setOpenDropdownDoctorId(open ? doctor.doctorId : null)}
                       >
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-gray-100 min-w-[160px] p-1.5">
                           <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                              <Building2 className="w-4 h-4" />
+                            <DropdownMenuSubTrigger className="rounded-lg">
+                              <Building2 className="w-4 h-4 mr-2" />
                               Assign to Clinic
                             </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
+                            <DropdownMenuSubContent className="rounded-xl p-1 shadow-md border-gray-100">
                               <DropdownMenuRadioGroup
                                 value={selectedClinicId}
                                 onValueChange={(value) => {
@@ -530,7 +530,7 @@ export default function AdminDoctors() {
                                 }}
                               >
                                 {clinics.map((clinic) => (
-                                  <DropdownMenuRadioItem key={clinic.id} value={clinic.id}>
+                                  <DropdownMenuRadioItem key={clinic.id} value={clinic.id} className="rounded-lg">
                                     {clinic.name}
                                   </DropdownMenuRadioItem>
                                 ))}
@@ -540,15 +540,16 @@ export default function AdminDoctors() {
 
                           {doctor.assignedClinics && doctor.assignedClinics.length > 0 && (
                             <>
-                              <DropdownMenuSeparator />
+                              <DropdownMenuSeparator className="my-1 border-gray-100" />
                               {doctor.assignedClinics.map((clinic) => (
                                 <DropdownMenuItem
                                   key={clinic.clinicId}
                                   variant="destructive"
                                   disabled={removingDoctorId === `${doctor.doctorId}-${clinic.clinicId}`}
                                   onClick={() => handleRemoveDoctor(doctor.doctorId, clinic.clinicId)}
+                                  className="rounded-lg cursor-pointer"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-4 h-4 mr-2" />
                                   Remove from {clinic.clinicName}
                                 </DropdownMenuItem>
                               ))}
@@ -565,30 +566,30 @@ export default function AdminDoctors() {
         </div>
 
         {filteredDoctors.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <span className="text-xs text-gray-500">
-              Page {safeCurrentPage} of {totalPages} ({filteredDoctors.length} total)
-            </span>
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-gray-100/80 bg-gray-50/30 gap-4">
+            <p className="text-[13px] text-gray-500 font-medium">
+              Page {safeCurrentPage} of {totalPages} <span className="text-gray-400">({filteredDoctors.length} total)</span>
+            </p>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs"
+                className="h-9 px-4 rounded-xl text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm"
                 disabled={safeCurrentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
-                <ChevronLeft className="w-3 h-3 mr-1" />
+                <ChevronLeft className="w-4 h-4 mr-1.5" />
                 Prev
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs"
+                className="h-9 px-4 rounded-xl text-[13px] font-medium border-gray-200 hover:bg-white shadow-sm"
                 disabled={safeCurrentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               >
                 Next
-                <ChevronRight className="w-3 h-3 ml-1" />
+                <ChevronRight className="w-4 h-4 ml-1.5" />
               </Button>
             </div>
           </div>

@@ -54,9 +54,7 @@ export default function AdminLoginPage() {
   return (
     <PortalLandingLayout title="Super Admin">
       <div className="w-full max-w-[400px] bg-white rounded-3xl shadow-apple border border-gray-100 p-8 sm:p-10 animate-subtle text-center">
-        <div className="w-12 h-12 bg-primary rounded-2xl shadow-sm border border-primary/20 flex items-center justify-center mx-auto mb-6">
-          <span className="text-white text-xl font-bold">U</span>
-        </div>
+        <img src="/unimeds_logo.png" alt="UniMeds" className="w-16 h-16 object-contain mx-auto mb-6" />
         
         <h1 className="text-[22px] font-bold tracking-tight text-gray-900 mb-2">Super Admin</h1>
         <p className="text-[14px] text-gray-500 mb-8 px-2">

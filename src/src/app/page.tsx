@@ -12,7 +12,7 @@ export default function Home() {
       <LandingNav />
 
       {/* ── HERO SECTION ── */}
-      <section className="relative w-full min-h-[100dvh] flex flex-col lg:flex-row lg:items-center bg-background pt-24 lg:pt-0">
+      <section className="relative w-full min-h-[100dvh] flex flex-col lg:flex-row lg:items-center bg-background pt-28 lg:pt-0">
 
         {/* ── Split Background (Desktop Only) ── */}
         <div className="hidden lg:flex absolute inset-0 z-0">

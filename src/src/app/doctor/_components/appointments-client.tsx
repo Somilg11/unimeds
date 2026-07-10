@@ -255,7 +255,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="bg-white border border-gray-300"
+                  className="bg-white border border-gray-200 rounded-xl h-10 px-4 focus:border-primary/30 focus:ring-primary/20 transition-all shadow-sm"
                 />
               </div>
               <div>
@@ -266,7 +266,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                   type="time"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="bg-white border border-gray-300"
+                  className="bg-white border border-gray-200 rounded-xl h-10 px-4 focus:border-primary/30 focus:ring-primary/20 transition-all shadow-sm"
                 />
               </div>
               <div>
@@ -278,7 +278,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                   onChange={(e) => setRescheduleReason(e.target.value)}
                   placeholder="e.g., Emergency case, schedule conflict..."
                   rows={3}
-                  className="bg-white border border-gray-300 resize-none"
+                  className="bg-white border border-gray-200 rounded-xl p-3 focus:border-primary/30 focus:ring-primary/20 transition-all shadow-sm resize-none"
                 />
               </div>
             </div>
@@ -292,14 +292,14 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                   setNewTime('');
                   setRescheduleReason('');
                 }}
-                className="flex-1 border-dashed"
+                className="flex-1 rounded-xl border-dashed border-gray-200 shadow-sm h-10 hover:bg-gray-50 text-gray-700"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleReschedule}
                 disabled={!newDate || !newTime || submitting}
-                className="flex-1 bg-gray-900 text-white hover:bg-gray-800"
+                className="flex-1 rounded-xl bg-gray-900 text-white hover:bg-gray-800 shadow-sm h-10"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

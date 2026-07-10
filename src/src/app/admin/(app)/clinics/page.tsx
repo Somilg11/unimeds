@@ -222,10 +222,10 @@ export default function AdminClinics() {
       )}
 
       {showAddForm && (
-        <div className="border border-gray-200 p-4 mb-6">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-6 animate-subtle">
           <p className="text-sm font-semibold text-gray-900 mb-4">Add New Clinic</p>
           {submitError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-sm text-red-600 rounded-xl">
               {submitError}
             </div>
           )}
@@ -239,7 +239,7 @@ export default function AdminClinics() {
                   value={clinicName}
                   onChange={(e) => setClinicName(e.target.value)}
                   placeholder="e.g. Downtown Medical Center"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -250,9 +250,9 @@ export default function AdminClinics() {
                   value={clinicEmail}
                   onChange={(e) => setClinicEmail(e.target.value)}
                   placeholder="clinic.admin@gmail.com"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
-                <p className="text-[10px] text-gray-400">
+                <p className="text-[10px] text-gray-400 mt-1">
                   This Gmail account will be used to login via Google Sign-In
                 </p>
               </div>
@@ -263,7 +263,7 @@ export default function AdminClinics() {
                 value={clinicAddress}
                 onChange={(e) => setClinicAddress(e.target.value)}
                 placeholder="Street address"
-                className="bg-gray-50 border border-gray-200"
+                className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
               />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -273,7 +273,7 @@ export default function AdminClinics() {
                   value={clinicCity}
                   onChange={(e) => setClinicCity(e.target.value)}
                   placeholder="City"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -282,7 +282,7 @@ export default function AdminClinics() {
                   value={clinicState}
                   onChange={(e) => setClinicState(e.target.value)}
                   placeholder="State"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -291,7 +291,7 @@ export default function AdminClinics() {
                   value={clinicZipCode}
                   onChange={(e) => setClinicZipCode(e.target.value)}
                   placeholder="Zip"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function AdminClinics() {
                   value={clinicLatitude}
                   onChange={(e) => setClinicLatitude(e.target.value)}
                   placeholder="e.g. 40.7128"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -315,7 +315,7 @@ export default function AdminClinics() {
                   value={clinicLongitude}
                   onChange={(e) => setClinicLongitude(e.target.value)}
                   placeholder="e.g. -74.0060"
-                  className="bg-gray-50 border border-gray-200"
+                  className="bg-gray-50 border-gray-200 rounded-xl h-10 px-4 focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all"
                 />
               </div>
             </div>
@@ -324,19 +324,19 @@ export default function AdminClinics() {
               variant="outline"
               size="sm"
               onClick={handleUseCurrentLocation}
-              className="border-dashed"
+              className="border-dashed rounded-xl h-9 px-4 shadow-sm text-xs font-medium border-gray-200 hover:bg-gray-50"
             >
-              <Navigation className="w-3 h-3 mr-2" />
+              <Navigation className="w-3.5 h-3.5 mr-2 text-gray-500" />
               Use Current Location
             </Button>
             <div className="flex items-center gap-2 pt-2">
-              <Button type="submit" disabled={submitting} size="sm">
+              <Button type="submit" disabled={submitting} className="rounded-xl bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm h-10 px-4">
                 {submitting ? 'Creating...' : 'Create & Send Invitation'}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
+                className="rounded-xl h-10 px-4"
                 onClick={() => { setShowAddForm(false); setSubmitError(null); setActivationLink(null); }}
               >
                 Cancel
@@ -347,18 +347,18 @@ export default function AdminClinics() {
       )}
 
       {activationLink && (
-        <div className="bg-green-50 border border-green-200 p-4 mb-6">
+        <div className="bg-green-50 border border-green-200 p-4 rounded-2xl mb-6">
           <p className="text-sm text-green-700 font-medium mb-2">
             Clinic created! Share this activation link with the clinic admin:
           </p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 px-3 py-2 bg-white border border-green-200 text-xs text-gray-900 break-all">
+            <code className="flex-1 px-3 py-2 bg-white border border-green-200 text-xs text-gray-900 rounded-xl break-all font-mono">
               {activationLink}
             </code>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-8 w-8 shrink-0 rounded-lg"
               onClick={() => handleCopyLink(activationLink)}
             >
               {copiedLink ? (

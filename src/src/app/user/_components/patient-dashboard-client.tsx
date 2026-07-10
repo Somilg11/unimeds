@@ -267,7 +267,7 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                 Record Type
               </label>
               <Select value={uploadRecordType} onValueChange={setUploadRecordType}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full rounded-xl border-gray-200 shadow-sm bg-white hover:bg-gray-50/50 transition-colors">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,9 +337,9 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 border border-dashed border-gray-300">
-                  <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500">No upcoming appointments</p>
+                <div className="text-center py-10 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+                  <Calendar className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 font-medium">No upcoming appointments</p>
                 </div>
               )}
             </div>

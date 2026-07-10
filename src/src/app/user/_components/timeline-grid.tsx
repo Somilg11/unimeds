@@ -60,8 +60,17 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
     });
   };
 
+  if (sortedItems.length === 0) {
+    return (
+      <div className={cn('text-center py-10 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50', className)}>
+        <Activity className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+        <p className="text-sm text-gray-500 font-medium">No timeline items yet</p>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn('space-y-px bg-gray-200 border border-gray-200', className)}>
+    <div className={cn('space-y-px bg-gray-100 border border-gray-100 rounded-2xl overflow-hidden shadow-sm', className)}>
       {sortedItems.map((item) => (
         <div
           key={item.id}
@@ -108,12 +117,6 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
           </div>
         </div>
       ))}
-      {sortedItems.length === 0 && (
-        <div className="bg-white text-center py-12 border border-dashed border-gray-300">
-          <Activity className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-500">No timeline items yet</p>
-        </div>
-      )}
     </div>
   );
 }

@@ -189,12 +189,12 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
                         <td className="px-5 py-4 hidden md:table-cell">
                           <div className="flex items-center gap-1.5">
                             {patient.gender && (
-                              <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] capitalize rounded-md">
+                              <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] capitalize rounded-full px-2.5 py-0.5">
                                 {patient.gender}
                               </Badge>
                             )}
                             {age && (
-                              <Badge variant="secondary" className="text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200 rounded-md">
+                              <Badge variant="secondary" className="text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2.5 py-0.5">
                                 {age}
                               </Badge>
                             )}
@@ -206,7 +206,7 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
                           )}
                         </td>
                         <td className="px-5 py-4 text-center">
-                          <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] rounded-md">
+                          <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] rounded-full px-2.5 py-0.5">
                             {patient.totalAppointments} Appt{patient.totalAppointments !== 1 ? 's' : ''}
                           </Badge>
                         </td>
