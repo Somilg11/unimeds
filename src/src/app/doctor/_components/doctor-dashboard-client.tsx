@@ -137,7 +137,7 @@ export function DoctorDashboardClient({ userName, token }: DoctorDashboardClient
                       <div className="text-xs font-medium text-gray-500">
                         {new Date(apt.slotTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <Badge variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-[10px]">
+                      <Badge variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-[10px] rounded-full px-2.5">
                         {apt.status}
                       </Badge>
                     </div>

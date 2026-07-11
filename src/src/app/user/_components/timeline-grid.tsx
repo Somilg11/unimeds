@@ -44,7 +44,7 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
     return (
       <Badge 
         variant={variantMap[status] || 'secondary'} 
-        className="text-[10px] font-mono uppercase tracking-wider"
+        className="text-[10px] font-mono uppercase tracking-wider rounded-full px-2.5"
       >
         {status}
       </Badge>
@@ -108,7 +108,7 @@ export function TimelineGrid({ items, className }: TimelineGridProps) {
               {item.metadata?.recordType && (
                 <Badge 
                   variant="outline" 
-                  className="text-[10px] font-mono uppercase tracking-wider mt-2 border-dashed"
+                  className="text-[10px] font-mono uppercase tracking-wider mt-2 border-dashed rounded-full px-2.5"
                 >
                   {item.metadata.recordType}
                 </Badge>

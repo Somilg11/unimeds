@@ -50,39 +50,63 @@ export default function DoctorLoginPage() {
   }
 
   return (
-    <PortalLandingLayout title="Doctor Dashboard">
-      <div className="w-full max-w-[400px] bg-white rounded-3xl shadow-apple border border-gray-100 p-8 sm:p-10 animate-subtle text-center">
-        <img src="/unimeds_logo.png" alt="UniMeds" className="w-16 h-16 object-contain mx-auto mb-6" />
-        
-        <h1 className="text-[22px] font-bold tracking-tight text-gray-900 mb-2">Doctor Portal</h1>
-        <p className="text-[14px] text-gray-500 mb-8 px-2">
-          Sign in with your Auth ID to access clinical tools.
-        </p>
+    <PortalLandingLayout
+      title="Doctor Portal"
+      rightPanel={
+        <>
+          <img src="/unimeds_logo.png" alt="UniMeds" className="w-14 h-14 object-contain mb-8 brightness-0 invert" />
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 tracking-tight">
+            Clinical Excellence,{' '}
+            <span className="text-white/70">Streamlined.</span>
+          </h2>
+          <p className="text-white/60 text-[15px] leading-relaxed max-w-sm text-center">
+            Manage appointments, access patient records, and set your availability — all from one dashboard.
+          </p>
+        </>
+      }
+    >
+      <div className="w-full max-w-[400px] text-left">
+        {/* Mobile branding header */}
+        <div className="lg:hidden mb-8 -mt-2">
+          <img src="/unimeds_logo.png" alt="UniMeds" className="w-12 h-12 object-contain mb-4" />
+          <h1 className="text-[24px] font-bold tracking-tight text-gray-900 mb-1">Doctor Portal</h1>
+          <p className="text-[13px] text-gray-500">
+            Sign in with your Auth ID to access clinical tools.
+          </p>
+        </div>
 
-        <form onSubmit={handleLogin} className="space-y-5 text-left">
+        {/* Desktop heading */}
+        <div className="hidden lg:block">
+          <h1 className="text-[26px] font-bold tracking-tight text-gray-900 mb-2">Welcome back!</h1>
+          <p className="text-[14px] text-gray-500 mb-8">
+            Sign in with your Auth ID to access your dashboard.
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-red-600 text-center mb-4">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-red-600">
               {error}
             </div>
           )}
-          <div className="space-y-1.5 pb-2">
-            <label className="text-[12px] font-medium text-gray-600 px-1">Auth ID</label>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-gray-700">Auth ID</label>
             <input
               type="text"
               placeholder="Enter your Auth ID"
               value={authId}
               onChange={(e) => setAuthId(e.target.value)}
-              className="w-full h-11 px-4 bg-gray-50 border border-transparent rounded-xl text-[14px] text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/10 transition-all"
+              className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-[#36565F]/30 focus:ring-4 focus:ring-[#36565F]/10 transition-all"
               autoFocus
             />
-            <p className="text-[11px] text-gray-400 px-1 pt-1">
+            <p className="text-[11px] text-gray-400 pt-0.5">
               Provided by your clinic administrator.
             </p>
           </div>
           <button
             type="submit"
             disabled={loading || !authId.trim()}
-            className="w-full h-11 bg-primary text-white text-[14px] font-medium rounded-full shadow-apple hover-lift transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full h-12 bg-[#36565F] hover:bg-[#2a4550] text-white text-[14px] font-medium rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? 'Signing in...' : 'Sign In'}
             {!loading && <ArrowRight className="w-4 h-4" />}
@@ -90,9 +114,9 @@ export default function DoctorLoginPage() {
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-100">
-          <div className="flex items-center justify-center gap-1.5 mb-3">
-            <Shield className="w-3 h-3 text-green-600" />
-            <span className="text-[11px] text-gray-500 font-medium">Encrypted &middot; HIPAA Compliant</span>
+          <div className="flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-green-600" />
+            <span className="text-[12px] text-gray-600 font-medium">Encrypted &middot; HIPAA Compliant</span>
           </div>
         </div>
       </div>

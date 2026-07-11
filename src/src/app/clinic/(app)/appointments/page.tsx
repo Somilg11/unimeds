@@ -157,7 +157,7 @@ export default function ClinicAdminAppointments() {
                               ? 'destructive'
                               : 'secondary'
                           }
-                          className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
+                          className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
                             apt.status === 'confirmed'
                               ? 'bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0]'
                               : apt.status === 'pending'

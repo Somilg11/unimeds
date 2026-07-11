@@ -181,7 +181,7 @@ export function AppointmentsClient({ userName, token }: AppointmentsClientProps)
                               ? 'outline'
                               : 'secondary'
                       }
-                      className="text-[11px] font-medium mt-1.5 rounded-md px-2 py-0.5"
+                      className="text-[11px] font-medium mt-1.5 rounded-full px-2.5 py-0.5"
                     >
                       {apt.status.replace('_', ' ')}
                     </Badge>

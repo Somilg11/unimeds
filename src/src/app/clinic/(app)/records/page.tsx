@@ -12,7 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Search, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
+import { DocumentViewer } from '@/app/doctor/_components/document-viewer';
 
 interface MedicalRecord {
   id: string;
@@ -23,6 +25,8 @@ interface MedicalRecord {
   ocrStatus: string;
   ocrData: { processingStatus?: string } | null;
   fileUrl: string;
+  mimeType: string;
+  appointmentStatus?: string;
 }
 
 const RECORD_TYPES = [
@@ -42,6 +46,7 @@ export default function ClinicAdminRecords() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewingRecord, setViewingRecord] = useState<MedicalRecord | null>(null);
 
   useEffect(() => {
     fetchRecords();
@@ -82,28 +87,28 @@ export default function ClinicAdminRecords() {
   function getRecordTypeBadge(type: string) {
     switch (type) {
       case 'prescription':
-        return <Badge className="bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0] text-[11px] font-medium px-2 py-0.5 rounded-md">Prescription</Badge>;
+        return <Badge className="bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0] text-[11px] font-medium px-2.5 py-0.5 rounded-full">Prescription</Badge>;
       case 'lab_report':
-        return <Badge className="bg-green-50 text-green-700 border-green-200 text-[11px] font-medium px-2 py-0.5 rounded-md">Lab Report</Badge>;
+        return <Badge className="bg-green-50 text-green-700 border-green-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Lab Report</Badge>;
       case 'imaging':
-        return <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-[11px] font-medium px-2 py-0.5 rounded-md">Imaging</Badge>;
+        return <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Imaging</Badge>;
       case 'general':
-        return <Badge variant="outline" className="text-[11px] font-medium px-2 py-0.5 rounded-md">General</Badge>;
+        return <Badge variant="outline" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full">General</Badge>;
       default:
-        return <Badge variant="secondary" className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">{type}</Badge>;
+        return <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600">{type}</Badge>;
     }
   }
 
   function getOcrStatusBadge(status: string) {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-50 text-green-700 border-green-200 text-[11px] font-medium px-2 py-0.5 rounded-md">Completed</Badge>;
+        return <Badge className="bg-green-50 text-green-700 border-green-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Completed</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 text-[11px] font-medium px-2 py-0.5 rounded-md">Pending</Badge>;
+        return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Pending</Badge>;
       case 'failed':
-        return <Badge className="bg-red-50 text-red-700 border-red-200 text-[11px] font-medium px-2 py-0.5 rounded-md">Failed</Badge>;
+        return <Badge className="bg-red-50 text-red-700 border-red-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Failed</Badge>;
       default:
-        return <Badge variant="secondary" className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">{status || '—'}</Badge>;
+        return <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600">{status || '—'}</Badge>;
     }
   }
 
@@ -208,14 +213,19 @@ export default function ClinicAdminRecords() {
                       </td>
                       <td className="px-5 py-4 hidden lg:table-cell whitespace-nowrap">{getOcrStatusBadge(record.ocrStatus)}</td>
                       <td className="px-5 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-gray-100 transition-colors">
-                            <Eye className="w-4 h-4 text-gray-500" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-gray-100 transition-colors">
-                            <Download className="w-4 h-4 text-gray-500" />
-                          </Button>
-                        </div>
+                        <button
+                          onClick={() => {
+                            if (record.appointmentStatus === 'completed' || record.appointmentStatus === 'cancelled') {
+                              toast.error('This document has expired and is no longer available');
+                              return;
+                            }
+                            setViewingRecord(record);
+                          }}
+                          className="p-2 rounded-xl text-gray-400 hover:text-[#36565F] hover:bg-[#E2F0F0] transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -250,6 +260,16 @@ export default function ClinicAdminRecords() {
             </div>
           )}
         </>
+      )}
+
+      {/* Document Viewer Modal */}
+      {viewingRecord && (
+        <DocumentViewer
+          fileUrl={viewingRecord.fileUrl}
+          fileName={viewingRecord.fileName}
+          mimeType={viewingRecord.mimeType}
+          onClose={() => setViewingRecord(null)}
+        />
       )}
     </div>
   );

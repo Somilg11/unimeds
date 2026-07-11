@@ -71,7 +71,7 @@ export function MedicalHistoryClient({ userName }: MedicalHistoryClientProps) {
       reschedule_proposed: 'outline',
     };
     return (
-      <Badge variant={variantMap[status] || 'secondary'} className="text-[10px] font-mono uppercase tracking-wider">
+      <Badge variant={variantMap[status] || 'secondary'} className="text-[10px] font-mono uppercase tracking-wider rounded-full px-2.5">
         {status.replace('_', ' ')}
       </Badge>
     );
@@ -84,7 +84,7 @@ export function MedicalHistoryClient({ userName }: MedicalHistoryClientProps) {
       imaging: 'outline',
     };
     return (
-      <Badge variant={variantMap[type] || 'secondary'} className="text-[10px] font-mono uppercase tracking-wider">
+      <Badge variant={variantMap[type] || 'secondary'} className="text-[10px] font-mono uppercase tracking-wider rounded-full px-2.5">
         {type.replace('_', ' ')}
       </Badge>
     );

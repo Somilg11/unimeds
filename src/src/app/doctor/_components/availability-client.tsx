@@ -50,20 +50,14 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
 
   async function fetchClinics() {
     try {
-      const res = await fetch('/api/doctor/appointments', {
+      const res = await fetch('/api/doctor/clinics', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        const clinicMap = new Map<string, Clinic>();
-        (data.appointments || []).forEach((apt: any) => {
-          if (apt.clinicName && apt.clinicId) {
-            clinicMap.set(apt.clinicId, { id: apt.clinicId, name: apt.clinicName });
-          }
-        });
-        setClinics(Array.from(clinicMap.values()));
-        if (clinicMap.size === 1) {
-          setSelectedClinic(Array.from(clinicMap.keys())[0]);
+        setClinics(data.clinics || []);
+        if ((data.clinics || []).length === 1) {
+          setSelectedClinic(data.clinics[0].id);
         }
       }
     } catch {

@@ -444,7 +444,7 @@ export default function AdminClinics() {
                       <td className="px-5 py-4">
                         <Badge
                           variant={clinic.isActive ? 'default' : 'secondary'}
-                          className={`text-[10px] font-medium px-2 py-0.5 ${
+                          className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
                             clinic.isActive
                               ? 'bg-green-50 text-green-700 border-green-200'
                               : 'bg-yellow-50 text-yellow-700 border-yellow-200'

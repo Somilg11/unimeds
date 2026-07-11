@@ -126,7 +126,7 @@ export function DoctorNav({ userName }: DoctorNavProps) {
       {/* Desktop Sidebar */}
       <nav className={cn(
         'bg-[#F8FAFA] border-r border-gray-100 h-screen sticky top-0 flex flex-col',
-        'hidden lg:flex w-[260px] shrink-0'
+        'hidden lg:flex w-65 shrink-0'
       )}>
         {/* Logo */}
         <div className="h-16 flex items-center px-6 shrink-0 mb-4">

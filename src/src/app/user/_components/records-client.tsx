@@ -162,7 +162,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
     return (
       <Badge 
         variant={variantMap[type] || 'secondary'} 
-        className="text-[10px] font-mono uppercase tracking-wider"
+        className="text-[10px] font-mono uppercase tracking-wider rounded-full px-2.5"
       >
         {type.replace('_', ' ')}
       </Badge>
@@ -180,7 +180,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
     return (
       <Badge 
         variant={variantMap[status] || 'secondary'} 
-        className="text-[10px] font-mono uppercase tracking-wider"
+        className="text-[10px] font-mono uppercase tracking-wider rounded-full px-2.5"
       >
         {status}
       </Badge>
@@ -237,7 +237,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
                 Record Type
               </label>
               <Select value={uploadRecordType} onValueChange={setUploadRecordType}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full rounded-xl border-gray-200 shadow-sm bg-white hover:bg-gray-50/50 transition-colors">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>

@@ -196,12 +196,12 @@ export default function ClinicAdminPatients() {
                         <td className="px-5 py-4 hidden md:table-cell">
                           <div className="flex items-center gap-1.5">
                             {patient.gender && (
-                              <Badge variant="secondary" className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200 capitalize">
+                              <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200 capitalize">
                                 {patient.gender}
                               </Badge>
                             )}
                             {age && (
-                              <Badge variant="secondary" className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200">
+                              <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
                                 {age}
                               </Badge>
                             )}
@@ -213,7 +213,7 @@ export default function ClinicAdminPatients() {
                           )}
                         </td>
                         <td className="px-5 py-4 text-center">
-                          <Badge variant="secondary" className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-[#E2F0F0]/80 text-[#36565F] border border-[#E2F0F0]">
+                          <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[#E2F0F0]/80 text-[#36565F] border border-[#E2F0F0]">
                             {patient.totalAppointments} Appt{patient.totalAppointments !== 1 ? 's' : ''}
                           </Badge>
                         </td>

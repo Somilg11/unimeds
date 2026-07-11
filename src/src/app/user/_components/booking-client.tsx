@@ -185,17 +185,17 @@ export function BookingClient({ userName }: BookingClientProps) {
   const handleDoctorSelect = (doctor: DoctorSearchResult) => {
     setSelectedDoctorFromSearch(doctor);
     setSelectedDoctor(doctor.id);
-    // If doctor has only one clinic, auto-select it and proceed
+    // If doctor has only one clinic, auto-select it and go straight to time slots
     if (doctor.clinics.length === 1) {
       setSelectedClinic(doctor.clinics[0].id);
-      setWizardState({ step: 2 });
+      setWizardState({ step: 3 });
       fetchAvailableSlots(doctor.id, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
     }
   };
 
   const handleDoctorClinicSelect = (clinicId: string) => {
     setSelectedClinic(clinicId);
-    setWizardState({ step: 2 });
+    setWizardState({ step: 3 });
     fetchAvailableSlots(selectedDoctor, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
   };
 
@@ -214,10 +214,11 @@ export function BookingClient({ userName }: BookingClientProps) {
   };
 
   const fetchAvailableSlots = async (doctorId: string, date: string) => {
+    if (!selectedClinic) return;
     setIsLoadingSlots(true);
     try {
       const response = await apiClient.get('/user/slots', {
-        params: { doctorId, date }
+        params: { doctorId, date, clinicId: selectedClinic }
       });
       setAvailableSlots(response.data.slots || []);
     } catch (error) {
@@ -230,7 +231,7 @@ export function BookingClient({ userName }: BookingClientProps) {
   const handleNext = () => {
     if (wizardState.step === 1 && selectedClinic) {
       // If coming from doctor search flow, skip Step 2 (doctor already selected)
-      if (selectedDoctorFromSearch) {
+      if (selectedDoctorFromSearch && selectedDoctor) {
         fetchAvailableSlots(selectedDoctor, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
         setWizardState({ ...wizardState, step: 3 as 1 | 2 | 3 | 4 });
         return;
@@ -249,9 +250,12 @@ export function BookingClient({ userName }: BookingClientProps) {
 
   const handleBack = () => {
     if (wizardState.step > 1) {
-      // If coming from doctor search flow and at Step 3, go back to Step 1
+      // If coming from doctor search flow and at Step 3, go back to Step 1 and reset doctor selection
       if (selectedDoctorFromSearch && wizardState.step === 3) {
-        setWizardState({ ...wizardState, step: 1 as 1 | 2 | 3 | 4 });
+        setSelectedDoctorFromSearch(null);
+        setSelectedDoctor('');
+        setSelectedClinic('');
+        setWizardState({ step: 1 });
         return;
       }
       setWizardState({ ...wizardState, step: wizardState.step - 1 as 1 | 2 | 3 | 4 });
@@ -280,9 +284,6 @@ export function BookingClient({ userName }: BookingClientProps) {
   };
 
   const getStepTitle = () => {
-    if (selectedDoctorFromSearch && wizardState.step === 2) {
-      return 'Pick Time Slot';
-    }
     switch (wizardState.step) {
       case 1:
         return searchTab === 'doctor' ? 'Search Doctor' : 'Select Clinic';
@@ -371,7 +372,12 @@ export function BookingClient({ userName }: BookingClientProps) {
               {/* Search Tabs */}
               <div className="flex items-center gap-1 mb-6 bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100/50">
                 <button
-                  onClick={() => setSearchTab('clinic')}
+                  onClick={() => {
+                    setSearchTab('clinic');
+                    // Clear doctor search state when switching to clinic tab
+                    setSelectedDoctorFromSearch(null);
+                    setSelectedDoctor('');
+                  }}
                   className={`px-5 py-2 text-[13px] font-medium tracking-wide transition-all rounded-lg flex items-center ${
                     searchTab === 'clinic'
                       ? 'bg-white text-primary shadow-sm'
@@ -382,7 +388,13 @@ export function BookingClient({ userName }: BookingClientProps) {
                   By Clinic
                 </button>
                 <button
-                  onClick={() => setSearchTab('doctor')}
+                  onClick={() => {
+                    setSearchTab('doctor');
+                    // Clear clinic search state when switching to doctor tab
+                    setClinicSearchQuery('');
+                    setSelectedClinic('');
+                    fetchClinics();
+                  }}
                   className={`px-5 py-2 text-[13px] font-medium tracking-wide transition-all rounded-lg flex items-center ${
                     searchTab === 'doctor'
                       ? 'bg-white text-primary shadow-sm'

@@ -32,6 +32,9 @@ router.get('/appointments', ...requireDoctor, doctorController.getDoctorAppointm
 // GET /api/v1/hospital/records - Get doctor's patient records
 router.get('/records', ...requireDoctor, doctorController.getDoctorRecords);
 
+// GET /api/v1/hospital/clinics - Get doctor's assigned clinics
+router.get('/clinics', ...requireDoctor, doctorController.getMyClinics);
+
 // GET /api/v1/hospital/availability - Get doctor's availability
 router.get('/availability', ...requireDoctor, doctorController.getMyAvailability);
 

@@ -24,7 +24,16 @@ import {
   EyeOff,
   ChevronLeft,
   ChevronRight,
+  MoreHorizontal,
+  Power,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
 interface Doctor {
@@ -69,10 +78,11 @@ export default function ClinicAdminStaff() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [createdAuthId, setCreatedAuthId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [visibleAuthIds, setVisibleAuthIds] = useState<Set<string>>(new Set());
+  const [confirmAction, setConfirmAction] = useState<{ type: 'toggle' | 'delete'; doctorId: string; doctorName: string; isActive?: boolean } | null>(null);
 
   useEffect(() => {
     fetchDoctors();
@@ -140,7 +150,6 @@ export default function ClinicAdminStaff() {
   }
 
   async function handleDelete(doctorId: string) {
-    if (!confirm('Are you sure you want to remove this doctor?')) return;
     try {
       setDeletingId(doctorId);
       await apiClient.delete('/clinic-admin/staff', { data: { doctorId } });
@@ -157,9 +166,9 @@ export default function ClinicAdminStaff() {
 
   function handleCopyAuthId(authId: string) {
     navigator.clipboard.writeText(authId);
-    setCopiedId(true);
+    setCopiedId(authId);
     toast.success('Auth ID copied to clipboard');
-    setTimeout(() => setCopiedId(false), 2000);
+    setTimeout(() => setCopiedId(null), 2000);
   }
 
   const filteredDoctors = doctors.filter((doctor) => {
@@ -243,7 +252,7 @@ export default function ClinicAdminStaff() {
                     className="h-8 w-8 shrink-0"
                     onClick={() => handleCopyAuthId(createdAuthId)}
                   >
-                    {copiedId ? (
+                    {copiedId === createdAuthId ? (
                       <Check className="w-4 h-4 text-green-600" />
                     ) : (
                       <Copy className="w-4 h-4 text-gray-500" />
@@ -424,7 +433,7 @@ export default function ClinicAdminStaff() {
                             className="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                             title="Copy"
                           >
-                            {copiedId ? (
+                            {copiedId === doctor.authId ? (
                               <Check className="w-3.5 h-3.5 text-green-600" />
                             ) : (
                               <Copy className="w-3.5 h-3.5" />
@@ -438,7 +447,7 @@ export default function ClinicAdminStaff() {
                     <td className="px-5 py-4 whitespace-nowrap">
                       <Badge
                         variant={doctor.isActive ? 'default' : 'secondary'}
-                        className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
                           doctor.isActive
                             ? 'bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0]'
                             : 'bg-gray-100 text-gray-500 border-gray-200'
@@ -448,27 +457,45 @@ export default function ClinicAdminStaff() {
                       </Badge>
                     </td>
                     <td className="px-5 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-xl h-8 px-3 text-[12px] font-medium border-gray-200 shadow-sm"
-                          disabled={togglingId === doctor.doctorId}
-                          onClick={() => handleToggle(doctor.doctorId, doctor.isActive)}
-                        >
-                          {doctor.isActive ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-xl h-8 px-3 text-[12px] font-medium border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 shadow-sm"
-                          disabled={deletingId === doctor.doctorId}
-                          onClick={() => handleDelete(doctor.doctorId)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" />
-                          {deletingId === doctor.doctorId ? '...' : 'Remove'}
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                            disabled={togglingId === doctor.doctorId || deletingId === doctor.doctorId}
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setConfirmAction({
+                                type: 'toggle',
+                                doctorId: doctor.doctorId,
+                                doctorName: doctor.name,
+                                isActive: doctor.isActive,
+                              })
+                            }
+                          >
+                            <Power className="w-4 h-4" />
+                            {doctor.isActive ? 'Deactivate' : 'Activate'}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() =>
+                              setConfirmAction({
+                                type: 'delete',
+                                doctorId: doctor.doctorId,
+                                doctorName: doctor.name,
+                              })
+                            }
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Remove
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))
@@ -503,6 +530,56 @@ export default function ClinicAdminStaff() {
               Next
               <ChevronRight className="w-3.5 h-3.5 ml-1" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setConfirmAction(null)} />
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md mx-4 p-6">
+            <h2 className="text-[16px] font-semibold text-gray-900 mb-2">
+              {confirmAction.type === 'toggle'
+                ? confirmAction.isActive
+                  ? 'Deactivate Doctor'
+                  : 'Activate Doctor'
+                : 'Remove Doctor'}
+            </h2>
+            <p className="text-[13px] text-gray-500 leading-relaxed mb-6">
+              {confirmAction.type === 'toggle'
+                ? `Are you sure you want to ${confirmAction.isActive ? 'deactivate' : 'activate'} ${confirmAction.doctorName}? ${confirmAction.isActive ? 'They will no longer be able to access the clinic portal.' : 'They will regain access to the clinic portal.'}`
+                : `Are you sure you want to remove ${confirmAction.doctorName} from this clinic? This action cannot be undone.`}
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="rounded-xl h-10 px-5 text-[13px] font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmAction.type === 'toggle') {
+                    handleToggle(confirmAction.doctorId, confirmAction.isActive!);
+                  } else {
+                    handleDelete(confirmAction.doctorId);
+                  }
+                  setConfirmAction(null);
+                }}
+                className={`rounded-xl h-10 px-5 text-[13px] font-medium transition-colors ${
+                  confirmAction.type === 'delete'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-[#36565F] text-white hover:bg-[#36565F]/90'
+                }`}
+              >
+                {confirmAction.type === 'toggle'
+                  ? confirmAction.isActive
+                    ? 'Deactivate'
+                    : 'Activate'
+                  : 'Remove'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -75,7 +75,7 @@ export default function AdminDoctors() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [createdAuthId, setCreatedAuthId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [assigningDoctorId, setAssigningDoctorId] = useState<string | null>(null);
   const [selectedClinicId, setSelectedClinicId] = useState('');
@@ -157,8 +157,15 @@ export default function AdminDoctors() {
       fetchDoctors();
       toast.success('Doctor assigned to clinic');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to assign doctor';
-      setError(message);
+      let message = 'Failed to assign doctor';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const res = (err as { response?: { data?: { error?: string; code?: string } } }).response;
+        if (res?.data?.code === 'ALREADY_ASSIGNED') {
+          message = 'Doctor is already assigned to this clinic';
+        } else if (res?.data?.error) {
+          message = res.data.error;
+        }
+      }
       toast.error(message);
     } finally {
       setAssigning(false);
@@ -184,9 +191,9 @@ export default function AdminDoctors() {
 
   function handleCopyAuthId(authId: string) {
     navigator.clipboard.writeText(authId);
-    setCopiedId(true);
+    setCopiedId(authId);
     toast.success('Auth ID copied to clipboard');
-    setTimeout(() => setCopiedId(false), 2000);
+    setTimeout(() => setCopiedId(null), 2000);
   }
 
   const uniqueClinicNames = Array.from(
@@ -284,7 +291,7 @@ export default function AdminDoctors() {
                   className="h-8 w-8 shrink-0 rounded-lg"
                   onClick={() => handleCopyAuthId(createdAuthId)}
                 >
-                  {copiedId ? (
+                  {copiedId === createdAuthId ? (
                     <Check className="w-4 h-4 text-green-600" />
                   ) : (
                     <Copy className="w-4 h-4 text-gray-500" />
@@ -497,7 +504,7 @@ export default function AdminDoctors() {
                             className="shrink-0 text-gray-400 hover:text-gray-600 rounded-md p-0.5"
                             title="Copy"
                           >
-                            {copiedId ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedId === doctor.authId ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
                         </div>
                       ) : (

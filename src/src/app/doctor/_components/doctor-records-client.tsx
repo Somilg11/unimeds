@@ -210,7 +210,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                   </div>
                 </div>
                 <div className="flex items-center gap-4 ml-4 shrink-0">
-                  <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] rounded-md">
+                  <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] rounded-full px-2.5">
                     {record.ocrData?.processingStatus || 'pending'}
                   </Badge>
                   <div className="text-[12px] text-gray-400 font-medium">

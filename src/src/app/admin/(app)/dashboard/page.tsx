@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 
 interface Metrics {
@@ -118,8 +118,18 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div>
-        <h1 className="text-lg font-bold text-gray-900 mb-6">Dashboard</h1>
+      <div className="p-4 lg:p-10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+              Admin Portal
+            </p>
+            <div className="flex items-center gap-3">
+              <Activity className="w-5 h-5 text-gray-400" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            </div>
+          </div>
+        </div>
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
         </div>
@@ -129,8 +139,18 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div>
-        <h1 className="text-lg font-bold text-gray-900 mb-6">Dashboard</h1>
+      <div className="p-4 lg:p-10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+              Admin Portal
+            </p>
+            <div className="flex items-center gap-3">
+              <Activity className="w-5 h-5 text-gray-400" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            </div>
+          </div>
+        </div>
         <div className="p-3 bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
           <button onClick={fetchAll} className="ml-2 text-red-400 hover:text-red-600 underline">
@@ -186,8 +206,20 @@ export default function AdminDashboard() {
     .slice(0, 8);
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
+    <div className="p-4 lg:p-10">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+            Admin Portal
+          </p>
+          <div className="flex items-center gap-3">
+            <Activity className="w-5 h-5 text-gray-400" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-8">
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -382,6 +414,7 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
