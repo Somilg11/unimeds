@@ -126,49 +126,55 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
     ? createPortal(
         <div
           ref={dropdownRef}
-          className="fixed w-80 bg-white border border-gray-200 shadow-lg z-[9999] flex flex-col"
+          className="fixed w-80 bg-white border border-gray-100 rounded-2xl shadow-xl z-[9999] flex flex-col overflow-hidden"
           style={{
-            bottom: `${window.innerHeight - dropdownPos.top + 8}px`,
+            bottom: `${window.innerHeight - dropdownPos.top + 12}px`,
             left: `${dropdownPos.left}px`,
             maxHeight: 'min(calc(100vh - 8rem), 480px)',
           }}
         >
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 shrink-0">
-            <h3 className="text-[11px] font-mono uppercase text-gray-400 tracking-wider">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/80 shrink-0">
+            <h3 className="text-[14px] font-semibold text-gray-900">
               Notifications
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="text-[11px] font-mono uppercase text-gray-400 hover:text-gray-900 flex items-center gap-1 tracking-wider"
+                className="text-[12px] font-medium text-[#36565F] hover:text-[#36565F]/80 flex items-center gap-1 transition-colors"
               >
-                <Check className="w-3 h-3" />
+                <Check className="w-3.5 h-3.5" />
                 Mark all read
               </button>
             )}
           </div>
 
-          <div className="overflow-y-auto" style={{ maxHeight: 'min(calc(100vh - 11rem), 440px)' }}>
+          <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: 'min(calc(100vh - 11rem), 440px)' }}>
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-sm text-gray-400">No notifications</div>
+              <div className="p-12 flex flex-col items-center justify-center text-center bg-gray-50/50">
+                <Bell className="w-8 h-8 text-gray-300 mb-3" />
+                <p className="text-[13px] font-medium text-gray-500">No notifications yet</p>
+                <p className="text-[11px] text-gray-400 mt-1">When you get notifications, they'll show up here</p>
+              </div>
             ) : (
               notifications.slice(0, 20).map((notif) => (
-                <div
+                  <div
                   key={notif.id}
-                  className={`p-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    !notif.isRead ? 'bg-blue-50/50' : ''
+                  className={`p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50/80 transition-colors ${
+                    !notif.isRead ? 'bg-[#E2F0F0]/30' : ''
                   }`}
                   onClick={() => markAsRead(notif.id)}
                 >
-                  <div className="flex items-start gap-2">
-                    {!notif.isRead && (
-                      <span className="w-2 h-2 bg-blue-500 mt-1.5 shrink-0 rounded-full" />
+                  <div className="flex items-start gap-3">
+                    {!notif.isRead ? (
+                      <span className="w-2 h-2 bg-[#36565F] mt-1.5 shrink-0 rounded-full" />
+                    ) : (
+                      <span className="w-2 h-2 mt-1.5 shrink-0 rounded-full" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">{notif.title}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                      <p className="text-[10px] font-mono uppercase text-gray-400 mt-1 tracking-wider">
-                        {new Date(notif.createdAt).toLocaleString()}
+                      <p className={`text-[13px] truncate ${!notif.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>{notif.title}</p>
+                      <p className="text-[12px] text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">{notif.message}</p>
+                      <p className="text-[10px] text-gray-400 mt-2 font-medium">
+                        {new Date(notif.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
                       </p>
                     </div>
                   </div>
@@ -188,12 +194,11 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
         variant="ghost"
         size="icon"
         onClick={handleToggle}
-        className="relative h-8 w-8 shrink-0"
+        className="relative h-9 w-9 shrink-0 rounded-xl hover:bg-gray-100 transition-colors"
       >
-        <Bell className="w-4 h-4 text-gray-400" />
+        <Bell className="w-4 h-4 text-gray-500" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
+          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full flex items-center justify-center ring-2 ring-white">
           </span>
         )}
       </Button>

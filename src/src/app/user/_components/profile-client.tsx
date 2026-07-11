@@ -107,7 +107,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
         <Button
           onClick={() => setIsEditing(!isEditing)}
           variant={isEditing ? 'outline' : 'default'}
-          className={`rounded-none ${isEditing ? 'border-dashed' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+          className={`rounded-xl transition-all h-10 px-5 font-medium ${isEditing ? 'border-gray-200 hover:bg-gray-50' : 'bg-primary text-white hover:bg-primary/90 shadow-sm'}`}
         >
           {isEditing ? 'Cancel' : 'Edit Profile'}
         </Button>
@@ -119,16 +119,16 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
         <div className="lg:col-span-4">
           <BentoCard title="Profile Overview" icon={<User className="w-4 h-4" />}>
             <div className="flex flex-col items-center text-center py-4">
-              <div className="w-20 h-20 bg-gray-200 flex items-center justify-center mb-4">
-                <User className="w-10 h-10 text-gray-500" />
+              <div className="w-24 h-24 rounded-3xl bg-gray-100 flex items-center justify-center mb-5 shadow-sm border border-gray-100">
+                <User className="w-10 h-10 text-gray-400" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 tracking-tight mb-1">
+              <h3 className="text-lg font-semibold text-gray-900 tracking-tight mb-1">
                 {profile.name}
               </h3>
               <p className="text-sm text-gray-500">{profile.email}</p>
               <Badge 
                 variant="secondary" 
-                className="mt-3 text-[10px] font-mono uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200"
+                className="mt-4 text-[11px] font-medium tracking-wide bg-gray-100/80 text-gray-600 border-none rounded-lg px-3 py-1"
               >
                 Patient
               </Badge>
@@ -142,7 +142,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium text-gray-500 mb-2 block">
                     Full Name
                   </label>
                   {isEditing ? (
@@ -150,17 +150,17 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
                       type="text"
                       value={profile.name || ''}
                       onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     />
                   ) : (
-                    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm text-gray-900">
+                    <div className="px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[14px] text-gray-900 shadow-sm">
                       {profile.name}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium text-gray-500 mb-2 block">
                     Email
                   </label>
                   {isEditing ? (
@@ -168,17 +168,17 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
                       type="email"
                       value={profile.email || ''}
                       onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     />
                   ) : (
-                    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm text-gray-900">
+                    <div className="px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[14px] text-gray-900 shadow-sm">
                       {profile.email}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium text-gray-500 mb-2 block">
                     Phone
                   </label>
                   {isEditing ? (
@@ -187,17 +187,17 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
                       value={profile.phone || ''}
                       onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                       placeholder="+1 (555) 000-0000"
-                      className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     />
                   ) : (
-                    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm text-gray-900">
+                    <div className="px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[14px] text-gray-900 shadow-sm">
                       {profile.phone || 'Not provided'}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium text-gray-500 mb-2 block">
                     Date of Birth
                   </label>
                   {isEditing ? (
@@ -205,24 +205,24 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
                       type="date"
                       value={profile.dateOfBirth || ''}
                       onChange={(e) => setProfile({ ...profile, dateOfBirth: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     />
                   ) : (
-                    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm text-gray-900">
+                    <div className="px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[14px] text-gray-900 shadow-sm">
                       {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'Not provided'}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium text-gray-500 mb-2 block">
                     Blood Type
                   </label>
                   {isEditing ? (
                     <select
                       value={profile.bloodType || ''}
                       onChange={(e) => setProfile({ ...profile, bloodType: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     >
                       <option value="">Select blood type</option>
                       <option value="A+">A+</option>
@@ -235,7 +235,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
                       <option value="O-">O-</option>
                     </select>
                   ) : (
-                    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm text-gray-900">
+                    <div className="px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[14px] text-gray-900 shadow-sm">
                       {profile.bloodType || 'Not provided'}
                     </div>
                   )}
@@ -243,13 +243,15 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
               </div>
 
               {isEditing && (
-                <Button
-                  onClick={handleSave}
-                  className="w-full rounded-none bg-gray-900 text-white hover:bg-gray-800"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </Button>
+                <div className="pt-4">
+                  <Button
+                    onClick={handleSave}
+                    className="w-full rounded-xl bg-primary text-white hover:bg-primary/90 h-11 text-[14px] font-semibold tracking-wide shadow-sm"
+                  >
+                    <Save className="w-4.5 h-4.5 mr-2" />
+                    Save Changes
+                  </Button>
+                </div>
               )}
             </div>
           </BentoCard>
@@ -260,45 +262,47 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
           <BentoCard title="Medical Information" icon={<Shield className="w-4 h-4" />}>
             <div className="space-y-4">
               <div>
-                <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                <label className="text-[12px] font-medium text-gray-500 mb-3 block">
                   Allergies
                 </label>
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {profile.allergies?.map((allergy) => (
                     <Badge
                       key={allergy}
                       variant="outline"
-                      className="text-xs border-dashed flex items-center gap-2"
+                      className="text-[13px] font-medium px-3 py-1.5 rounded-full border-gray-200 bg-gray-50 text-gray-700 flex items-center gap-1.5"
                     >
                       {allergy}
                       {isEditing && (
                         <button
                           onClick={() => removeAllergy(allergy)}
-                          className="ml-1 hover:text-red-600"
+                          className="hover:text-red-500 hover:bg-red-50 rounded-full p-0.5 transition-colors"
                         >
-                          &times;
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
                         </button>
                       )}
                     </Badge>
                   ))}
                   {(!profile.allergies || profile.allergies.length === 0) && (
-                    <p className="text-sm text-gray-500">No known allergies</p>
+                    <p className="text-[14px] text-gray-500 py-2">No known allergies</p>
                   )}
                 </div>
                 {isEditing && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <input
                       type="text"
                       value={allergyInput}
                       onChange={(e) => setAllergyInput(e.target.value)}
-                      placeholder="Add allergy..."
+                      placeholder="Add an allergy..."
                       onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
-                      className="flex-1 px-4 py-2.5 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     />
                     <Button
                       onClick={addAllergy}
                       variant="outline"
-                      className="rounded-none border-dashed"
+                      className="rounded-xl border-gray-200 h-12 px-6 font-medium hover:bg-gray-50 shadow-sm"
                     >
                       Add
                     </Button>

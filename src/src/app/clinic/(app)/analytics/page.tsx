@@ -248,32 +248,35 @@ export default function ClinicAdminAnalytics() {
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-lg font-bold text-gray-900">Analytics</h1>
+    <div className="space-y-8 pb-10">
+      <div className="mb-8">
+        <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">Clinic Portal</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Analytics</h1>
+      </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-gray-200 border border-gray-200">
-        {summaryCards.map((card) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {summaryCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="bg-white p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-7 h-7 ${card.bg} flex items-center justify-center`}>
-                  <Icon className={`w-3.5 h-3.5 ${card.color}`} />
+            <div key={card.label} className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: `${i * 50}ms` }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-8 h-8 rounded-2xl ${card.bg} flex items-center justify-center`}>
+                  <Icon className={`w-4 h-4 ${card.color}`} />
                 </div>
               </div>
-              <p className="text-[10px] font-mono uppercase text-gray-400 tracking-wider mb-1">{card.label}</p>
-              <div className="text-xl font-bold text-gray-900">{card.value}</div>
+              <p className="text-[12px] font-medium text-gray-500 mb-1">{card.label}</p>
+              <div className="text-2xl font-bold text-gray-900">{card.value}</div>
             </div>
           );
         })}
       </div>
 
       {/* Monthly Trend - Area Chart */}
-      <div className="border border-gray-200">
-        <div className="px-5 py-4 border-b border-gray-200">
-          <h2 className="text-sm font-semibold text-gray-900">Monthly Appointment Trend</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Appointments over the last 6 months</p>
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Monthly Appointment Trend</h2>
+          <p className="text-[13px] text-gray-500 mt-1">Appointments over the last 6 months</p>
         </div>
         <div className="p-5">
           {monthlyChartData.length === 0 ? (
@@ -318,10 +321,10 @@ export default function ClinicAdminAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Doctor Performance - Bar Chart */}
-        <div className="lg:col-span-2 border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Doctor Performance</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Confirmed vs cancelled appointments per doctor</p>
+        <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Doctor Performance</h2>
+            <p className="text-[13px] text-gray-500 mt-1">Confirmed vs cancelled appointments per doctor</p>
           </div>
           <div className="p-5">
             {analytics.doctorPerformance.length === 0 ? (
@@ -377,10 +380,10 @@ export default function ClinicAdminAnalytics() {
         </div>
 
         {/* Appointment Status - Donut Chart */}
-        <div className="border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Appointment Status</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Overall breakdown</p>
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Appointment Status</h2>
+            <p className="text-[13px] text-gray-500 mt-1">Overall breakdown</p>
           </div>
           <div className="p-5">
             {donutData.length === 0 ? (
@@ -426,10 +429,10 @@ export default function ClinicAdminAnalytics() {
       </div>
 
       {/* Upcoming Appointments */}
-      <div className="border border-gray-200">
-        <div className="px-5 py-4 border-b border-gray-200">
-          <h2 className="text-sm font-semibold text-gray-900">Upcoming Appointments</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Next scheduled visits</p>
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">Upcoming Appointments</h2>
+          <p className="text-[13px] text-gray-500 mt-1">Next scheduled visits</p>
         </div>
         <div>
           {analytics.upcomingAppointments.length === 0 ? (
@@ -438,17 +441,17 @@ export default function ClinicAdminAnalytics() {
             analytics.upcomingAppointments.map((apt) => (
               <div
                 key={apt.id}
-                className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-6 py-4 border-b border-gray-100/80 last:border-b-0 hover:bg-gray-50/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-gray-600">
+                  <div className="w-10 h-10 rounded-xl bg-[#E2F0F0]/80 border border-[#E2F0F0] flex items-center justify-center shrink-0">
+                    <span className="text-[13px] font-bold text-[#36565F]">
                       {apt.patientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{apt.patientName}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-[14px] font-medium text-gray-900 truncate">{apt.patientName}</p>
+                    <p className="text-[13px] text-gray-500">
                       {new Date(apt.slotTime).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -469,7 +472,15 @@ export default function ClinicAdminAnalytics() {
                       ? 'destructive'
                       : 'secondary'
                   }
-                  className="text-[10px] shrink-0"
+                  className={`shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
+                    apt.status === 'confirmed'
+                      ? 'bg-[#E2F0F0]/80 text-[#36565F] border-[#E2F0F0]'
+                      : apt.status === 'pending'
+                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                      : apt.status === 'cancelled'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200'
+                  }`}
                 >
                   {apt.status}
                 </Badge>

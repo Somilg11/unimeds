@@ -120,41 +120,44 @@ export default function ClinicAdminPatients() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-bold text-gray-900">Patients</h1>
-        <span className="text-xs font-mono uppercase text-gray-400">
+    <div className="pb-10">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">Clinic Portal</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Patients</h1>
+        </div>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#36565F] bg-[#E2F0F0]/50 px-3 py-1.5 rounded-full border border-[#E2F0F0]">
           {patients.length} total
         </span>
       </div>
 
       <div className="mb-6 relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input
           placeholder="Search by name, email, or phone..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-white border border-gray-200"
+          className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
         />
       </div>
 
       {filteredPatients.length === 0 ? (
-        <div className="border border-gray-200 p-12 text-center">
+        <div className="text-center py-16 bg-gray-50/50 border border-gray-100 border-dashed rounded-3xl">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No patients found</p>
+          <p className="text-[15px] font-semibold text-gray-900 mb-1">No patients found</p>
         </div>
       ) : (
         <>
-          <div className="border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left px-4 py-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider">Patient</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden sm:table-cell">Contact</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden md:table-cell">Demographics</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider">Appts</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-mono uppercase text-gray-400 tracking-wider hidden lg:table-cell">Last Appointment</th>
+              <table className="w-full text-left">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Patient</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Contact</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Demographics</th>
+                    <th className="px-5 py-4 text-center text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Appts</th>
+                    <th className="px-5 py-4 text-[12px] font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Last Appointment</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -162,19 +165,19 @@ export default function ClinicAdminPatients() {
                     const age = getAge(patient.dateOfBirth);
                     const initials = getInitials(patient.name || 'Unknown');
                     return (
-                      <tr key={patient.patientId} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
+                      <tr key={patient.patientId} className="border-b border-gray-100/80 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                        <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-200 text-gray-600 font-semibold text-xs flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-[#E2F0F0]/80 text-[#36565F] font-semibold text-sm flex items-center justify-center shrink-0 border border-[#E2F0F0]">
                               {initials}
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">{patient.name || 'Unknown'}</div>
-                              <div className="text-xs text-gray-500 sm:hidden mt-0.5">{patient.email || '—'}</div>
+                              <div className="font-medium text-[14px] text-gray-900">{patient.name || 'Unknown'}</div>
+                              <div className="text-[13px] text-gray-500 sm:hidden mt-0.5">{patient.email || '—'}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 hidden sm:table-cell">
+                        <td className="px-5 py-4 hidden sm:table-cell">
                           <div className="space-y-1">
                             {patient.email && (
                               <div className="flex items-center gap-1.5 text-gray-600 text-xs">
@@ -190,38 +193,38 @@ export default function ClinicAdminPatients() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
+                        <td className="px-5 py-4 hidden md:table-cell">
                           <div className="flex items-center gap-1.5">
                             {patient.gender && (
-                              <Badge variant="secondary" className="text-[10px] bg-gray-100 text-gray-600 border border-gray-200 capitalize">
+                              <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200 capitalize">
                                 {patient.gender}
                               </Badge>
                             )}
                             {age && (
-                              <Badge variant="secondary" className="text-[10px] bg-gray-100 text-gray-600 border border-gray-200">
+                              <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
                                 {age}
                               </Badge>
                             )}
                           </div>
                           {patient.dateOfBirth && (
-                            <div className="text-[10px] text-gray-400 mt-1">
+                            <div className="text-[11px] text-gray-400 mt-1.5">
                               DOB: {new Date(patient.dateOfBirth).toLocaleDateString(undefined, { dateStyle: 'medium' })}
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200">
+                        <td className="px-5 py-4 text-center">
+                          <Badge variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[#E2F0F0]/80 text-[#36565F] border border-[#E2F0F0]">
                             {patient.totalAppointments} Appt{patient.totalAppointments !== 1 ? 's' : ''}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">
+                        <td className="px-5 py-4 text-gray-500 text-[13px] hidden lg:table-cell">
                           {patient.lastAppointment ? (
                             <div className="flex items-center gap-1.5">
-                              <Clock className="w-3 h-3 text-gray-400" />
+                              <Clock className="w-3.5 h-3.5 text-gray-400" />
                               <span>{new Date(patient.lastAppointment).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
                             </div>
                           ) : (
-                            <span className="text-gray-400">No appointments</span>
+                            <span className="text-gray-400 italic">No appointments</span>
                           )}
                         </td>
                       </tr>
@@ -233,30 +236,28 @@ export default function ClinicAdminPatients() {
           </div>
 
           {filteredPatients.length > PAGE_SIZE && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-xs text-gray-500">
+            <div className="flex items-center justify-between mt-6 px-1">
+              <p className="text-[13px] font-medium text-gray-500">
                 Page {safePage} of {totalPages} ({filteredPatients.length} total)
               </p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
                   disabled={safePage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="rounded-xl h-9 px-4 text-[12px] font-medium border-gray-200 shadow-sm"
                 >
-                  <ChevronLeft className="w-3 h-3 mr-1" />
+                  <ChevronLeft className="w-3.5 h-3.5 mr-1" />
                   Prev
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
                   disabled={safePage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="rounded-xl h-9 px-4 text-[12px] font-medium border-gray-200 shadow-sm"
                 >
                   Next
-                  <ChevronRight className="w-3 h-3 ml-1" />
+                  <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </Button>
               </div>
             </div>

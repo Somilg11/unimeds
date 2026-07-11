@@ -50,20 +50,14 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
 
   async function fetchClinics() {
     try {
-      const res = await fetch('/api/doctor/appointments', {
+      const res = await fetch('/api/doctor/clinics', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        const clinicMap = new Map<string, Clinic>();
-        (data.appointments || []).forEach((apt: any) => {
-          if (apt.clinicName && apt.clinicId) {
-            clinicMap.set(apt.clinicId, { id: apt.clinicId, name: apt.clinicName });
-          }
-        });
-        setClinics(Array.from(clinicMap.values()));
-        if (clinicMap.size === 1) {
-          setSelectedClinic(Array.from(clinicMap.keys())[0]);
+        setClinics(data.clinics || []);
+        if ((data.clinics || []).length === 1) {
+          setSelectedClinic(data.clinics[0].id);
         }
       }
     } catch {
@@ -167,7 +161,7 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
       <div className="p-4 lg:p-10">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Availability</h1>
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -176,7 +170,7 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
   return (
     <div className="p-4 lg:p-10">
       <div className="mb-8">
-        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+        <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">
           Doctor Portal
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
@@ -189,18 +183,18 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
 
       {clinics.length > 1 && (
         <div className="mb-6">
-          <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+          <label className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2 block">
             Select Clinic
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 p-1 bg-gray-100/80 rounded-xl border border-gray-100 self-start w-fit">
             {clinics.map((clinic) => (
               <button
                 key={clinic.id}
                 onClick={() => setSelectedClinic(clinic.id)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg transition-all ${
                   selectedClinic === clinic.id
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    ? 'bg-white text-[#36565F] shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
                 }`}
               >
                 {clinic.name}
@@ -213,43 +207,43 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
       {selectedClinic && (
         <div className="space-y-4">
           {DAYS.map((day, dayIndex) => (
-            <div key={dayIndex} className="border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-400" />
+            <div key={dayIndex} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#36565F]" />
                   {day}
                 </h3>
                 <button
                   onClick={() => addTimeSlot(dayIndex)}
-                  className="text-xs text-gray-500 hover:text-gray-900 flex items-center gap-1"
+                  className="text-[12px] font-medium text-[#36565F] hover:text-[#36565F]/80 bg-[#E2F0F0] px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all"
                 >
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-3.5 h-3.5" />
                   Add Slot
                 </button>
               </div>
 
               {schedule[dayIndex].length === 0 ? (
-                <p className="text-xs text-gray-400 italic">No availability set</p>
+                <p className="text-[13px] text-gray-400 italic">No availability set</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {schedule[dayIndex].map((slot, slotIndex) => (
                     <div key={slotIndex} className="flex items-center gap-3">
                       <Input
                         type="time"
                         value={slot.startTime}
                         onChange={(e) => updateTimeSlot(dayIndex, slotIndex, 'startTime', e.target.value)}
-                        className="w-32 bg-white border border-gray-300"
+                        className="w-32 h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                       />
-                      <span className="text-xs text-gray-400">to</span>
+                      <span className="text-[12px] text-gray-400 font-medium">to</span>
                       <Input
                         type="time"
                         value={slot.endTime}
                         onChange={(e) => updateTimeSlot(dayIndex, slotIndex, 'endTime', e.target.value)}
-                        className="w-32 bg-white border border-gray-300"
+                        className="w-32 h-10 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-[#36565F]/30 focus:ring-[#36565F]/30"
                       />
                       <button
                         onClick={() => removeTimeSlot(dayIndex, slotIndex)}
-                        className="text-gray-400 hover:text-red-600"
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -264,7 +258,7 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-gray-900 text-white hover:bg-gray-800"
+              className="rounded-xl h-10 px-6 bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -278,8 +272,8 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
       )}
 
       {!selectedClinic && clinics.length === 0 && (
-        <div className="border border-gray-200 p-12 text-center">
-          <p className="text-gray-500 text-sm">
+        <div className="text-center py-16 border border-gray-100 bg-gray-50/50 rounded-3xl border-dashed">
+          <p className="text-gray-500 text-[14px]">
             No clinics found. Please contact your clinic admin.
           </p>
         </div>

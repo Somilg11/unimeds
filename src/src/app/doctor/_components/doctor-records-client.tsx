@@ -158,7 +158,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
   return (
     <div className="p-4 lg:p-10">
       <div className="mb-8">
-        <p className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2">
+        <p className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2">
           Doctor Portal
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
@@ -171,17 +171,17 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
 
       <div className="flex items-center gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search records..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-white border border-gray-300"
+            className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
           />
         </div>
         <Button
           onClick={() => setShowUploadModal(true)}
-          className="bg-gray-900 text-white hover:bg-gray-800"
+          className="rounded-xl h-10 px-6 bg-[#36565F] hover:bg-[#36565F]/90 text-white shadow-sm"
         >
           <Upload className="w-4 h-4 mr-2" />
           Upload Record
@@ -190,35 +190,35 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="border border-gray-200 p-12 text-center">
+        <div className="text-center py-16 bg-gray-50/50 border border-gray-100 border-dashed rounded-3xl">
           <FileText className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-gray-500 text-sm">No records found</p>
+          <p className="text-[15px] font-semibold text-gray-900 mb-1">No records found</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {filtered.map((record) => (
-            <div key={record.id} className="border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
+            <div key={record.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all group">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">{record.fileName}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
+                  <div className="text-[15px] font-semibold text-gray-900 truncate">{record.fileName}</div>
+                  <div className="text-[13px] text-gray-500 mt-1">
                     {record.recordType}
                     {record.patientName && <span className="ml-2 text-gray-400">| {record.patientName}</span>}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 ml-4 shrink-0">
-                  <Badge variant="secondary" className="text-[10px] font-mono">
+                <div className="flex items-center gap-4 ml-4 shrink-0">
+                  <Badge variant="secondary" className="text-[11px] font-medium bg-[#E2F0F0]/50 text-[#36565F] border border-[#E2F0F0] rounded-full px-2.5">
                     {record.ocrData?.processingStatus || 'pending'}
                   </Badge>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-[12px] text-gray-400 font-medium">
                     {new Date(record.createdAt).toLocaleDateString()}
                   </div>
                   <button
                     onClick={() => setViewingRecord(record)}
-                    className="text-gray-500 hover:text-gray-900"
+                    className="text-gray-400 hover:text-[#36565F] hover:bg-[#E2F0F0] p-2 rounded-xl transition-colors"
                     title="View document"
                   >
                     <Eye className="w-4 h-4" />
@@ -233,7 +233,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white border border-gray-200 w-full max-w-md mx-4 p-6">
+          <div className="bg-white border border-gray-100 rounded-3xl shadow-xl w-full max-w-md mx-4 p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">Upload Record</h2>
               <button
@@ -251,18 +251,18 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
             {!selectedPatient ? (
               <div className="space-y-4">
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2 block">
                     Search Patient
                   </label>
                   <Input
                     placeholder="Type patient name or email..."
                     value={patientSearch}
                     onChange={(e) => setPatientSearch(e.target.value)}
-                    className="bg-white border border-gray-300"
+                    className="bg-white border border-gray-200 rounded-xl h-10 px-4 focus:border-primary/30 focus:ring-primary/20 transition-all"
                   />
                 </div>
                 {patients.length > 0 && (
-                  <div className="border border-gray-200 max-h-48 overflow-y-auto">
+                  <div className="border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto shadow-sm">
                     {patients.map((patient) => (
                       <button
                         key={patient.patientId}
@@ -283,7 +283,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-3 bg-gray-50 border border-gray-200">
+                <div className="p-4 bg-gray-50/50 border border-gray-200 rounded-xl shadow-sm">
                   <p className="text-sm font-medium text-gray-900">
                     {selectedPatient.name}
                   </p>
@@ -291,13 +291,13 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2 block">
                     Record Type
                   </label>
                   <select
                     value={recordType}
                     onChange={(e) => setRecordType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:border-gray-900"
+                    className="w-full h-10 px-3 border border-gray-200 bg-white text-[14px] focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm rounded-xl"
                   >
                     <option value="general">General</option>
                     <option value="lab_report">Lab Report</option>
@@ -308,7 +308,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+                  <label className="text-[12px] font-medium uppercase text-gray-500 tracking-wider mb-2 block">
                     Select File
                   </label>
                   <input
@@ -319,7 +319,7 @@ export function DoctorRecordsClient({ userName, token }: DoctorRecordsClientProp
                       if (file) handleFileUpload(file);
                     }}
                     disabled={uploading}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-200 file:rounded-xl file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 cursor-pointer"
                   />
                 </div>
 

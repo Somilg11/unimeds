@@ -167,7 +167,7 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
             {rescheduleProposals.map((proposal) => (
               <div
                 key={proposal.appointmentId}
-                className="border border-yellow-200 bg-yellow-50 p-4"
+                className="border border-yellow-100 bg-yellow-50/50 p-6 rounded-3xl shadow-sm"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -189,21 +189,21 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                     <button
                       onClick={() => handleRescheduleResponse(proposal.appointmentId, true)}
                       disabled={respondingTo === proposal.appointmentId}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-xs font-medium rounded-full hover:bg-primary/90 disabled:opacity-50 transition-colors"
                     >
                       {respondingTo === proposal.appointmentId ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <Check className="w-3 h-3" />
+                        <Check className="w-3.5 h-3.5" />
                       )}
                       Accept
                     </button>
                     <button
                       onClick={() => handleRescheduleResponse(proposal.appointmentId, false)}
                       disabled={respondingTo === proposal.appointmentId}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-medium hover:bg-gray-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-full hover:bg-gray-50 disabled:opacity-50 transition-colors"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                       Decline
                     </button>
                   </div>
@@ -215,30 +215,45 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 mb-6">
-        <div className="bg-white p-5">
-          <Activity className="w-4 h-4 text-blue-600 mb-2" />
-          <p className="text-2xl font-bold text-gray-900">{timelineData.length}</p>
-          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Total Events</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: '0ms' }}>
+          <div className="flex items-center gap-3 mb-3">
+             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+               <Activity className="w-5 h-5" />
+             </div>
+             <span className="text-[13px] font-medium text-gray-500">Total Events</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{timelineData.length}</p>
         </div>
-        <div className="bg-white p-5">
-          <Calendar className="w-4 h-4 text-blue-600 mb-2" />
-          <p className="text-2xl font-bold text-gray-900">{upcomingAppointments.length}</p>
-          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Upcoming</p>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: '50ms' }}>
+          <div className="flex items-center gap-3 mb-3">
+             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+               <Calendar className="w-5 h-5" />
+             </div>
+             <span className="text-[13px] font-medium text-gray-500">Upcoming</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{upcomingAppointments.length}</p>
         </div>
-        <div className="bg-white p-5">
-          <FileText className="w-4 h-4 text-blue-600 mb-2" />
-          <p className="text-2xl font-bold text-gray-900">
-            {timelineData.filter((i) => i.type === 'record').length}
-          </p>
-          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Records</p>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center gap-3 mb-3">
+             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+               <FileText className="w-5 h-5" />
+             </div>
+             <span className="text-[13px] font-medium text-gray-500">Records</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{timelineData.filter((i) => i.type === 'record').length}</p>
         </div>
-        <div className="bg-white p-5">
-          <User className="w-4 h-4 text-blue-600 mb-2" />
-          <p className="text-2xl font-bold text-gray-900">
-            {timelineData.filter((i) => i.type === 'appointment').length}
-          </p>
-          <p className="text-[11px] font-mono uppercase text-gray-400 mt-1">Appointments</p>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col hover-lift animate-subtle" style={{ animationDelay: '150ms' }}>
+          <div className="flex items-center gap-3 mb-3">
+             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+               <User className="w-5 h-5" />
+             </div>
+             <span className="text-[13px] font-medium text-gray-500">Appointments</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{timelineData.filter((i) => i.type === 'appointment').length}</p>
         </div>
       </div>
 
@@ -248,11 +263,11 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
         <div className="lg:col-span-8 space-y-6">
           <BentoCard title="Upload Records" icon={<Activity className="w-4 h-4" />}>
             <div className="mb-4">
-              <label className="text-[11px] font-mono uppercase text-gray-400 tracking-wider mb-2 block">
+              <label className="text-[12px] font-medium text-gray-600 mb-2 block ml-1">
                 Record Type
               </label>
               <Select value={uploadRecordType} onValueChange={setUploadRecordType}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full rounded-xl border-gray-200 shadow-sm bg-white hover:bg-gray-50/50 transition-colors">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,11 +295,11 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                 upcomingAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="p-4 border border-gray-200 hover:bg-gray-50 transition-colors"
+                    className="p-4 sm:p-5 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-mono uppercase text-gray-400 mb-1" suppressHydrationWarning>
+                        <p className="text-[12px] font-medium text-primary mb-1" suppressHydrationWarning>
                           {new Date(appointment.date).toLocaleDateString()}
                         </p>
                         <p className="text-sm font-semibold text-gray-900 tracking-tight">
@@ -292,19 +307,19 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                         </p>
                         <p className="text-xs text-gray-500 mt-1">{appointment.description}</p>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
                         {confirmCancelId === appointment.id ? (
                           <>
                             <button
                               onClick={() => handleCancelAppointment(appointment.id)}
                               disabled={cancellingId === appointment.id}
-                              className="text-xs text-white bg-red-600 hover:bg-red-700 px-2 py-1 transition-colors"
+                              className="text-xs text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
                             >
                               {cancellingId === appointment.id ? 'Cancelling...' : 'Confirm'}
                             </button>
                             <button
                               onClick={() => setConfirmCancelId(null)}
-                              className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 transition-colors"
+                              className="text-xs text-gray-600 hover:text-gray-900 px-3 py-1.5 border border-gray-200 rounded-lg transition-colors bg-white shadow-sm"
                             >
                               No
                             </button>
@@ -312,7 +327,7 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                         ) : (
                           <button
                             onClick={() => setConfirmCancelId(appointment.id)}
-                            className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 transition-colors"
+                            className="text-xs text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
                           >
                             Cancel
                           </button>
@@ -322,55 +337,63 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 border border-dashed border-gray-300">
-                  <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500">No upcoming appointments</p>
+                <div className="text-center py-10 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+                  <Calendar className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 font-medium">No upcoming appointments</p>
                 </div>
               )}
             </div>
           </BentoCard>
 
           <BentoCard title="Quick Actions" icon={<User className="w-4 h-4" />}>
-            <div className="space-y-px bg-gray-200 border border-gray-200">
+            <div className="flex flex-col gap-3">
               <Link
                 href="/user/book"
-                className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group"
+                className="flex items-center justify-between bg-gray-50/50 border border-gray-100 p-4 rounded-2xl hover:bg-gray-50 transition-colors group hover-lift shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-primary" />
+                  </div>
                   <span className="text-[13px] font-medium text-gray-900">Book Appointment</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-all" />
               </Link>
               <Link
                 href="/user/records"
-                className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group"
+                className="flex items-center justify-between bg-gray-50/50 border border-gray-100 p-4 rounded-2xl hover:bg-gray-50 transition-colors group hover-lift shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-primary" />
+                  </div>
                   <span className="text-[13px] font-medium text-gray-900">View Records</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-all" />
               </Link>
               <Link
                 href="/user/medical-history"
-                className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group"
+                className="flex items-center justify-between bg-gray-50/50 border border-gray-100 p-4 rounded-2xl hover:bg-gray-50 transition-colors group hover-lift shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <Activity className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-primary" />
+                  </div>
                   <span className="text-[13px] font-medium text-gray-900">Medical History</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-all" />
               </Link>
               <Link
                 href="/user/profile"
-                className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors group"
+                className="flex items-center justify-between bg-gray-50/50 border border-gray-100 p-4 rounded-2xl hover:bg-gray-50 transition-colors group hover-lift shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <User className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
                   <span className="text-[13px] font-medium text-gray-900">Update Profile</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-all" />
               </Link>
             </div>
           </BentoCard>

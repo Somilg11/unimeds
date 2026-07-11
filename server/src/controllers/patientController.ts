@@ -209,8 +209,39 @@ export const bookAppointment = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'doctorId, clinicId, and slotTime are required' });
     }
 
-    // Check for conflicting appointments at the same time slot
     const slotDate = new Date(slotTime);
+    const dayOfWeek = slotDate.getDay();
+    const slotHour = slotDate.getHours();
+    const slotMinute = slotDate.getMinutes();
+    const slotTimeStr = `${String(slotHour).padStart(2, '0')}:${String(slotMinute).padStart(2, '0')}`;
+
+    // Validate that the slot falls within the doctor's availability for this clinic
+    const availability = await db
+      .select()
+      .from(doctorAvailability)
+      .where(
+        and(
+          eq(doctorAvailability.doctorId, doctorId),
+          eq(doctorAvailability.clinicId, clinicId),
+          eq(doctorAvailability.dayOfWeek, dayOfWeek),
+          eq(doctorAvailability.isActive, true)
+        )
+      );
+
+    if (availability.length === 0) {
+      return res.status(400).json({ error: 'Doctor is not available on this day' });
+    }
+
+    // Check that the requested time falls within at least one availability block
+    const isInAvailability = availability.some((block) => {
+      return slotTimeStr >= block.startTime && slotTimeStr < block.endTime;
+    });
+
+    if (!isInAvailability) {
+      return res.status(400).json({ error: 'This time slot is outside the doctor\'s available hours' });
+    }
+
+    // Check for conflicting appointments at the same time slot
     const [conflict] = await db
       .select()
       .from(appointments)
@@ -398,7 +429,7 @@ export const getDoctors = async (req: Request, res: Response) => {
 
 export const getAvailableSlots = async (req: Request, res: Response) => {
   try {
-    const { doctorId, date } = req.query;
+    const { doctorId, date, clinicId } = req.query;
 
     if (!doctorId || typeof doctorId !== 'string') {
       return res.status(400).json({ error: 'Doctor ID is required' });
@@ -411,29 +442,34 @@ export const getAvailableSlots = async (req: Request, res: Response) => {
     const requestedDate = new Date(date);
     const dayOfWeek = requestedDate.getDay();
 
-    // Get doctor's availability for this day of week
+    // Get doctor's availability for this day of week, optionally filtered by clinic
+    const conditions = [
+      eq(doctorAvailability.doctorId, doctorId),
+      eq(doctorAvailability.dayOfWeek, dayOfWeek),
+      eq(doctorAvailability.isActive, true),
+    ];
+    if (clinicId && typeof clinicId === 'string') {
+      conditions.push(eq(doctorAvailability.clinicId, clinicId));
+    }
+
     const availability = await db
       .select()
       .from(doctorAvailability)
-      .where(
-        and(
-          eq(doctorAvailability.doctorId, doctorId),
-          eq(doctorAvailability.dayOfWeek, dayOfWeek),
-          eq(doctorAvailability.isActive, true)
-        )
-      );
+      .where(and(...conditions));
 
-    // If no availability set, fall back to default 9-5
-    const timeBlocks = availability.length > 0
-      ? availability.map((a) => ({ start: a.startTime, end: a.endTime }))
-      : [{ start: '09:00', end: '17:00' }];
+    // If no availability set, return empty — doctor must configure their schedule
+    if (availability.length === 0) {
+      return res.json({ slots: [] });
+    }
+
+    const timeBlocks = availability.map((a) => ({ start: a.startTime, end: a.endTime }));
 
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Get booked slots for the doctor on the given date
+    // Get booked slots for the doctor on the given date (pending or confirmed)
     const bookedSlots = await db
       .select({ slotTime: appointments.slotTime })
       .from(appointments)

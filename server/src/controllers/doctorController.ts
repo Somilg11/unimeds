@@ -510,6 +510,35 @@ export const getMyAvailability = async (req: Request, res: Response) => {
   }
 };
 
+export const getMyClinics = async (req: Request, res: Response) => {
+  try {
+    const doctorId = req.user?.id;
+    if (!doctorId) {
+      return res.status(401).json({ error: 'Doctor not authenticated' });
+    }
+
+    const result = await db
+      .select({
+        id: clinics.id,
+        name: clinics.name,
+      })
+      .from(clinicDoctors)
+      .innerJoin(clinics, eq(clinicDoctors.clinicId, clinics.id))
+      .where(
+        and(
+          eq(clinicDoctors.doctorId, doctorId),
+          eq(clinicDoctors.isActive, true),
+          eq(clinics.isActive, true)
+        )
+      );
+
+    res.json({ clinics: result });
+  } catch (error) {
+    console.error('Error fetching clinics:', error);
+    res.status(500).json({ error: 'Failed to fetch clinics' });
+  }
+};
+
 export const setMyAvailability = async (req: Request, res: Response) => {
   try {
     const doctorId = req.user?.id;

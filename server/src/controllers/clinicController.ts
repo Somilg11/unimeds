@@ -416,7 +416,56 @@ export const addDoctorToClinic = async (req: Request, res: Response) => {
       .limit(1);
 
     if (existingUser.length > 0) {
-      return res.status(409).json({ error: 'A user with this email already exists' });
+      const existingUserId = existingUser[0]!.id;
+
+      // Check if this doctor is already assigned to THIS clinic
+      const existingLink = await db
+        .select()
+        .from(clinicDoctors)
+        .where(
+          and(
+            eq(clinicDoctors.doctorId, existingUserId),
+            eq(clinicDoctors.clinicId, clinicId)
+          )
+        )
+        .limit(1);
+
+      if (existingLink.length > 0) {
+        return res.status(409).json({ error: 'Doctor is already assigned to this clinic', code: 'ALREADY_ASSIGNED' });
+      }
+
+      // Doctor exists but not in this clinic — link them
+      const [clinicDoctor] = await db
+        .insert(clinicDoctors)
+        .values({
+          clinicId,
+          doctorId: existingUserId,
+          isActive: true,
+          invitedBy: userId,
+        })
+        .returning();
+
+      if (clinicDoctor) {
+        await db.insert(notifications).values({
+          userId: existingUserId,
+          clinicId,
+          type: 'general',
+          title: 'You have been added to a clinic',
+          message: `You have been added to a new clinic.`,
+          data: { clinicId, addedBy: userId },
+        });
+      }
+
+      return res.status(201).json({
+        success: true,
+        doctor: {
+          id: existingUserId,
+          name,
+          email,
+          specialization,
+          licenseNumber,
+        },
+      });
     }
 
     const authId = randomBytes(16).toString('hex');
