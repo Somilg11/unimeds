@@ -20,11 +20,12 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", "font-sans")}
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" key="preconnect-google" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" key="preconnect-gstatic" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
           rel="stylesheet"
+          key="fonts"
         />
       </head>
       <body className="min-h-full flex flex-col">
