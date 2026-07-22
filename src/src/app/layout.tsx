@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { SessionProvider } from "next-auth/react";
-import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/providers";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "UniMeds",
@@ -17,20 +29,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", "font-sans")}
+      className={cn(inter.variable, geistMono.variable, "h-full", "antialiased", "font-sans")}
     >
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" key="preconnect-google" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" key="preconnect-gstatic" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
-          rel="stylesheet"
-          key="fonts"
-        />
-      </head>
       <body className="min-h-full flex flex-col">
-        <SessionProvider>{children}</SessionProvider>
-        <Toaster richColors position="top-right" />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
