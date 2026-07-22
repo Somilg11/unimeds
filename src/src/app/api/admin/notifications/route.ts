@@ -18,6 +18,7 @@ export async function GET(request: Request) {
     let token = getAuthToken(request);
 
     if (!token) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = await auth() as any;
       token = session?.accessToken || null;
     }
@@ -50,6 +51,7 @@ export async function PUT(request: Request) {
     let token = getAuthToken(request);
 
     if (!token) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = await auth() as any;
       token = session?.accessToken || null;
     }

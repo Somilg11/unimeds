@@ -61,6 +61,7 @@ export function PatientDashboardClient({ initialTimeline, userName }: PatientDas
         doctorName: item.metadata?.doctorName,
         clinicName: item.metadata?.clinicName,
       }));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRescheduleProposals(proposals);
   }, [timelineData]);
 

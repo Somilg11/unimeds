@@ -29,14 +29,6 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  useEffect(() => {
-    fetchPatients();
-  }, [token]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
-
   async function fetchPatients() {
     try {
       setLoading(true);
@@ -53,6 +45,11 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchPatients();
+  }, [token]);
 
   const filtered = search
     ? patients.filter(
@@ -128,7 +125,7 @@ export function PatientsClient({ userName, token }: PatientsClientProps) {
           <Input
             placeholder="Search patients..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             className="pl-10 h-10 bg-white/50 border-gray-200 rounded-xl focus:border-[#36565F]/30 focus:ring-[#36565F]/30 transition-all shadow-sm"
           />
         </div>

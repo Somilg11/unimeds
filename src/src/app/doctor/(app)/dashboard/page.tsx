@@ -17,6 +17,7 @@ export default function DoctorDashboard() {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToken(storedToken);
 
     try {

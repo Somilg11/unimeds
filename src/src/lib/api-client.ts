@@ -31,7 +31,7 @@ apiClient.interceptors.request.use(async (config) => {
       try {
         const session = await getSession();
         token = (session as any)?.accessToken || null;
-      } catch (error) {
+      } catch {
         // ignore
       }
     }

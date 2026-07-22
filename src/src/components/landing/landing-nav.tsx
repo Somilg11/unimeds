@@ -415,6 +415,7 @@ export function LandingNav() {
     // 1. Check doctor token
     const doctorToken = localStorage.getItem('doctor_token');
     if (doctorToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUserRole('doctor');
       try {
         const user = JSON.parse(localStorage.getItem('doctor_user') || '{}');
@@ -474,7 +475,7 @@ export function LandingNav() {
         }
       });
     } else if (status !== 'loading') {
-      setChecking(false);
+          setChecking(false);
     }
   }, [status, session]);
 

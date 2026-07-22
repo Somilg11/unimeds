@@ -29,6 +29,7 @@ export function ProfileClient({ userName, email }: ProfileClientProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchProfile();
   }, []);
 

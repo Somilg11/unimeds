@@ -1,5 +1,3 @@
-import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ChevronDown } from 'lucide-react';
 import { LandingFooter } from '@/components/landing/landing-footer';
 import { LandingNav } from '@/components/landing/landing-nav';
 

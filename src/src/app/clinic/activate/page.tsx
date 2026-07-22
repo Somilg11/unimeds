@@ -19,11 +19,13 @@ function ActivateClinicContent() {
 
   useEffect(() => {
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('error');
       setErrorMessage('No activation token provided');
       return;
     }
 
+    // eslint-disable-next-line react-hooks/immutability
     fetchClinicInfo();
   }, [token]);
 

@@ -24,38 +24,40 @@ export default async function PatientDashboard() {
       const data = await response.json();
       const timeline = data.timeline || [];
       
-      timelineData = timeline.map((item: any) => {
+      timelineData = timeline.map((item: { type: string; data: Record<string, unknown>; date?: string }) => {
+        const d = item.data;
+        const ocr = (d.ocrData ?? null) as Record<string, unknown> | null;
         if (item.type === 'record') {
           return {
-            id: item.data.id,
+            id: d.id as string,
             type: 'record' as const,
-            date: item.data.createdAt,
-            title: item.data.fileName,
-            description: item.data.recordType,
-            status: item.data.ocrData?.processingStatus || 'pending',
+            date: d.createdAt as string,
+            title: d.fileName as string,
+            description: d.recordType as string,
+            status: (ocr?.processingStatus as string) || 'pending',
             metadata: {
-              recordType: item.data.recordType,
-              fileType: item.data.mimeType,
-              fileSize: item.data.fileSize,
+              recordType: d.recordType as string,
+              fileType: d.mimeType as string,
+              fileSize: d.fileSize as string,
             }
           };
         } else if (item.type === 'appointment') {
           return {
-            id: item.data.id,
+            id: d.id as string,
             type: 'appointment' as const,
-            date: item.data.slotTime,
+            date: d.slotTime as string,
             title: 'Appointment',
-            description: item.data.notes || 'Medical appointment',
-            status: item.data.status,
+            description: (d.notes as string) || 'Medical appointment',
+            status: d.status as string,
             metadata: {
               doctorName: 'Doctor',
               location: 'Clinic',
-              appointmentTime: item.data.slotTime,
+              appointmentTime: d.slotTime as string,
             }
           };
         }
         return {
-          id: item.data.id,
+          id: d.id as string,
           type: 'record' as const,
           date: item.date,
           title: 'Health Event',

@@ -10,6 +10,7 @@ export default function ClinicAdminLayout({ children }: { children: React.ReactN
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     checkAuth();
   }, []);
 

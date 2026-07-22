@@ -56,6 +56,7 @@ export function RecordsClient({ userName }: RecordsClientProps) {
   const [viewingRecord, setViewingRecord] = useState<EnrichedRecord | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchRecords();
   }, []);
 
@@ -65,25 +66,29 @@ export function RecordsClient({ userName }: RecordsClientProps) {
       const timeline = response.data.timeline || [];
       
       const medicalRecords: EnrichedRecord[] = timeline
-        .filter((item: any) => item.type === 'record')
-        .map((item: any) => ({
-          id: item.data.id,
-          fileName: item.data.fileName,
-          fileType: item.data.mimeType || 'application/octet-stream',
-          fileSize: parseInt(item.data.fileSize || '0'),
-          uploadDate: item.data.createdAt,
-          recordType: (item.data.recordType as MedicalRecord['recordType']) || 'other',
-          ocrStatus: (item.data.ocrData?.processingStatus as MedicalRecord['ocrStatus']) || 'pending',
-          ocrData: item.data.ocrData ? {
-            extractedText: item.data.ocrData.extractedText,
-            keyFindings: item.data.ocrData.keyFindings,
-            medications: item.data.ocrData.medications,
-            diagnoses: item.data.ocrData.diagnoses,
-          } : undefined,
-          s3Url: item.data.fileUrl,
-          uploadedBy: item.data.uploadedBy,
-          uploaderName: item.data.uploaderName,
-        }));
+        .filter((item: { type: string }) => item.type === 'record')
+        .map((item: { type: string; data: Record<string, unknown> }) => {
+          const d = item.data;
+          const ocr = (d.ocrData ?? null) as Record<string, unknown> | null;
+          return {
+            id: d.id as string,
+            fileName: d.fileName as string,
+            fileType: (d.mimeType as string) || 'application/octet-stream',
+            fileSize: parseInt((d.fileSize as string) || '0'),
+            uploadDate: d.createdAt as string,
+            recordType: (d.recordType as MedicalRecord['recordType']) || 'other',
+            ocrStatus: ((ocr?.processingStatus as string) as MedicalRecord['ocrStatus']) || 'pending',
+            ocrData: ocr ? {
+              extractedText: ocr.extractedText as string | undefined,
+              keyFindings: ocr.keyFindings as string[] | undefined,
+              medications: ocr.medications as string[] | undefined,
+              diagnoses: ocr.diagnoses as string[] | undefined,
+            } : undefined,
+            s3Url: d.fileUrl as string,
+            uploadedBy: d.uploadedBy as string | null,
+            uploaderName: d.uploaderName as string | null,
+          };
+        });
       
       setRecords(medicalRecords);
     } catch (error) {

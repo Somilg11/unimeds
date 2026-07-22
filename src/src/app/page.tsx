@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { ArrowRight, User, Stethoscope, Building2, Shield, Activity, FileHeart, Calendar, Lock, Globe } from 'lucide-react';
+import { ArrowRight, User } from 'lucide-react';
 import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingFooter } from '@/components/landing/landing-footer';
 import { SpecialityMenu } from '@/components/landing/speciality-menu';

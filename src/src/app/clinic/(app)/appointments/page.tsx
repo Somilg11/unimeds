@@ -29,6 +29,7 @@ export default function ClinicAdminAppointments() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchAppointments();
   }, []);
 

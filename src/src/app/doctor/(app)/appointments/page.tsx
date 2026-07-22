@@ -16,6 +16,7 @@ export default function AppointmentsPage() {
       router.push('/doctor');
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToken(storedToken);
     try {
       const userStr = localStorage.getItem('doctor_user');

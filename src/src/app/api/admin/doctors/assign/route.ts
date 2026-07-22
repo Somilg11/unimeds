@@ -5,6 +5,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export async function POST(request: Request) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await auth() as any;
     if (!session?.accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await auth() as any;
     if (!session?.accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

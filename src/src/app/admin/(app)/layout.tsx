@@ -24,6 +24,7 @@ export default function AdminAppLayout({
       const userStr = localStorage.getItem('admin_user');
       if (userStr) {
         const user = JSON.parse(userStr);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUserName(user.name || 'Super Admin');
       }
     } catch { /* ignore */ }

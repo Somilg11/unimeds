@@ -55,12 +55,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = (token.dbUserId as string) || (token.id as string);
         session.user.authId = token.authId as string;
         session.accessToken = token.accessToken as string;
-        (session.user as any).email = token.email as string;
-        (session.user as any).role = token.userRole as string;
+        Object.assign(session.user, { email: token.email as string, role: token.userRole as string });
       }
       return session;
     },
-    async signIn({ user, account }) {
+    async signIn() {
       return true;
     },
   },

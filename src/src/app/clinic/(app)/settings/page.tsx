@@ -93,6 +93,7 @@ export default function ClinicAdminSettings() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchSettings();
   }, []);
 

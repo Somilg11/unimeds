@@ -90,27 +90,11 @@ export function BookingClient({ userName }: BookingClientProps) {
   const debouncedClinicQuery = useDebounce(clinicSearchQuery, 300);
   const debouncedDoctorQuery = useDebounce(doctorSearchQuery, 300);
 
-  useEffect(() => {
-    fetchClinics();
-  }, []);
-
-  // Auto-search clinics when debounced query changes
-  useEffect(() => {
-    if (debouncedClinicQuery.trim().length > 0) {
-      searchClinicsByQuery(debouncedClinicQuery);
-    } else {
-      fetchClinics();
-    }
-  }, [debouncedClinicQuery]);
-
-  // Auto-search doctors when debounced query changes
-  useEffect(() => {
-    if (debouncedDoctorQuery.trim().length >= 2) {
-      searchDoctors(debouncedDoctorQuery);
-    } else {
-      setDoctorSearchResults([]);
-    }
-  }, [debouncedDoctorQuery]);
+  const getTomorrow = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  };
 
   const fetchClinics = async () => {
     try {
@@ -120,6 +104,38 @@ export function BookingClient({ userName }: BookingClientProps) {
       console.error('Failed to fetch clinics:', error);
     } finally {
       setIsLoadingClinics(false);
+    }
+  };
+
+  const searchClinicsByQuery = async (query: string) => {
+    setIsSearchingClinics(true);
+    try {
+      const response = await apiClient.get('/user/clinics/search', {
+        params: { q: query.trim() },
+      });
+      setClinics(response.data.clinics || []);
+    } catch (error) {
+      console.error('Failed to search clinics:', error);
+    } finally {
+      setIsSearchingClinics(false);
+    }
+  };
+
+  const searchDoctors = async (query: string) => {
+    if (!query.trim()) {
+      return;
+    }
+    setIsSearchingDoctors(true);
+    try {
+      const response = await apiClient.get('/user/doctors/search', {
+        params: { q: query.trim() },
+      });
+      setDoctorSearchResults(response.data.doctors || []);
+    } catch (error) {
+      console.error('Failed to search doctors:', error);
+      toast.error('Failed to search doctors');
+    } finally {
+      setIsSearchingDoctors(false);
     }
   };
 
@@ -144,59 +160,49 @@ export function BookingClient({ userName }: BookingClientProps) {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchClinics();
+  }, []);
+
+  // Auto-search clinics when debounced query changes
+  useEffect(() => {
+    if (debouncedClinicQuery.trim().length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      searchClinicsByQuery(debouncedClinicQuery);
+    } else {
+      fetchClinics();
+    }
+  }, [debouncedClinicQuery]);
+
+  // Auto-search doctors when debounced query changes
+  useEffect(() => {
+    if (debouncedDoctorQuery.trim().length >= 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      searchDoctors(debouncedDoctorQuery);
+    }
+  }, [debouncedDoctorQuery]);
+
+  useEffect(() => {
     if (latitude && longitude) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchNearbyClinics(latitude, longitude);
     }
   }, [latitude, longitude, fetchNearbyClinics]);
 
-  const searchClinicsByQuery = async (query: string) => {
-    setIsSearchingClinics(true);
-    try {
-      const response = await apiClient.get('/user/clinics/search', {
-        params: { q: query.trim() },
-      });
-      setClinics(response.data.clinics || []);
-    } catch (error) {
-      console.error('Failed to search clinics:', error);
-    } finally {
-      setIsSearchingClinics(false);
-    }
-  };
-
-  const searchDoctors = async (query: string) => {
-    if (!query.trim()) {
-      setDoctorSearchResults([]);
-      return;
-    }
-    setIsSearchingDoctors(true);
-    try {
-      const response = await apiClient.get('/user/doctors/search', {
-        params: { q: query.trim() },
-      });
-      setDoctorSearchResults(response.data.doctors || []);
-    } catch (error) {
-      console.error('Failed to search doctors:', error);
-      toast.error('Failed to search doctors');
-    } finally {
-      setIsSearchingDoctors(false);
-    }
-  };
-
   const handleDoctorSelect = (doctor: DoctorSearchResult) => {
     setSelectedDoctorFromSearch(doctor);
     setSelectedDoctor(doctor.id);
-    // If doctor has only one clinic, auto-select it and go straight to time slots
     if (doctor.clinics.length === 1) {
       setSelectedClinic(doctor.clinics[0].id);
       setWizardState({ step: 3 });
-      fetchAvailableSlots(doctor.id, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+      fetchAvailableSlots(doctor.id, getTomorrow());
     }
   };
 
   const handleDoctorClinicSelect = (clinicId: string) => {
     setSelectedClinic(clinicId);
     setWizardState({ step: 3 });
-    fetchAvailableSlots(selectedDoctor, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+    fetchAvailableSlots(selectedDoctor, getTomorrow());
   };
 
   const fetchDoctors = async (clinicId: string) => {
@@ -232,7 +238,7 @@ export function BookingClient({ userName }: BookingClientProps) {
     if (wizardState.step === 1 && selectedClinic) {
       // If coming from doctor search flow, skip Step 2 (doctor already selected)
       if (selectedDoctorFromSearch && selectedDoctor) {
-        fetchAvailableSlots(selectedDoctor, new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+        fetchAvailableSlots(selectedDoctor, getTomorrow());
         setWizardState({ ...wizardState, step: 3 as 1 | 2 | 3 | 4 });
         return;
       }
@@ -599,7 +605,7 @@ export function BookingClient({ userName }: BookingClientProps) {
                       <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-4">
                         <User className="h-8 w-8 text-gray-300" />
                       </div>
-                      <p className="text-[15px] font-semibold text-gray-900 mb-1">No doctors found matching "{doctorSearchQuery}"</p>
+                      <p className="text-[15px] font-semibold text-gray-900 mb-1">No doctors found matching &quot;{doctorSearchQuery}&quot;</p>
                       <p className="text-[13px] text-gray-500">
                         Try a different search term
                       </p>

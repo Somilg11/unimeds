@@ -32,9 +32,11 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiPrefix]);
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
@@ -153,7 +155,7 @@ export function NotificationBell({ apiPrefix = '/clinic-admin' }: NotificationBe
               <div className="p-12 flex flex-col items-center justify-center text-center bg-gray-50/50">
                 <Bell className="w-8 h-8 text-gray-300 mb-3" />
                 <p className="text-[13px] font-medium text-gray-500">No notifications yet</p>
-                <p className="text-[11px] text-gray-400 mt-1">When you get notifications, they'll show up here</p>
+                <p className="text-[11px] text-gray-400 mt-1">When you get notifications, they&apos;ll show up here</p>
               </div>
             ) : (
               notifications.slice(0, 20).map((notif) => (

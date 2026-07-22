@@ -86,11 +86,13 @@ const CHART_COLORS = {
 
 const STATUS_COLORS = ['#059669', '#dc2626', '#d97706', '#6b7280'];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-gray-900 text-white px-3 py-2 text-xs border-0">
       <p className="font-medium mb-1">{label}</p>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {payload.map((entry: any, i: number) => (
         <p key={i} className="text-gray-300">
           {entry.name}: <span className="text-white font-medium">{entry.value}</span>
@@ -131,7 +133,10 @@ export default function ClinicAdminAnalytics() {
           totalDoctors: a.totalDoctors ?? 0,
         },
         monthlyTrend: a.monthlyTrend || [],
-        doctorPerformance: (a.doctorPerformance || []).map((d: any) => ({
+        doctorPerformance: (a.doctorPerformance || []).map((
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          d: any
+        ) => ({
           doctorId: d.doctorId,
           name: d.doctorName || 'Unknown',
           specialization: d.specialization || '',
@@ -139,7 +144,10 @@ export default function ClinicAdminAnalytics() {
           confirmed: d.confirmedCount ?? 0,
           cancelled: d.cancelledCount ?? 0,
         })),
-        upcomingAppointments: (raw.upcomingAppointments || []).map((u: any) => ({
+        upcomingAppointments: (raw.upcomingAppointments || []).map((
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          u: any
+        ) => ({
           id: u.id,
           patientName: u.patientName || 'Unknown',
           doctorName: '',

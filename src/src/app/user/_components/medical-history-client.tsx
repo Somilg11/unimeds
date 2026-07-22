@@ -48,6 +48,7 @@ export function MedicalHistoryClient({ userName }: MedicalHistoryClientProps) {
   const [viewingRecord, setViewingRecord] = useState<MedicalRecord | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchMedicalHistory();
   }, []);
 

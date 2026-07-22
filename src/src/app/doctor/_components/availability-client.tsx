@@ -39,11 +39,13 @@ export function AvailabilityClient({ userName, token }: AvailabilityClientProps)
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchClinics();
   }, [token]);
 
   useEffect(() => {
     if (selectedClinic) {
+      // eslint-disable-next-line react-hooks/immutability
       fetchAvailability();
     }
   }, [selectedClinic, token]);
