@@ -5,74 +5,99 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Building2, CalendarCheck, Check, Clock, Loader2, LocateFixed, MapPin, Search, Stethoscope, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Briefcase,
+  Building2,
+  CalendarCheck,
+  CalendarDays,
+  ChevronRight,
+  Clock,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Search,
+  Stethoscope,
+} from 'lucide-react';
 import { ApiError, api, errorMessage } from '@/lib/api';
-import { initials, STATUS_LABEL } from '@/lib/format';
+import { STATUS_LABEL } from '@/lib/format';
 import type { Appointment, Paged, PublicDoctor, Slot } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { EmptyState, ErrorState, ListSkeleton, PageHeader, Pagination, StatusBadge } from '@/components/app/common';
+import { EmptyState, ErrorState, ListSkeleton, Pagination, StatusBadge } from '@/components/app/common';
 import { SlotPicker } from '@/components/app/slot-picker';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { apptTime, PK, useDebounced } from '../_components/shared';
+import { BackBar, Chip, IconCircle, InfoTile, PersonAvatar } from '../_components/bits';
+import { apptDayTime, PK, useDebounced } from '../_components/shared';
 
 type DoctorClinic = PublicDoctor['clinics'][number];
 type BookBody = { doctorId: string; clinicId: string; startsAt: string; reason?: string };
-
-const STEPS = ['Find a doctor', 'Choose a time', 'Review & book'];
-
-function Stepper({ step }: { step: number }) {
-  return (
-    <ol className="mb-8 flex flex-wrap items-center gap-2 text-sm" aria-label="Booking progress">
-      {STEPS.map((label, i) => {
-        const n = i + 1;
-        const done = step > n;
-        const current = step === n;
-        return (
-          <li key={label} className="flex items-center gap-2" aria-current={current ? 'step' : undefined}>
-            <span
-              className={cn(
-                'flex size-6 items-center justify-center rounded-full border text-xs font-medium',
-                done && 'border-primary bg-primary text-primary-foreground',
-                current && 'border-primary text-primary'
-              )}
-            >
-              {done ? <Check className="size-3.5" /> : n}
-            </span>
-            <span className={cn(!current && 'text-muted-foreground', current && 'font-medium')}>{label}</span>
-            {n < STEPS.length && <span className="mx-1 hidden h-px w-8 bg-border sm:block" aria-hidden />}
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function DoctorAvatar({ doctor, className }: { doctor: Pick<PublicDoctor, 'name' | 'avatarUrl'>; className?: string }) {
-  return (
-    <Avatar className={cn('size-12', className)}>
-      {doctor.avatarUrl && <AvatarImage src={doctor.avatarUrl} alt="" />}
-      <AvatarFallback>{initials(doctor.name)}</AvatarFallback>
-    </Avatar>
-  );
-}
+type Filters = {
+  q: string;
+  specialization: string;
+  coords: { lat: number; lng: number } | null;
+  radiusKm: string;
+  page: number;
+};
 
 const clinicPlace = (c: DoctorClinic) => [c.address, c.city].filter(Boolean).join(', ');
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
-// --- Step 1 ---------------------------------------------------------------
+// --- Step 1: find a doctor --------------------------------------------------
 
-function DoctorSearch({ onPick }: { onPick: (doctor: PublicDoctor, clinicId?: string) => void }) {
-  const [q, setQ] = useState('');
-  const [specialization, setSpecialization] = useState('all');
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState('25');
+function DoctorCard({ doctor: d, onPick }: { doctor: PublicDoctor; onPick: () => void }) {
+  const nearest = d.clinics.reduce<number | null>(
+    (min, c) => (c.distanceKm != null && (min == null || c.distanceKm < min) ? c.distanceKm : min),
+    null
+  );
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      className="flex w-full items-center gap-4 rounded-3xl bg-card p-4 text-left transition-colors hover:bg-card/70 focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
+    >
+      <PersonAvatar name={d.name} src={d.avatarUrl} className="size-16" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-semibold">{d.name}</span>
+        <span className="block truncate text-sm text-muted-foreground">{d.specialization ?? 'General practice'}</span>
+        <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          {d.yearsOfExperience ? (
+            <span className="inline-flex items-center gap-1">
+              <Briefcase className="size-3.5" /> <span className="tabular-nums">{d.yearsOfExperience}</span> yrs
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1">
+            <Building2 className="size-3.5" /> {plural(d.clinics.length, 'clinic')}
+          </span>
+          {nearest != null && (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="size-3.5" /> <span className="tabular-nums">{nearest.toFixed(1)}</span> km
+            </span>
+          )}
+        </span>
+      </span>
+      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden>
+        <ChevronRight className="size-4" />
+      </span>
+    </button>
+  );
+}
+
+function DoctorSearch({
+  filters,
+  setFilters,
+  onPick,
+}: {
+  filters: Filters;
+  setFilters: (patch: Partial<Filters>) => void;
+  onPick: (doctor: PublicDoctor, clinicId?: string) => void;
+}) {
+  const { q, specialization, coords, radiusKm, page } = filters;
   const [locating, setLocating] = useState(false);
-  const [page, setPage] = useState(1);
   const debouncedQ = useDebounced(q.trim());
 
   const specs = useQuery({
@@ -103,8 +128,7 @@ function DoctorSearch({ onPick }: { onPick: (doctor: PublicDoctor, clinicId?: st
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: Number(pos.coords.latitude.toFixed(4)), lng: Number(pos.coords.longitude.toFixed(4)) });
-        setPage(1);
+        setFilters({ coords: { lat: Number(pos.coords.latitude.toFixed(4)), lng: Number(pos.coords.longitude.toFixed(4)) }, page: 1 });
         setLocating(false);
       },
       (err) => {
@@ -116,59 +140,63 @@ function DoctorSearch({ onPick }: { onPick: (doctor: PublicDoctor, clinicId?: st
   };
 
   const items = doctors.data?.items ?? [];
+  const specNames = specs.data?.items.map((s) => s.name) ?? [];
+  // A specialty deep-linked from home may not be in the list yet (or differ in case); keep it visible.
+  const chipNames = specialization !== 'all' && !specNames.includes(specialization) ? [specialization, ...specNames] : specNames;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="space-y-5">
+        <h1 className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+          Find your
+          <br className="sm:hidden" /> doctor
+        </h1>
+        <div className="relative lg:max-w-xl">
+          <Search className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search doctors by name or specialty"
+            onChange={(e) => setFilters({ q: e.target.value, page: 1 })}
+            placeholder="Search a doctor or specialty"
             aria-label="Search doctors"
-            className="pl-9"
+            className="h-13 rounded-full border-0 bg-card pl-12 text-base shadow-none"
           />
         </div>
-        <Select
-          value={specialization}
-          onValueChange={(v) => {
-            setSpecialization(v);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-full" aria-label="Specialization">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All specializations</SelectItem>
-            {specs.data?.items.map((s) => (
-              <SelectItem key={s.name} value={s.name}>
-                {s.name} ({s.doctors})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {coords ? (
+      <div role="group" aria-label="Specialty" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
+        {specs.isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-11 w-32 shrink-0 rounded-full" />)
+        ) : (
           <>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <LocateFixed className="size-3.5" /> Near you
-            </span>
-            <Select
-              value={radiusKm}
-              onValueChange={(v) => {
-                setRadiusKm(v);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger size="sm" className="w-32" aria-label="Search radius">
+            <Chip active={specialization === 'all'} onClick={() => setFilters({ specialization: 'all', page: 1 })}>
+              All
+            </Chip>
+            {chipNames.map((name) => (
+              <Chip key={name} icon={Stethoscope} active={specialization === name} onClick={() => setFilters({ specialization: name, page: 1 })}>
+                {name}
+              </Chip>
+            ))}
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {doctors.data ? (
+            <>
+              <span className="font-semibold text-foreground tabular-nums">{doctors.data.total}</span>{' '}
+              {doctors.data.total === 1 ? 'doctor' : 'doctors'}
+              {coords ? ' near you' : ''}
+            </>
+          ) : (
+            ' '
+          )}
+        </p>
+        <div className="flex items-center gap-2">
+          {coords && (
+            <Select value={radiusKm} onValueChange={(v) => setFilters({ radiusKm: v, page: 1 })}>
+              <SelectTrigger className="h-11 rounded-full border-0 bg-card" aria-label="Search radius">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -179,79 +207,92 @@ function DoctorSearch({ onPick }: { onPick: (doctor: PublicDoctor, clinicId?: st
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCoords(null);
-                setPage(1);
-              }}
-            >
-              <X /> Clear location
-            </Button>
-          </>
-        ) : (
-          <Button variant="outline" size="sm" onClick={locate} disabled={locating}>
-            {locating ? <Loader2 className="animate-spin" /> : <LocateFixed />}
+          )}
+          <Chip
+            icon={locating ? Loader2 : LocateFixed}
+            active={Boolean(coords)}
+            disabled={locating}
+            onClick={() => (coords ? setFilters({ coords: null, page: 1 }) : locate())}
+            aria-label={coords ? 'Near me (on). Tap to clear location' : 'Search near me'}
+            className={cn(locating && '[&_svg]:animate-spin')}
+          >
             Near me
-          </Button>
-        )}
+          </Chip>
+        </div>
       </div>
 
       {doctors.isLoading ? (
-        <ListSkeleton rows={3} />
+        <ListSkeleton rows={4} />
       ) : doctors.isError ? (
         <ErrorState message={errorMessage(doctors.error)} onRetry={() => void doctors.refetch()} />
       ) : items.length === 0 ? (
         <EmptyState
           icon={Stethoscope}
           title="No doctors found"
-          description={coords ? 'Try a wider radius or clear your location.' : 'Try a different name or specialization.'}
+          description={coords ? 'Try a wider radius or clear your location.' : 'Try a different name or specialty.'}
         />
       ) : (
         <>
-          <ul className={cn('grid gap-4 md:grid-cols-2', doctors.isPlaceholderData && 'opacity-60')}>
+          <ul className={cn('grid gap-3 lg:grid-cols-2', doctors.isPlaceholderData && 'opacity-60')}>
             {items.map((d) => (
               <li key={d.id}>
-                <Card className="h-full">
-                  <CardContent className="flex h-full flex-col gap-4">
-                    <div className="flex items-start gap-3">
-                      <DoctorAvatar doctor={d} />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium">{d.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {d.specialization ?? 'General practice'}
-                          {d.yearsOfExperience ? ` · ${d.yearsOfExperience} yrs experience` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    {d.bio && <p className="line-clamp-2 text-sm text-muted-foreground">{d.bio}</p>}
-                    <ul className="mt-auto space-y-2">
-                      {d.clinics.map((c) => (
-                        <li key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
-                          <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                          <div className="min-w-0 flex-1 text-sm">
-                            <p className="truncate font-medium">{c.name}</p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {clinicPlace(c) || 'Address not listed'}
-                              {c.distanceKm != null && ` · ${c.distanceKm.toFixed(1)} km`}
-                            </p>
-                          </div>
-                          <Button size="sm" onClick={() => onPick(d, c.id)} aria-label={`Book ${d.name} at ${c.name}`}>
-                            Book
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <DoctorCard doctor={d} onPick={() => onPick(d, d.clinics[0]?.id)} />
               </li>
             ))}
           </ul>
-          <Pagination page={doctors.data?.page ?? page} totalPages={doctors.data?.totalPages ?? 1} total={doctors.data?.total} onPage={setPage} />
+          <Pagination
+            page={doctors.data?.page ?? page}
+            totalPages={doctors.data?.totalPages ?? 1}
+            total={doctors.data?.total}
+            onPage={(p) => setFilters({ page: p })}
+          />
         </>
       )}
     </div>
+  );
+}
+
+// --- Step 2: doctor profile ------------------------------------------------
+
+function StatTile({ icon, label, value }: { icon: typeof Briefcase; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-background p-3 text-left">
+      <IconCircle icon={icon} />
+      <div className="min-w-0 leading-tight">
+        <p className="text-lg font-bold tabular-nums">{value}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function DoctorProfile({ doctor, className }: { doctor: PublicDoctor; className?: string }) {
+  return (
+    <section aria-label="Doctor" className={cn('rounded-3xl bg-card p-6 text-center', className)}>
+      <PersonAvatar name={doctor.name} src={doctor.avatarUrl} className="mx-auto size-24 [&_[data-slot=avatar-fallback]]:text-2xl" />
+      <h2 className="mt-4 text-xl font-bold tracking-tight">{doctor.name}</h2>
+      <p className="text-sm text-muted-foreground">{doctor.specialization ?? 'General practice'}</p>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <StatTile icon={Briefcase} label="Experience" value={doctor.yearsOfExperience ? `${doctor.yearsOfExperience}+ yrs` : '—'} />
+        <StatTile icon={Building2} label={doctor.clinics.length === 1 ? 'Clinic' : 'Clinics'} value={doctor.clinics.length} />
+      </div>
+      {doctor.bio && (
+        <div className="mt-5 text-left">
+          <h3 className="text-sm font-semibold">About</h3>
+          <p className="mt-1 line-clamp-4 text-sm text-muted-foreground">{doctor.bio}</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ProgressDots({ step }: { step: number }) {
+  return (
+    <span className="flex items-center gap-1" aria-label={`Step ${step} of 3`}>
+      {[1, 2, 3].map((n) => (
+        <span key={n} aria-hidden className={cn('h-1.5 rounded-full transition-all', n === step ? 'w-5 bg-foreground' : 'w-1.5 bg-border')} />
+      ))}
+    </span>
   );
 }
 
@@ -265,6 +306,23 @@ export function BookingWizard() {
   // The chosen doctor / clinic live in the URL (deep-linkable); everything else is derived from it.
   const doctorId = searchParams.get('doctorId');
   const clinicParam = searchParams.get('clinicId');
+
+  // Search filters survive the round trip to a doctor and back. `?q=` / `?specialization=` (from home) pre-fill them.
+  const qParam = searchParams.get('q') ?? '';
+  const specParam = searchParams.get('specialization') ?? '';
+  const [filters, setFiltersState] = useState<Filters>(() => ({
+    q: qParam,
+    specialization: specParam || 'all',
+    coords: null,
+    radiusKm: '25',
+    page: 1,
+  }));
+  const [seenParams, setSeenParams] = useState(`${qParam}|${specParam}`);
+  if (seenParams !== `${qParam}|${specParam}`) {
+    setSeenParams(`${qParam}|${specParam}`);
+    if (qParam || specParam) setFiltersState((f) => ({ ...f, q: qParam, specialization: specParam || 'all', page: 1 }));
+  }
+  const setFilters = (patch: Partial<Filters>) => setFiltersState((f) => ({ ...f, ...patch }));
 
   const [picked, setPicked] = useState<PublicDoctor | null>(null);
   const [selection, setSelection] = useState<{ key: string; slot: Slot } | null>(null);
@@ -295,11 +353,13 @@ export function BookingWizard() {
     router.replace(`/patient/book${s ? `?${s}` : ''}`, { scroll: false });
   };
 
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
   const pickDoctor = (d: PublicDoctor, clinicId?: string) => {
     setPicked(d);
     setStage('time');
     navigate({ doctorId: d.id, clinicId });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toTop();
   };
 
   const book = useMutation({
@@ -310,6 +370,7 @@ export function BookingWizard() {
       setSelection(null);
       void qc.invalidateQueries({ queryKey: PK.all });
       void qc.invalidateQueries({ queryKey: ['slots', vars.doctorId, vars.clinicId] });
+      toTop();
     },
     onError: (err, vars) => {
       if (err instanceof ApiError && err.code === 'SLOT_UNAVAILABLE') {
@@ -331,155 +392,145 @@ export function BookingWizard() {
   // --- Success ---
   if (booked) {
     const confirmed = booked.status === 'confirmed';
+    const { date, time } = apptDayTime(booked.startsAt, booked.clinic.timezone);
     return (
-      <>
-        <PageHeader title="Find care" />
-        <Card className="mx-auto max-w-xl">
-          <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
-            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <CalendarCheck className="size-6" />
+      <div className="mx-auto max-w-xl space-y-4">
+        <section className="rounded-3xl bg-brand p-6 text-brand-foreground" aria-live="polite">
+          <span className="inline-flex size-14 items-center justify-center rounded-full bg-white/20">
+            <CalendarCheck className="size-7" />
+          </span>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight">{confirmed ? 'Your visit is booked' : 'Request sent'}</h1>
+          <p className="mt-1 text-sm text-brand-foreground/80">
+            {confirmed ? 'The clinic has confirmed your appointment.' : 'The clinic will review your request. We’ll notify you once it’s confirmed.'}
+          </p>
+          <div className="mt-6 flex items-center gap-3 border-t border-white/20 pt-5">
+            <PersonAvatar name={booked.doctor.name} src={booked.doctor.avatarUrl} className="ring-2 ring-white/30 [&_[data-slot=avatar-fallback]]:bg-white [&_[data-slot=avatar-fallback]]:text-brand" />
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold">{booked.doctor.name}</p>
+              <p className="truncate text-sm text-brand-foreground/80">{booked.doctor.specialization ?? 'Doctor'}</p>
+            </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5">
+              <CalendarDays className="size-4" /> {date}
             </span>
-            <div className="space-y-1">
-              <h2 className="text-xl font-semibold">{confirmed ? 'Your visit is booked' : 'Request sent'}</h2>
-              <p className="text-sm text-muted-foreground">
-                {confirmed
-                  ? 'The clinic has confirmed your appointment.'
-                  : 'The clinic will review your request. We’ll notify you once it’s confirmed.'}
-              </p>
-            </div>
-            <StatusBadge status={booked.status} />
-            <dl className="w-full space-y-1 rounded-xl border p-4 text-left text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Doctor</dt>
-                <dd className="text-right font-medium">{booked.doctor.name}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Clinic</dt>
-                <dd className="text-right">{booked.clinic.name}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">When</dt>
-                <dd className="text-right">{apptTime(booked.startsAt, booked.clinic.timezone)}</dd>
-              </div>
-            </dl>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button asChild>
-                <Link href={`/patient/appointments/${booked.id}`}>View appointment</Link>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setBooked(null);
-                  setStage('time');
-                  navigate({});
-                }}
-              >
-                Book another visit
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5">
+              <Clock className="size-4" /> {time}
+            </span>
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5">
+              <MapPin className="size-4 shrink-0" /> <span className="truncate">{booked.clinic.name}</span>
+            </span>
+          </div>
+          <div className="mt-4">
+            <StatusBadge status={booked.status} tone="inverted" />
+          </div>
+        </section>
+        <Button asChild size="lg" variant="secondary" className="h-13 w-full text-base">
+          <Link href={`/patient/appointments/${booked.id}`}>View appointment</Link>
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-13 w-full text-base"
+          onClick={() => {
+            setBooked(null);
+            setStage('time');
+            navigate({});
+          }}
+        >
+          Book another visit
+        </Button>
+      </div>
     );
   }
 
-  return (
-    <>
-      <PageHeader title="Find care" description="Search for a doctor, pick a time, and book in under a minute." />
-      <Stepper step={step} />
+  if (step === 1) return <DoctorSearch filters={filters} setFilters={setFilters} onPick={pickDoctor} />;
 
-      {step === 1 && <DoctorSearch onPick={pickDoctor} />}
-
-      {step >= 2 && !doctor && (
-        doctorQ.isError ? (
+  if (!doctor) {
+    const gone = doctorQ.error instanceof ApiError && doctorQ.error.status === 404;
+    return (
+      <>
+        <BackBar title="Doctor details" onBack={() => navigate({})} label="Back to doctors" />
+        {doctorQ.isError ? (
           <div className="space-y-4">
             <ErrorState
-              message={doctorQ.error instanceof ApiError && doctorQ.error.status === 404 ? 'This doctor is no longer available for booking.' : errorMessage(doctorQ.error)}
-              onRetry={doctorQ.error instanceof ApiError && doctorQ.error.status === 404 ? undefined : () => void doctorQ.refetch()}
+              message={gone ? 'This doctor is no longer available for booking.' : errorMessage(doctorQ.error)}
+              onRetry={gone ? undefined : () => void doctorQ.refetch()}
             />
-            <Button variant="outline" onClick={() => navigate({})}>
+            <Button variant="outline" size="lg" className="h-12 w-full sm:w-auto" onClick={() => navigate({})}>
               <ArrowLeft /> Find another doctor
             </Button>
           </div>
         ) : (
-          <ListSkeleton rows={2} />
-        )
+          <div className="space-y-4" aria-busy="true" aria-label="Loading">
+            <Skeleton className="h-72 w-full rounded-3xl" />
+            <ListSkeleton rows={2} />
+          </div>
+        )}
+      </>
+    );
+  }
+
+  const slotWhen = slot && clinic ? apptDayTime(slot.startsAt, clinic.timezone) : null;
+
+  return (
+    <>
+      {step === 2 ? (
+        <BackBar title="Doctor details" onBack={() => navigate({})} label="Back to doctors">
+          <ProgressDots step={2} />
+        </BackBar>
+      ) : (
+        <BackBar title="Review & book" onBack={() => setStage('time')} label="Back to choose a time">
+          <ProgressDots step={3} />
+        </BackBar>
       )}
 
-      {step >= 2 && doctor && (
-        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          {/* Summary column */}
-          <aside className="space-y-4">
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <DoctorAvatar doctor={doctor} />
-                  <div className="min-w-0">
-                    <h2 className="font-medium">{doctor.name}</h2>
-                    <p className="text-sm text-muted-foreground">{doctor.specialization ?? 'General practice'}</p>
-                  </div>
-                </div>
-                {clinic && (
-                  <div className="flex gap-2 text-sm">
-                    <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{clinic.name}</p>
-                      {clinicPlace(clinic) && <p className="text-muted-foreground">{clinicPlace(clinic)}</p>}
-                    </div>
-                  </div>
-                )}
-                {slot && clinic && (
-                  <div className="flex gap-2 text-sm">
-                    <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                    <p>{apptTime(slot.startsAt, clinic.timezone)}</p>
-                  </div>
-                )}
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate({})} disabled={book.isPending}>
-                  <ArrowLeft /> Choose another doctor
-                </Button>
-              </CardContent>
-            </Card>
-          </aside>
+      <div className="grid gap-6 lg:grid-cols-[360px_1fr] lg:items-start">
+        <DoctorProfile doctor={doctor} className={cn('lg:sticky lg:top-6', step === 3 && 'hidden lg:block')} />
 
-          <section className="min-w-0 space-y-6">
-            {step === 2 && (
-              <>
-                {doctor.clinics.length > 1 && (
-                  <fieldset className="space-y-3">
-                    <legend className="mb-3 font-medium">Where would you like to be seen?</legend>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {doctor.clinics.map((c) => {
-                        const active = clinic?.id === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            aria-pressed={active}
-                            onClick={() => navigate({ doctorId: doctor.id, clinicId: c.id })}
-                            className={cn(
-                              'flex items-start gap-3 rounded-xl border p-4 text-left text-sm transition-colors',
-                              active ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
-                            )}
-                          >
-                            <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                            <span className="min-w-0">
-                              <span className="block font-medium">{c.name}</span>
-                              <span className="block text-xs text-muted-foreground">{clinicPlace(c) || 'Address not listed'}</span>
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                )}
+        <div className="min-w-0 space-y-6">
+          {step === 2 && (
+            <>
+              {doctor.clinics.length === 0 ? (
+                <EmptyState icon={Building2} title="Not bookable online" description="This doctor has no clinics taking online bookings right now." />
+              ) : (
+                <section aria-labelledby="clinic-heading">
+                  <h2 id="clinic-heading" className="mb-3 text-lg font-semibold tracking-tight">
+                    Choose clinic
+                  </h2>
+                  <div role="group" aria-label="Clinic" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
+                    {doctor.clinics.map((c) => (
+                      <Chip
+                        key={c.id}
+                        icon={Building2}
+                        active={clinic?.id === c.id}
+                        onClick={() => navigate({ doctorId: doctor.id, clinicId: c.id })}
+                        disabled={book.isPending}
+                      >
+                        {c.name}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+                    <MapPin className="mt-0.5 size-4 shrink-0" />
+                    {clinic ? (
+                      <span>
+                        {clinicPlace(clinic) || 'Address not listed'}
+                        {clinic.distanceKm != null && ` · ${clinic.distanceKm.toFixed(1)} km away`}
+                      </span>
+                    ) : (
+                      <span>Choose a clinic to see available times.</span>
+                    )}
+                  </p>
+                </section>
+              )}
 
-                {doctor.clinics.length === 0 && (
-                  <EmptyState icon={Building2} title="Not bookable online" description="This doctor has no clinics taking online bookings right now." />
-                )}
-
-                {clinic && (
-                  <div className="space-y-4">
-                    <h2 className="font-medium">Pick a time</h2>
+              {clinic && (
+                <>
+                  <section aria-labelledby="time-heading">
+                    <h2 id="time-heading" className="mb-3 text-lg font-semibold tracking-tight">
+                      Select date &amp; time
+                    </h2>
                     <SlotPicker
                       key={selectionKey}
                       doctorId={doctor.id}
@@ -488,65 +539,88 @@ export function BookingWizard() {
                       value={slot?.startsAt ?? null}
                       onChange={(s) => setSelection(s ? { key: selectionKey, slot: s } : null)}
                     />
-                    <div className="flex justify-end">
-                      <Button disabled={!slot} onClick={() => setStage('details')}>
-                        Continue
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+                  </section>
 
-            {step === 3 && clinic && slot && (
-              <Card>
-                <CardContent className="space-y-5">
-                  <h2 className="font-medium">Review your visit</h2>
-                  <dl className="grid gap-3 text-sm sm:grid-cols-2">
-                    <div>
-                      <dt className="text-muted-foreground">Doctor</dt>
-                      <dd className="font-medium">{doctor.name}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Clinic</dt>
-                      <dd className="font-medium">{clinic.name}</dd>
-                      {clinicPlace(clinic) && <dd className="text-muted-foreground">{clinicPlace(clinic)}</dd>}
-                    </div>
-                    <div className="sm:col-span-2">
-                      <dt className="text-muted-foreground">Date & time (clinic time)</dt>
-                      <dd className="font-medium">{apptTime(slot.startsAt, clinic.timezone)}</dd>
-                    </div>
-                  </dl>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="book-reason">Reason for visit (optional)</Label>
-                    <Textarea
-                      id="book-reason"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      maxLength={1000}
-                      rows={4}
-                      placeholder="Briefly describe your symptoms or what you'd like to discuss"
-                    />
-                    <p className="text-xs text-muted-foreground">Shared only with the clinic and doctor.</p>
-                  </div>
-                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
-                    <Button variant="outline" onClick={() => setStage('time')} disabled={book.isPending}>
-                      <ArrowLeft /> Change time
-                    </Button>
-                    <Button onClick={submit} disabled={book.isPending}>
-                      {book.isPending && <Loader2 className="animate-spin" />}
-                      Confirm booking
+                  <div className="sticky bottom-24 z-20 lg:bottom-6">
+                    <Button
+                      size="lg"
+                      className="h-13 w-full text-base"
+                      disabled={!slot}
+                      onClick={() => {
+                        setStage('details');
+                        toTop();
+                      }}
+                    >
+                      {slotWhen ? `Continue · ${slotWhen.date}, ${slotWhen.time}` : 'Select a time to continue'}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    New bookings are usually “{STATUS_LABEL.pending.toLowerCase()}” until the clinic confirms them.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </section>
+                </>
+              )}
+            </>
+          )}
+
+          {step === 3 && clinic && slot && slotWhen && (
+            <>
+              <section aria-labelledby="review-heading" className="rounded-3xl bg-card p-5">
+                <h2 id="review-heading" className="sr-only">
+                  Your visit
+                </h2>
+                <div className="flex items-center gap-3">
+                  <PersonAvatar name={doctor.name} src={doctor.avatarUrl} className="size-14" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{doctor.name}</p>
+                    <p className="truncate text-sm text-muted-foreground">{doctor.specialization ?? 'General practice'}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setStage('time')} disabled={book.isPending}>
+                    Change
+                  </Button>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 border-t pt-4">
+                  <InfoTile icon={CalendarDays} label="Date" className="bg-background p-3">
+                    {slotWhen.date}
+                  </InfoTile>
+                  <InfoTile icon={Clock} label="Time" className="bg-background p-3">
+                    <span className="tabular-nums">{slotWhen.time}</span>
+                  </InfoTile>
+                  <InfoTile icon={MapPin} label="Clinic" className="col-span-2 bg-background p-3">
+                    {clinic.name}
+                    {clinicPlace(clinic) && <span className="mt-0.5 block font-normal text-muted-foreground">{clinicPlace(clinic)}</span>}
+                  </InfoTile>
+                </div>
+              </section>
+
+              <section className="space-y-2 rounded-3xl bg-card p-5">
+                <Label htmlFor="book-reason" className="text-base font-semibold">
+                  Reason for visit <span className="font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <Textarea
+                  id="book-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder="Briefly describe your symptoms or what you'd like to discuss"
+                  aria-describedby="book-reason-hint"
+                />
+                <p id="book-reason-hint" className="text-xs text-muted-foreground">
+                  Shared only with the clinic and doctor.
+                </p>
+              </section>
+
+              <p className="px-1 text-xs text-muted-foreground">
+                New bookings are usually “{STATUS_LABEL.pending.toLowerCase()}” until the clinic confirms them.
+              </p>
+
+              <div className="sticky bottom-24 z-20 lg:bottom-6">
+                <Button size="lg" className="h-13 w-full text-base" onClick={submit} disabled={book.isPending}>
+                  {book.isPending && <Loader2 className="animate-spin" />}
+                  Book appointment
+                </Button>
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 }

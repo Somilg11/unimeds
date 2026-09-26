@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2, LocateFixed, LogOut } from 'lucide-react';
+import { Building2, CalendarCog, Loader2, LocateFixed, LogOut, ShieldCheck } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import type { ClinicSettings, Me } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ErrorState, ListSkeleton, PageHeader } from '@/components/app/common';
 import { ConfirmAction } from '@/components/app/confirm-action';
 import { clinicKeys, useClinic } from '../_components/hooks';
+import { IconCircle } from '../_components/panel';
 import type { Clinic } from '../_components/types';
 
 const SLOT_LENGTHS = [10, 15, 20, 30, 45, 60];
+
+/** White rounded-3xl card on the grey canvas: no border, no shadow. */
+const CARD = 'rounded-3xl shadow-none ring-0 dark:ring-0';
 
 function timezones(current: string) {
   let list: string[] = [];
@@ -118,11 +122,14 @@ function ProfileForm({ clinic }: { clinic: Clinic }) {
   };
 
   return (
-    <Card>
+    <Card className={CARD}>
       <form onSubmit={submit} className="contents">
         <CardHeader>
-          <CardTitle>Clinic profile</CardTitle>
-          <CardDescription>Shown to patients when they search and book.</CardDescription>
+          <CardTitle className="flex items-center gap-3 text-lg font-semibold tracking-tight">
+            <IconCircle icon={Building2} />
+            Clinic profile
+          </CardTitle>
+          <CardDescription className="pl-13">Shown to patients when they search and book.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field id="s-name" label="Clinic name">
@@ -178,7 +185,7 @@ function ProfileForm({ clinic }: { clinic: Clinic }) {
             </p>
           </div>
         </CardContent>
-        <CardFooter className="justify-end">
+        <CardFooter className="justify-end border-t">
           <Button type="submit" disabled={save.isPending || Boolean(coordError) || f.name.trim().length < 2}>
             {save.isPending && <Loader2 className="animate-spin" />}
             Save profile
@@ -200,7 +207,7 @@ function BookingForm({ clinic }: { clinic: Clinic }) {
   const cancelOk = Number.isInteger(cancelHours) && cancelHours >= 0 && cancelHours <= 168;
 
   return (
-    <Card>
+    <Card className={CARD}>
       <form
         className="contents"
         onSubmit={(e) => {
@@ -210,8 +217,11 @@ function BookingForm({ clinic }: { clinic: Clinic }) {
         }}
       >
         <CardHeader>
-          <CardTitle>Booking settings</CardTitle>
-          <CardDescription>Controls the times patients can book online.</CardDescription>
+          <CardTitle className="flex items-center gap-3 text-lg font-semibold tracking-tight">
+            <IconCircle icon={CalendarCog} />
+            Booking settings
+          </CardTitle>
+          <CardDescription className="pl-13">Controls the times patients can book online.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <Field id="b-slot" label="Appointment length">
@@ -238,7 +248,7 @@ function BookingForm({ clinic }: { clinic: Clinic }) {
           >
             <Input id="b-cancel" type="number" min={0} max={168} value={cancelText} onChange={(e) => setCancelText(e.target.value)} aria-invalid={!cancelOk} />
           </Field>
-          <label className="flex items-start justify-between gap-4 rounded-lg border p-4 sm:col-span-3" htmlFor="b-auto">
+          <label className="flex items-start justify-between gap-4 rounded-2xl bg-muted/60 p-4 sm:col-span-3" htmlFor="b-auto">
             <span className="space-y-0.5">
               <span className="block text-sm font-medium">Auto-confirm online bookings</span>
               <span className="block text-xs text-muted-foreground">When off, new bookings wait in “Awaiting confirmation” until your team confirms them.</span>
@@ -246,7 +256,7 @@ function BookingForm({ clinic }: { clinic: Clinic }) {
             <Switch id="b-auto" checked={s.autoConfirm} onCheckedChange={(v) => setS((x) => ({ ...x, autoConfirm: v }))} />
           </label>
         </CardContent>
-        <CardFooter className="justify-end">
+        <CardFooter className="justify-end border-t">
           <Button type="submit" disabled={save.isPending || !windowOk || !cancelOk}>
             {save.isPending && <Loader2 className="animate-spin" />}
             Save booking settings
@@ -278,10 +288,13 @@ function SecurityCard() {
   });
 
   return (
-    <Card>
+    <Card className={CARD}>
       <CardHeader>
-        <CardTitle>Account security</CardTitle>
-        <CardDescription>{me ? `Signed in as ${me.email}` : 'Your sign-in details'}</CardDescription>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold tracking-tight">
+            <IconCircle icon={ShieldCheck} />
+            Account security
+          </CardTitle>
+        <CardDescription className="pl-13">{me ? `Signed in as ${me.email}` : 'Your sign-in details'}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         <form
@@ -320,7 +333,7 @@ function SecurityCard() {
           </div>
         </form>
 
-        <div className="flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl bg-muted/60 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-sm font-medium">Sign out everywhere</h3>
             <p className="text-xs text-muted-foreground">Ends all sessions on all devices, including this one.</p>
@@ -361,10 +374,20 @@ export default function ClinicSettingsPage() {
       ) : error || !clinic ? (
         <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
       ) : (
-        <div className="max-w-4xl space-y-6">
-          <ProfileForm clinic={clinic} />
-          <BookingForm clinic={clinic} />
-          <SecurityCard />
+        <div className="max-w-4xl space-y-8">
+          <section aria-labelledby="grp-clinic" className="space-y-4">
+            <h2 id="grp-clinic" className="text-sm font-medium text-muted-foreground">
+              Clinic
+            </h2>
+            <ProfileForm clinic={clinic} />
+            <BookingForm clinic={clinic} />
+          </section>
+          <section aria-labelledby="grp-account" className="space-y-4">
+            <h2 id="grp-account" className="text-sm font-medium text-muted-foreground">
+              Your account
+            </h2>
+            <SecurityCard />
+          </section>
         </div>
       )}
     </>

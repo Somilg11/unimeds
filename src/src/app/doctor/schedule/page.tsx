@@ -3,12 +3,13 @@
 import { Suspense, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { CalendarRange, Globe, ShieldCheck, Timer } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import { isBrowserZone, zoneLabel } from '@/lib/format';
 import type { AvailabilityBlock } from '@/lib/types';
-import { ErrorState, ListSkeleton, PageHeader } from '@/components/app/common';
+import { ErrorState, ListSkeleton } from '@/components/app/common';
 import { AvailabilityEditor } from '@/components/app/availability-editor';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FilterPill, InfoTile } from '../_components/bits';
 import { useDoctorClinics, useUrlFilters, type DoctorClinic } from '../_components/hooks';
 
 type Block = Pick<AvailabilityBlock, 'dayOfWeek' | 'startTime' | 'endTime'>;
@@ -39,37 +40,37 @@ function ClinicSchedule({ clinic }: { clinic: DoctorClinic }) {
   const s = clinic.settings;
   return (
     <div className="space-y-6">
-      <dl className="grid grid-cols-2 gap-4 rounded-xl border bg-card p-5 sm:grid-cols-4">
-        <div>
-          <dt className="text-xs text-muted-foreground">Timezone</dt>
-          <dd className="text-sm font-medium">
-            {clinic.timezone}
-            {!isBrowserZone(clinic.timezone) && <span className="text-muted-foreground"> ({zoneLabel(clinic.timezone)})</span>}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-muted-foreground">Slot length</dt>
-          <dd className="text-sm font-medium">{s?.slotDurationMinutes ?? '—'} min</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-muted-foreground">Booking window</dt>
-          <dd className="text-sm font-medium">{s?.bookingWindowDays ?? '—'} days</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-muted-foreground">Booking approval</dt>
-          <dd className="text-sm font-medium">{s?.autoConfirm ? 'Automatic' : 'You confirm'}</dd>
-        </div>
-      </dl>
-      {!isBrowserZone(clinic.timezone) && (
-        <p className="text-sm text-muted-foreground">Hours below are wall-clock times at {clinic.name}, not your local time.</p>
-      )}
-      {error ? (
-        <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
-      ) : isLoading ? (
-        <ListSkeleton rows={7} />
-      ) : (
-        <AvailabilityEditor initial={initial} timezone={clinic.timezone} saving={save.isPending} onSave={(schedule) => save.mutate(schedule)} />
-      )}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <InfoTile icon={Globe} label="Timezone">
+          <span className="block break-words">{clinic.timezone}</span>
+          {!isBrowserZone(clinic.timezone) && <span className="block text-xs font-normal text-muted-foreground">{zoneLabel(clinic.timezone)}</span>}
+        </InfoTile>
+        <InfoTile icon={Timer} label="Slot length">
+          {s?.slotDurationMinutes ?? '—'} min
+        </InfoTile>
+        <InfoTile icon={CalendarRange} label="Booking window">
+          {s?.bookingWindowDays ?? '—'} days
+        </InfoTile>
+        <InfoTile icon={ShieldCheck} label="Approval">
+          {s?.autoConfirm ? 'Automatic' : 'You confirm'}
+        </InfoTile>
+      </div>
+
+      <section className="rounded-3xl bg-card p-4 sm:p-6" aria-labelledby="hours-title">
+        <h2 id="hours-title" className="text-lg font-semibold tracking-tight">
+          Weekly hours
+        </h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          {isBrowserZone(clinic.timezone) ? `Hours at ${clinic.name}.` : `Wall-clock times at ${clinic.name}, not your local time.`}
+        </p>
+        {error ? (
+          <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <ListSkeleton rows={7} />
+        ) : (
+          <AvailabilityEditor initial={initial} timezone={clinic.timezone} saving={save.isPending} onSave={(schedule) => save.mutate(schedule)} />
+        )}
+      </section>
     </div>
   );
 }
@@ -81,38 +82,33 @@ function ScheduleView() {
   const selected = clinics.find((c) => c.id === params.get('clinic')) ?? clinics[0];
 
   return (
-    <>
-      <PageHeader
-        title="Schedule"
-        description="Your weekly hours. Patients can book free slots inside these hours."
-        actions={
-          clinics.length > 1 && selected ? (
-            <Select value={selected.id} onValueChange={(v) => set({ clinic: v })}>
-              <SelectTrigger className="w-56" aria-label="Clinic">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {clinics.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null
-        }
-      />
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Schedule</h1>
+        <p className="text-sm text-muted-foreground">Your weekly hours. Patients can book free slots inside these hours.</p>
+      </div>
+
       {error ? (
         <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
       ) : isLoading || !selected ? (
         <ListSkeleton rows={7} />
       ) : (
         <>
-          {clinics.length === 1 && <h2 className="mb-4 text-lg font-semibold">{selected.name}</h2>}
+          {clinics.length > 1 ? (
+            <div role="group" aria-label="Clinic" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
+              {clinics.map((c) => (
+                <FilterPill key={c.id} active={c.id === selected.id} onClick={() => set({ clinic: c.id })}>
+                  {c.name}
+                </FilterPill>
+              ))}
+            </div>
+          ) : (
+            <h2 className="text-lg font-semibold">{selected.name}</h2>
+          )}
           <ClinicSchedule key={selected.id} clinic={selected} />
         </>
       )}
-    </>
+    </div>
   );
 }
 

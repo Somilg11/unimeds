@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { LoginForm } from './login-form';
 import { googleAction } from '../actions';
 import { Button } from '@/components/ui/button';
+import { AuthHeader, FormNotice } from '@/components/auth/form-bits';
 
 export const metadata: Metadata = { title: 'Sign in · Unimeds' };
 
@@ -15,22 +16,23 @@ const ERRORS: Record<string, string> = {
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const { next, expired, error } = await searchParams;
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">Sign in to your patient, doctor or clinic account.</p>
-      </div>
-      {expired && <p className="rounded-md bg-muted px-3 py-2 text-sm">Your session ended. Please sign in again.</p>}
-      {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{ERRORS[error] ?? 'Sign-in failed.'}</p>}
+    <div className="space-y-6">
+      <AuthHeader title="Welcome back" description="Sign in to your patient, doctor or clinic account." />
+      {expired && <FormNotice>Your session ended. Please sign in again.</FormNotice>}
+      {error && (
+        <p role="alert" className="rounded-3xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {ERRORS[error] ?? 'Sign-in failed.'}
+        </p>
+      )}
 
       <form action={googleAction}>
         <input type="hidden" name="next" value={next ? `/login/continue?next=${encodeURIComponent(next)}` : ''} />
-        <Button type="submit" variant="outline" size="lg" className="w-full">
+        <Button type="submit" variant="outline" size="lg" className="h-12 w-full">
           <GoogleIcon /> Continue with Google
         </Button>
       </form>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
       </div>
 
@@ -38,11 +40,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
       <p className="text-center text-sm text-muted-foreground">
         New patient?{' '}
-        <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'} className="font-medium text-foreground underline-offset-4 hover:underline">
+        <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'} className="font-semibold text-primary underline-offset-4 hover:underline">
           Create an account
         </Link>
       </p>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="rounded-3xl bg-muted px-4 py-3 text-center text-xs text-muted-foreground">
         Doctors and clinic staff join by invitation from their clinic.
       </p>
     </div>

@@ -1,26 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, BellRing, CalendarClock, Download, ExternalLink, FileText, FileUp, Loader2, MapPin, Stethoscope, XCircle } from 'lucide-react';
+import { BellRing, CalendarClock, CalendarDays, Clock, Download, ExternalLink, FileText, FileUp, Loader2, MapPin, NotebookPen, Stethoscope, XCircle } from 'lucide-react';
 import { ApiError, api, errorMessage, recordFileUrl } from '@/lib/api';
-import { formatBytes, formatDateTime, formatTime, RECORD_TYPE_LABEL } from '@/lib/format';
+import { formatBytes, formatDate, formatDateTime, formatTime, RECORD_TYPE_LABEL } from '@/lib/format';
 import type { Appointment, RecordItem, Slot } from '@/lib/types';
-import { EmptyState, ErrorState, ListSkeleton, StatusBadge } from '@/components/app/common';
+import { ErrorState, ListSkeleton, StatusBadge } from '@/components/app/common';
 import { ConfirmAction } from '@/components/app/confirm-action';
 import { RecordUploadDialog } from '@/components/app/record-upload-dialog';
 import { SlotPicker } from '@/components/app/slot-picker';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { BackBar, IconCircle, InfoTile, Panel, PersonAvatar } from '../../_components/bits';
+import { ResponsiveDialog } from '@/components/app/responsive-dialog';
 import { apptLabel, apptTime, PK, RespondButtons, zoneSuffix } from '../../_components/shared';
 
 type Detail = { appointment: Appointment; records: RecordItem[] };
 
-function RescheduleDialog({ appointment: a, onDone }: { appointment: Appointment; onDone: () => void }) {
+function RescheduleButton({ appointment: a, onDone, className }: { appointment: Appointment; onDone: () => void; className?: string }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [slot, setSlot] = useState<Slot | null>(null);
@@ -46,48 +45,43 @@ function RescheduleDialog({ appointment: a, onDone }: { appointment: Appointment
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (busy) return;
-        setOpen(v);
-        if (!v) setSlot(null);
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <CalendarClock /> Reschedule
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Pick a new time</DialogTitle>
-          <DialogDescription>
-            Currently {apptTime(a.startsAt, tz)} with {a.doctor.name} at {a.clinic.name}.
-          </DialogDescription>
-        </DialogHeader>
-        {open && (
-          <SlotPicker doctorId={a.doctor.id} clinicId={a.clinic.id} timezone={tz} value={slot?.startsAt ?? null} onChange={setSlot} />
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
-            Back
-          </Button>
-          <Button onClick={submit} disabled={!slot || busy}>
-            {busy && <Loader2 className="animate-spin" />}
-            {slot ? `Move to ${formatTime(slot.startsAt, tz)}` : 'Choose a time'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Button variant="outline" size="lg" className={className} onClick={() => setOpen(true)}>
+        <CalendarClock /> Reschedule
+      </Button>
+      <ResponsiveDialog
+        open={open}
+        onOpenChange={(v) => {
+          if (busy) return;
+          setOpen(v);
+          if (!v) setSlot(null);
+        }}
+        title="Pick a new time"
+        description={`Currently ${apptTime(a.startsAt, tz)} with ${a.doctor.name} at ${a.clinic.name}.`}
+        className="sm:max-w-2xl"
+      >
+        <div className="space-y-5">
+          {open && <SlotPicker doctorId={a.doctor.id} clinicId={a.clinic.id} timezone={tz} value={slot?.startsAt ?? null} onChange={setSlot} />}
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" size="lg" className="h-12 sm:h-10" onClick={() => setOpen(false)} disabled={busy}>
+              Back
+            </Button>
+            <Button size="lg" className="h-12 sm:h-10" onClick={submit} disabled={!slot || busy}>
+              {busy && <Loader2 className="animate-spin" />}
+              {slot ? `Move to ${formatTime(slot.startsAt, tz)}` : 'Choose a time'}
+            </Button>
+          </div>
+        </div>
+      </ResponsiveDialog>
+    </>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-1 sm:grid-cols-[160px_1fr]">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd>{children}</dd>
+    <div className="py-3 first:pt-0 last:pb-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-sm">{children}</dd>
     </div>
   );
 }
@@ -107,13 +101,7 @@ export function AppointmentDetail() {
     void qc.invalidateQueries({ queryKey: ['notifications'] });
   };
 
-  const back = (
-    <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
-      <Link href="/patient/appointments">
-        <ArrowLeft /> All appointments
-      </Link>
-    </Button>
-  );
+  const back = <BackBar title="Appointment" href="/patient/appointments" label="All appointments" />;
 
   if (isLoading) {
     return (
@@ -153,155 +141,145 @@ export function AppointmentDetail() {
     }
   };
 
+  const hasActions = canReschedule || canCancel;
+  const actions = (
+    <div className="flex flex-col gap-2">
+      {canReschedule && <RescheduleButton appointment={a} onDone={refresh} className="h-12 w-full" />}
+      {canCancel && (
+        <ConfirmAction
+          trigger={
+            <Button variant="destructive" size="lg" className="h-12 w-full">
+              <XCircle /> Cancel visit
+            </Button>
+          }
+          title="Cancel this appointment?"
+          description={`${a.doctor.name} at ${a.clinic.name}, ${apptTime(a.startsAt, tz)}. The clinic will be notified.`}
+          confirmLabel="Cancel appointment"
+          destructive
+          reason={{ label: 'Reason (optional)', placeholder: 'Let the clinic know why you’re cancelling' }}
+          onConfirm={cancel}
+        />
+      )}
+    </div>
+  );
+
   return (
     <>
       {back}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{a.doctor.name}</h1>
-            <StatusBadge status={a.status} />
-          </div>
-          <p className="text-muted-foreground">
-            {formatDateTime(a.startsAt, tz, { dateStyle: 'full', timeStyle: undefined })} · {formatTime(a.startsAt, tz)}–{formatTime(a.endsAt, tz)}
-            {zoneSuffix(tz, a.startsAt)}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {canReschedule && <RescheduleDialog appointment={a} onDone={refresh} />}
-          {canCancel && (
-            <ConfirmAction
-              trigger={
-                <Button variant="destructive">
-                  <XCircle /> Cancel visit
-                </Button>
-              }
-              title="Cancel this appointment?"
-              description={`${a.doctor.name} at ${a.clinic.name}, ${apptTime(a.startsAt, tz)}. The clinic will be notified.`}
-              confirmLabel="Cancel appointment"
-              destructive
-              reason={{ label: 'Reason (optional)', placeholder: 'Let the clinic know why you’re cancelling' }}
-              onConfirm={cancel}
-            />
+      <div className="grid gap-4 lg:grid-cols-5 lg:gap-6">
+        <div className="space-y-4 lg:col-span-3">
+          <section aria-labelledby="doctor-name" className="rounded-3xl bg-card p-6 text-center">
+            <PersonAvatar name={a.doctor.name} src={a.doctor.avatarUrl} className="mx-auto size-20 [&_[data-slot=avatar-fallback]]:text-xl" />
+            <h2 id="doctor-name" className="mt-4 text-xl font-bold tracking-tight">
+              {a.doctor.name}
+            </h2>
+            <p className="text-sm text-muted-foreground">{a.doctor.specialization ?? 'Doctor'}</p>
+            <div className="mt-3 flex justify-center">
+              <StatusBadge status={a.status} />
+            </div>
+          </section>
+
+          {a.status === 'reschedule_proposed' && (
+            <section aria-labelledby="proposal" className="space-y-3 rounded-3xl border-2 border-primary/30 bg-card p-5">
+              <h2 id="proposal" className="flex items-center gap-3 font-semibold">
+                <IconCircle icon={BellRing} /> The clinic proposed a new time
+              </h2>
+              <div className="text-sm">
+                <p className="text-muted-foreground line-through">{apptTime(a.startsAt, tz)}</p>
+                {a.proposedStartsAt && <p className="font-semibold">{apptTime(a.proposedStartsAt, tz)}</p>}
+              </div>
+              {a.rescheduleReason && <p className="text-sm text-muted-foreground">“{a.rescheduleReason}”</p>}
+              <p className="text-xs text-muted-foreground">Accepting confirms the new time. Declining cancels this visit.</p>
+              <RespondButtons appointment={a} size="default" />
+            </section>
           )}
-        </div>
-      </div>
 
-      {a.status === 'reschedule_proposed' && (
-        <section aria-labelledby="proposal" className="mb-6 space-y-3 rounded-xl border border-sky-300/60 bg-sky-50 p-5 dark:border-sky-500/30 dark:bg-sky-500/10">
-          <h2 id="proposal" className="flex items-center gap-2 font-medium">
-            <BellRing className="size-4" /> The clinic proposed a new time
-          </h2>
-          <p className="text-sm">
-            <span className="text-muted-foreground line-through">{apptTime(a.startsAt, tz)}</span>
-            {a.proposedStartsAt && (
-              <>
-                {' → '}
-                <span className="font-medium">{apptTime(a.proposedStartsAt, tz)}</span>
-              </>
-            )}
-          </p>
-          {a.rescheduleReason && <p className="text-sm text-muted-foreground">Reason: {a.rescheduleReason}</p>}
-          <p className="text-xs text-muted-foreground">Accepting confirms the new time. Declining cancels this visit.</p>
-          <RespondButtons appointment={a} />
-        </section>
-      )}
+          <div className="grid grid-cols-2 gap-3">
+            <InfoTile icon={CalendarDays} label="Date">
+              {formatDate(a.startsAt, tz)}
+              <span className="block text-xs font-normal text-muted-foreground">{formatDateTime(a.startsAt, tz, { weekday: 'long', dateStyle: undefined, timeStyle: undefined })}</span>
+            </InfoTile>
+            <InfoTile icon={Clock} label="Time">
+              <span className="tabular-nums">
+                {formatTime(a.startsAt, tz)}–{formatTime(a.endsAt, tz)}
+              </span>
+              {zoneSuffix(tz, a.startsAt) && <span className="block text-xs font-normal text-muted-foreground">{zoneSuffix(tz, a.startsAt).trim()}</span>}
+            </InfoTile>
+            <InfoTile icon={MapPin} label="Clinic" className="col-span-2">
+              {a.clinic.name}
+              {address && <span className="mt-0.5 block font-normal text-muted-foreground">{address}</span>}
+            </InfoTile>
+          </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <h2>Visit details</h2>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="space-y-4 text-sm">
-                <Row label="Doctor">
-                  <span className="flex items-center gap-2">
-                    <Stethoscope className="size-4 text-muted-foreground" />
-                    {a.doctor.name}
-                    {a.doctor.specialization && <span className="text-muted-foreground">· {a.doctor.specialization}</span>}
-                  </span>
-                </Row>
-                <Row label="Clinic">
-                  <span className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                    <span>
-                      <span className="block">{a.clinic.name}</span>
-                      {address && <span className="block text-muted-foreground">{address}</span>}
-                    </span>
-                  </span>
-                </Row>
-                <Row label="When">{apptTime(a.startsAt, tz)}</Row>
-                <Row label="Reason for visit">{a.reason || <span className="text-muted-foreground">Not provided</span>}</Row>
-                <Row label="Booked">{apptTime(a.createdAt, tz)}</Row>
-                {a.status === 'cancelled' && (
-                  <Row label="Cancellation">
-                    {a.cancelledBy === a.patient.id ? 'Cancelled by you' : 'Cancelled by the clinic'}
-                    {a.cancellationReason && <span className="block text-muted-foreground">“{a.cancellationReason}”</span>}
-                  </Row>
-                )}
-              </dl>
-            </CardContent>
-          </Card>
+          {hasActions && <div className="lg:hidden">{actions}</div>}
+
+          <Panel title="Visit details" icon={Stethoscope} id="visit-details">
+            <dl className="divide-y">
+              <DetailRow label="Reason for visit">{a.reason || <span className="text-muted-foreground">Not provided</span>}</DetailRow>
+              <DetailRow label="Booked">{apptTime(a.createdAt, tz)}</DetailRow>
+              {a.status === 'cancelled' && (
+                <DetailRow label="Cancellation">
+                  {a.cancelledBy === a.patient.id ? 'Cancelled by you' : 'Cancelled by the clinic'}
+                  {a.cancellationReason && <span className="block text-muted-foreground">“{a.cancellationReason}”</span>}
+                </DetailRow>
+              )}
+            </dl>
+          </Panel>
 
           {a.status === 'completed' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <h2>Clinical notes</h2>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {a.clinicalNotes ? (
-                  <p className="text-sm whitespace-pre-wrap">{a.clinicalNotes}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Your doctor hasn’t added notes for this visit.</p>
-                )}
-              </CardContent>
-            </Card>
+            <Panel title="Clinical notes" icon={NotebookPen} id="clinical-notes">
+              {a.clinicalNotes ? (
+                <p className="text-sm whitespace-pre-wrap">{a.clinicalNotes}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Your doctor hasn’t added notes for this visit.</p>
+              )}
+            </Panel>
           )}
         </div>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between gap-2">
-            <CardTitle>
-              <h2>Documents</h2>
-            </CardTitle>
-            <RecordUploadDialog
-              base="/patient"
-              appointments={[{ id: a.id, label: apptLabel(a) }]}
-              defaultAppointmentId={a.id}
-              onUploaded={refresh}
-              trigger={
-                <Button size="sm" variant="outline">
-                  <FileUp /> Upload
-                </Button>
-              }
-            />
-          </CardHeader>
-          <CardContent>
+        <div className="space-y-4 lg:col-span-2">
+          {hasActions && <div className="hidden rounded-3xl bg-card p-5 lg:block">{actions}</div>}
+
+          <Panel
+            title="Documents"
+            icon={FileText}
+            id="documents"
+            action={
+              <RecordUploadDialog
+                base="/patient"
+                appointments={[{ id: a.id, label: apptLabel(a) }]}
+                defaultAppointmentId={a.id}
+                onUploaded={refresh}
+                trigger={
+                  <Button size="sm" variant="outline">
+                    <FileUp /> Upload
+                  </Button>
+                }
+              />
+            }
+          >
             {records.length === 0 ? (
-              <EmptyState icon={FileText} title="No documents attached" description="Attach reports or prescriptions so your doctor can review them." />
+              <p className="rounded-2xl bg-background px-4 py-6 text-center text-sm text-muted-foreground">
+                No documents attached. Add reports or prescriptions so your doctor can review them.
+              </p>
             ) : (
               <ul className="divide-y">
                 {records.map((r) => (
-                  <li key={r.id} className="flex items-center gap-3 py-3">
-                    <FileText className="size-4 shrink-0 text-muted-foreground" />
+                  <li key={r.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                    <IconCircle icon={FileText} tone="muted" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{r.title}</p>
+                      <p className="truncate text-sm font-semibold">{r.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {RECORD_TYPE_LABEL[r.recordType]} · {formatBytes(r.fileSize)}
                         {r.uploadedBy && ` · ${r.uploadedBy.role === 'patient' ? 'You' : r.uploadedBy.name}`}
                       </p>
                     </div>
-                    <Button variant="ghost" size="icon-sm" asChild>
+                    <Button variant="ghost" size="icon" asChild className="size-10">
                       <a href={recordFileUrl(r.id)} target="_blank" rel="noopener" aria-label={`Open ${r.title}`}>
                         <ExternalLink />
                       </a>
                     </Button>
-                    <Button variant="ghost" size="icon-sm" asChild>
+                    <Button variant="ghost" size="icon" asChild className="size-10">
                       <a href={recordFileUrl(r.id, true)} aria-label={`Download ${r.title}`}>
                         <Download />
                       </a>
@@ -310,8 +288,8 @@ export function AppointmentDetail() {
                 ))}
               </ul>
             )}
-          </CardContent>
-        </Card>
+          </Panel>
+        </div>
       </div>
     </>
   );

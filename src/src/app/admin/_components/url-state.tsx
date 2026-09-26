@@ -54,8 +54,15 @@ export function SearchInput({
 
   return (
     <div className="relative w-full sm:max-w-xs">
-      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-      <Input type="search" aria-label={label} placeholder={placeholder} value={text} onChange={(e) => setText(e.target.value)} className="pl-9" />
+      <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        type="search"
+        aria-label={label}
+        placeholder={placeholder}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="h-10 rounded-full border-0 bg-card pl-10 shadow-none"
+      />
     </div>
   );
 }

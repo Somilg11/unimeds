@@ -6,9 +6,9 @@ import { FileText } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import { RECORD_TYPE_LABEL } from '@/lib/format';
 import { RECORD_TYPES, type Paged, type RecordItem, type RecordType } from '@/lib/types';
-import { EmptyState, ErrorState, ListSkeleton, PageHeader, Pagination } from '@/components/app/common';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RecordsList, SearchInput } from '../_components/bits';
+import { cn } from '@/lib/utils';
+import { EmptyState, ErrorState, ListSkeleton, Pagination } from '@/components/app/common';
+import { FilterPill, RecordsList, SearchInput } from '../_components/bits';
 import { useUrlFilters } from '../_components/hooks';
 
 function RecordsView() {
@@ -16,7 +16,8 @@ function RecordsView() {
   const q = params.get('q') ?? '';
   const typeParam = params.get('type');
   const type = typeParam && (RECORD_TYPES as readonly string[]).includes(typeParam) ? (typeParam as RecordType) : undefined;
-  const filters = { q: q || undefined, type, page };
+  const pageSize = Number(params.get('size')) || 20;
+  const filters = { q: q || undefined, type, page, pageSize };
 
   const { data, isLoading, error, refetch, isPlaceholderData } = useQuery({
     queryKey: ['doctor', 'records', filters],
@@ -25,23 +26,24 @@ function RecordsView() {
   });
 
   return (
-    <>
-      <PageHeader title="Records" description="Documents you uploaded, ones shared with your visits, and records of patients in your active care." />
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Records</h1>
+        <p className="text-sm text-muted-foreground">Documents you uploaded, ones shared with your visits, and records of patients in your active care.</p>
+      </div>
+
+      <div className="space-y-3">
         <SearchInput initial={q} onSearch={(v) => set({ q: v })} placeholder="Search by title" label="Search records by title" />
-        <Select value={type ?? 'all'} onValueChange={(v) => set({ type: v })}>
-          <SelectTrigger className="w-full sm:w-48" aria-label="Filter by type">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            {RECORD_TYPES.map((t) => (
-              <SelectItem key={t} value={t}>
-                {RECORD_TYPE_LABEL[t]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div role="group" aria-label="Filter by type" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
+          <FilterPill active={!type} onClick={() => set({ type: null })}>
+            All types
+          </FilterPill>
+          {RECORD_TYPES.map((t) => (
+            <FilterPill key={t} active={type === t} onClick={() => set({ type: t })}>
+              {RECORD_TYPE_LABEL[t]}
+            </FilterPill>
+          ))}
+        </div>
       </div>
 
       {error ? (
@@ -55,14 +57,14 @@ function RecordsView() {
           description={q || type ? 'Try clearing the filters.' : 'Upload documents from a patient chart or appointment.'}
         />
       ) : (
-        <>
-          <div className={`transition-opacity ${isPlaceholderData ? 'opacity-60' : ''}`}>
+        <div>
+          <div className={cn('transition-opacity', isPlaceholderData && 'opacity-60')}>
             <RecordsList records={data.items} showPatient />
           </div>
-          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} onPage={(p) => set({ page: p })} />
-        </>
+          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} pageSize={data.pageSize} onPage={(p) => set({ page: p })} onPageSize={(n) => set({ size: n === 20 ? null : n })} />
+        </div>
       )}
-    </>
+    </div>
   );
 }
 

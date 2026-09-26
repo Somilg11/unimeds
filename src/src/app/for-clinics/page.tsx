@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, CalendarCheck, FileText, ScrollText, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarCheck, FileText, ScrollText, ShieldCheck, Users } from 'lucide-react';
 import { SiteShell } from '@/components/landing/site-shell';
+import { Eyebrow, IconCircle, ON_BRAND_OUTLINE, ON_BRAND_SOLID, SplitHeading } from '@/components/landing/section';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'For clinics',
   description: 'Online booking, team schedules, shared records, analytics and an audit trail for your clinic.',
+  alternates: { canonical: '/for-clinics' },
 };
 
 const FEATURES = [
@@ -49,68 +51,75 @@ const STEPS = [
 ];
 
 export default function ForClinicsPage() {
+  const hero = (
+    <div className="mx-auto max-w-6xl px-4 pt-12 pb-12 sm:px-8 sm:pt-16 lg:pt-20 lg:pb-16">
+      <Eyebrow inverted>Unimeds for clinics</Eyebrow>
+      <h1 className="mt-6 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl lg:text-6xl">
+        Run your practice, not your paperwork
+      </h1>
+      <p className="mt-5 max-w-2xl text-base text-brand-foreground/80 sm:text-lg">
+        Unimeds gives your clinic a public booking page, a shared calendar for your doctors and a secure way to exchange records with
+        patients — bookings, schedules and records in one place.
+      </p>
+      <div className="mt-8 flex flex-col gap-2 sm:flex-row">
+        <Button asChild size="lg" className={ON_BRAND_SOLID}>
+          <Link href="/contact">
+            Talk to us <ArrowRight />
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="outline" className={ON_BRAND_OUTLINE}>
+          <Link href="/clinics">See clinics on Unimeds</Link>
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <SiteShell>
-      <section className="mx-auto max-w-6xl px-4 pb-12 pt-16 sm:px-6 lg:pt-24">
-        <p className="text-sm font-medium text-primary">Unimeds for clinics</p>
-        <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-          Bookings, schedules and patient records for your practice, in one place.
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          Unimeds gives your clinic a public booking page, a shared calendar for your doctors and a secure way to exchange records with
-          patients.
-        </p>
-        <div className="mt-8 flex flex-col gap-2 sm:flex-row">
-          <Button asChild size="lg">
-            <Link href="/contact">Talk to us</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/clinics">See clinics on Unimeds</Link>
-          </Button>
-        </div>
+    <SiteShell hero={hero}>
+      <section aria-labelledby="features-h" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+        <SplitHeading
+          id="features-h"
+          eyebrow="What’s included"
+          title="Everything your front desk needs"
+          description="From the first booking to the follow-up report, your team and your patients work from the same, up-to-date information."
+        />
+        <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <li key={f.title} className="flex flex-col rounded-3xl bg-card p-6">
+              <IconCircle icon={f.icon} />
+              <h3 className="mt-6 text-base font-semibold">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <section aria-labelledby="features-h" className="border-t">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 id="features-h" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            What’s included
-          </h2>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f) => (
-              <li key={f.title} className="rounded-xl border bg-card p-6">
-                <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <f.icon className="size-5" />
-                </span>
-                <h3 className="mt-4 font-semibold">{f.title}</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">{f.body}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <section aria-labelledby="start-h" className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:pb-20">
+        <SplitHeading id="start-h" eyebrow="Getting started" title="Live in three steps" />
+        <ol className="mt-10 grid gap-3 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <li key={s} className="rounded-3xl bg-card p-6">
+              <span className="inline-flex size-11 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground tabular-nums">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <p className="mt-6 text-sm leading-relaxed font-medium">{s}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      <section aria-labelledby="start-h" className="border-t bg-muted/30">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 id="start-h" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Getting started
-          </h2>
-          <ol className="mt-8 grid gap-4 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <li key={s} className="rounded-xl border bg-card p-6">
-                <span className="text-sm font-medium text-muted-foreground">Step {i + 1}</span>
-                <p className="mt-2">{s}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="px-4 py-16 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-center rounded-2xl bg-primary px-6 py-14 text-center text-primary-foreground">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Want to bring your clinic onto Unimeds?</h2>
-          <p className="mt-2 max-w-md text-primary-foreground/80">Tell us a little about your practice and we’ll get back to you.</p>
-          <Button asChild size="lg" variant="secondary" className="mt-6">
-            <Link href="/contact">Talk to us</Link>
+      <section aria-labelledby="cta-h" className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:pb-20">
+        <div className="flex flex-col gap-6 rounded-[2rem] bg-card px-6 py-10 sm:px-12 sm:py-14 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-xl">
+            <h2 id="cta-h" className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+              Bring your clinic onto Unimeds
+            </h2>
+            <p className="mt-3 text-muted-foreground">Tell us a little about your practice and we’ll get back to you.</p>
+          </div>
+          <Button asChild size="lg" variant="secondary" className="h-12 px-6">
+            <Link href="/contact">
+              Talk to us <ArrowRight />
+            </Link>
           </Button>
         </div>
       </section>

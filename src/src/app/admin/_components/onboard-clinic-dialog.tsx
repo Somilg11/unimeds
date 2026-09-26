@@ -9,6 +9,7 @@ import { api, errorMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { InviteLinkResult } from './bits';
@@ -123,6 +124,7 @@ function OnboardForm({ onClose }: { onClose: () => void }) {
       </DialogHeader>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase sm:col-span-2">Clinic & owner</p>
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="onboard-name">Clinic name</Label>
           <Input required minLength={2} maxLength={120} {...field('name')} />
@@ -135,6 +137,8 @@ function OnboardForm({ onClose }: { onClose: () => void }) {
           <Label htmlFor="onboard-phone">Phone (optional)</Label>
           <Input type="tel" maxLength={30} {...field('phone')} />
         </div>
+        <Separator className="sm:col-span-2" />
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase sm:col-span-2">Location</p>
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="onboard-address">Address (optional)</Label>
           <Input maxLength={300} {...field('address')} />
@@ -166,6 +170,8 @@ function OnboardForm({ onClose }: { onClose: () => void }) {
             {coordError}
           </p>
         )}
+        <Separator className="sm:col-span-2" />
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase sm:col-span-2">Setup</p>
         <div className="space-y-1.5">
           <Label htmlFor="onboard-timezone">Timezone</Label>
           <Select value={timezone} onValueChange={setTimezone}>

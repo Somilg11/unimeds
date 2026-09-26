@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Building2, Check, ChevronRight, Loader2, X } from 'lucide-react';
+import { CalendarDays, Check, Clock, Loader2, X } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
-import { formatDate, formatDateTime, formatTime, formatWeekday, isBrowserZone, zoneLabel } from '@/lib/format';
+import { formatDate, formatDateTime, formatTime, formatWeekday, initials, isBrowserZone, zoneLabel } from '@/lib/format';
 import type { Appointment, Me, Paged } from '@/lib/types';
 import { StatusBadge } from '@/components/app/common';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 /** Query key roots for the patient portal. Invalidating `['patient']` refreshes everything below it. */
 export const PK = {
@@ -68,30 +69,46 @@ export function RespondButtons({ appointment, size = 'sm' }: { appointment: Appo
   );
 }
 
-/** Compact appointment row linking to its detail page. */
+/** Appointment card: doctor, status, then date and time chips (mobile-first). */
 export function AppointmentRow({ appointment: a }: { appointment: Appointment }) {
   const tz = a.clinic.timezone;
-  const { day, time } = apptDayTime(a.startsAt, tz);
+  const { date, time } = apptDayTime(a.startsAt, tz);
   return (
     <Link
       href={`/patient/appointments/${a.id}`}
-      className="flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className="block rounded-3xl bg-card p-4 transition-colors hover:bg-card/70 focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
     >
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate font-medium">{a.doctor.name}</p>
-          <StatusBadge status={a.status} />
+      <div className="flex items-center gap-3">
+        <Avatar className="size-12">
+          {a.doctor.avatarUrl && <AvatarImage src={a.doctor.avatarUrl} alt="" />}
+          <AvatarFallback className="bg-accent font-semibold text-accent-foreground">{initials(a.doctor.name)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{a.doctor.name}</p>
+          <p className="truncate text-sm text-muted-foreground">{a.doctor.specialization ?? a.clinic.name}</p>
         </div>
-        <p className="text-sm">
-          {day} · {time}
-        </p>
-        <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-          <Building2 className="size-3.5 shrink-0" />
-          {a.clinic.name}
-          {a.doctor.specialization && ` · ${a.doctor.specialization}`}
-        </p>
+        <StatusBadge status={a.status} />
       </div>
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      <div className="mt-4 grid grid-cols-2 gap-2 border-t pt-4 text-sm">
+        <span className="flex items-center gap-2">
+          <span className="inline-flex size-8 items-center justify-center rounded-full bg-muted">
+            <CalendarDays className="size-4 text-muted-foreground" />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-xs text-muted-foreground">Date</span>
+            <span className="font-medium">{date}</span>
+          </span>
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-flex size-8 items-center justify-center rounded-full bg-muted">
+            <Clock className="size-4 text-muted-foreground" />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-xs text-muted-foreground">Time</span>
+            <span className="font-medium">{time}</span>
+          </span>
+        </span>
+      </div>
     </Link>
   );
 }

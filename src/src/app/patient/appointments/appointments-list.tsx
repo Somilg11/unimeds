@@ -7,7 +7,7 @@ import { CalendarPlus, CalendarX2 } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import type { Appointment, Paged } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { EmptyState, ErrorState, ListSkeleton, PageHeader, Pagination } from '@/components/app/common';
+import { EmptyState, ErrorState, ListSkeleton, Pagination } from '@/components/app/common';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppointmentRow, PK } from '../_components/shared';
@@ -43,27 +43,40 @@ export function AppointmentsList() {
 
   return (
     <>
-      <PageHeader
-        title="Appointments"
-        description="Your visits, with times shown in each clinic's local time."
-        actions={
-          <Button asChild>
-            <Link href="/patient/book">
-              <CalendarPlus /> Book a visit
-            </Link>
-          </Button>
-        }
-      />
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Appointments</h1>
+          <p className="text-sm text-muted-foreground">Times are shown in each clinic&apos;s local time.</p>
+        </div>
+        <Button asChild size="icon-lg" className="size-12 shrink-0 lg:hidden" aria-label="Book a visit">
+          <Link href="/patient/book">
+            <CalendarPlus className="size-5" />
+          </Link>
+        </Button>
+        <Button asChild size="lg" className="hidden h-12 lg:inline-flex">
+          <Link href="/patient/book">
+            <CalendarPlus /> Book a visit
+          </Link>
+        </Button>
+      </div>
 
-      <Tabs value={scope} onValueChange={(v) => setParams({ tab: v as Scope, page: 1 })} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
+      <Tabs value={scope} onValueChange={(v) => setParams({ tab: v as Scope, page: 1 })} className="mb-5">
+        <TabsList className="h-13 w-full rounded-full bg-card p-1 lg:w-80">
+          {(['upcoming', 'past'] as const).map((t) => (
+            <TabsTrigger
+              key={t}
+              value={t}
+              className="h-full rounded-full text-sm data-active:bg-secondary data-active:text-secondary-foreground dark:data-active:bg-secondary dark:data-active:text-secondary-foreground"
+            >
+              {t === 'upcoming' ? 'Upcoming' : 'Past'}
+              {scope === t && data && !isPlaceholderData ? <span className="tabular-nums opacity-70">{data.total}</span> : null}
+            </TabsTrigger>
+          ))}
         </TabsList>
       </Tabs>
 
       {isLoading ? (
-        <ListSkeleton rows={5} />
+        <ListSkeleton rows={4} />
       ) : isError ? (
         <ErrorState message={errorMessage(error)} onRetry={() => void refetch()} />
       ) : !data?.items.length ? (
@@ -73,22 +86,22 @@ export function AppointmentsList() {
           description={scope === 'upcoming' ? 'When you book a visit it will show up here.' : 'Completed and cancelled visits will appear here.'}
           action={
             scope === 'upcoming' ? (
-              <Button asChild>
-                <Link href="/patient/book">Find care</Link>
+              <Button asChild size="lg">
+                <Link href="/patient/book">Find a doctor</Link>
               </Button>
             ) : undefined
           }
         />
       ) : (
         <>
-          <ul className={cn('space-y-3', isPlaceholderData && 'opacity-60')}>
+          <ul className={cn('grid gap-3 lg:grid-cols-2', isPlaceholderData && 'opacity-60')}>
             {data.items.map((a) => (
               <li key={a.id}>
                 <AppointmentRow appointment={a} />
               </li>
             ))}
           </ul>
-          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} onPage={(p) => setParams({ page: p })} />
+          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} pageSize={data.pageSize} onPage={(p) => setParams({ page: p })} />
         </>
       )}
     </>

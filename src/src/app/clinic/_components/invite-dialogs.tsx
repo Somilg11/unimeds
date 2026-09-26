@@ -56,7 +56,7 @@ export function InviteLinkDialog({ invite, onClose }: { invite: ShownInvite | nu
           </DialogDescription>
         </DialogHeader>
         {invite && !invite.emailSent && (
-          <div className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <div role="alert" className="flex gap-3 rounded-2xl bg-destructive/10 p-4 text-sm text-destructive">
             <MailWarning className="mt-0.5 size-4 shrink-0" aria-hidden />
             <p>The invitation email couldn&apos;t be sent. Copy the link and send it to them yourself — it&apos;s the only way they can join.</p>
           </div>

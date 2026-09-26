@@ -4,16 +4,18 @@ import { useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { KeyRound, Loader2, LogOut } from 'lucide-react';
+import { CalendarDays, KeyRound, Loader2, LogOut, Mail, MonitorSmartphone, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
-import { formatDate, ROLE_LABEL } from '@/lib/format';
+import { formatDate, initials, ROLE_LABEL } from '@/lib/format';
 import type { Me } from '@/lib/types';
 import { ConfirmAction } from '@/components/app/confirm-action';
 import { ErrorState, PageHeader } from '@/components/app/common';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { IconCircle, RolePill } from '../_components/bits';
 
 function passwordProblem(pw: string) {
   if (pw.length < 10) return 'Use at least 10 characters.';
@@ -31,40 +33,56 @@ export default function AccountPage() {
     <>
       <PageHeader title="Account" description="Your platform administrator sign-in and sessions." />
       {isPending ? (
-        <div className="space-y-6">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-72 rounded-xl" />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton className="h-72 rounded-3xl" />
+          <div className="space-y-6 lg:col-span-2">
+            <Skeleton className="h-80 rounded-3xl" />
+            <Skeleton className="h-28 rounded-3xl" />
+          </div>
         </div>
       ) : error ? (
         <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
       ) : (
-        <div className="max-w-2xl space-y-6">
-          <section aria-labelledby="profile-heading" className="rounded-xl border bg-card p-5">
-            <h2 id="profile-heading" className="sr-only">
-              Profile
-            </h2>
-            <dl className="grid gap-4 text-sm sm:grid-cols-3">
-              <div>
-                <dt className="text-muted-foreground">Name</dt>
-                <dd className="font-medium">{data.user.name}</dd>
-              </div>
-              <div className="min-w-0">
-                <dt className="text-muted-foreground">Email</dt>
-                <dd className="truncate font-medium">{data.user.email}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Role</dt>
-                <dd className="font-medium">
-                  {ROLE_LABEL[data.user.role]} · since {formatDate(data.user.createdAt)}
-                </dd>
-              </div>
+        <div className="grid items-start gap-6 lg:grid-cols-3">
+          <section aria-labelledby="profile-heading" className="rounded-3xl bg-card p-6">
+            <div className="flex flex-col items-center text-center">
+              <Avatar className="size-20">
+                <AvatarFallback className="bg-accent text-2xl font-bold text-accent-foreground">{initials(data.user.name)}</AvatarFallback>
+              </Avatar>
+              <h2 id="profile-heading" className="mt-4 text-lg font-semibold tracking-tight">
+                {data.user.name}
+              </h2>
+              <p className="max-w-full truncate text-sm text-muted-foreground">{data.user.email}</p>
+              <RolePill role={data.user.role} className="mt-3" />
+            </div>
+            <dl className="mt-6 space-y-1 border-t pt-4 text-sm">
+              <ProfileRow icon={UserRound} label="Name" value={data.user.name} />
+              <ProfileRow icon={Mail} label="Email" value={data.user.email} />
+              <ProfileRow icon={ShieldCheck} label="Role" value={ROLE_LABEL[data.user.role]} />
+              <ProfileRow icon={CalendarDays} label="Member since" value={formatDate(data.user.createdAt)} />
             </dl>
           </section>
-          <ChangePassword hasPassword={data.user.hasPassword} />
-          <SignOutEverywhere />
+
+          <div className="space-y-6 lg:col-span-2">
+            <h2 className="sr-only">Security</h2>
+            <ChangePassword hasPassword={data.user.hasPassword} />
+            <SignOutEverywhere />
+          </div>
         </div>
       )}
     </>
+  );
+}
+
+function ProfileRow({ icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 py-2">
+      <IconCircle icon={icon} tone="muted" className="size-9" />
+      <div className="min-w-0">
+        <dt className="text-xs text-muted-foreground">{label}</dt>
+        <dd className="truncate font-medium">{value}</dd>
+      </div>
+    </div>
   );
 }
 
@@ -86,12 +104,15 @@ function ChangePassword({ hasPassword }: { hasPassword: boolean }) {
   });
 
   return (
-    <section aria-labelledby="password-heading" className="rounded-xl border bg-card p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <KeyRound className="size-4 text-muted-foreground" aria-hidden />
-        <h2 id="password-heading" className="font-medium">
-          {hasPassword ? 'Change password' : 'Set a password'}
-        </h2>
+    <section aria-labelledby="password-heading" className="rounded-3xl bg-card p-5 sm:p-6">
+      <div className="mb-5 flex items-center gap-3">
+        <IconCircle icon={KeyRound} />
+        <div>
+          <h3 id="password-heading" className="text-lg font-semibold tracking-tight">
+            {hasPassword ? 'Change password' : 'Set a password'}
+          </h3>
+          <p className="text-sm text-muted-foreground">Signs you out of every device once saved.</p>
+        </div>
       </div>
       <form
         className="grid gap-4"
@@ -138,7 +159,7 @@ function ChangePassword({ hasPassword }: { hasPassword: boolean }) {
         <p id="password-hint" className={`text-sm ${touched && problem ? 'text-destructive' : 'text-muted-foreground'}`} role={touched && problem ? 'alert' : undefined}>
           {touched && problem ? problem : 'At least 10 characters, with a letter and a digit. You will be signed out of every device, including this one.'}
         </p>
-        <div>
+        <div className="border-t pt-4">
           <Button type="submit" disabled={change.isPending}>
             {change.isPending && <Loader2 className="animate-spin" />}
             {hasPassword ? 'Change password' : 'Set password'}
@@ -162,12 +183,15 @@ function SignOutEverywhere() {
   };
 
   return (
-    <section aria-labelledby="sessions-heading" className="flex flex-col gap-4 rounded-xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-1">
-        <h2 id="sessions-heading" className="font-medium">
-          Sign out everywhere
-        </h2>
-        <p className="text-sm text-muted-foreground">Ends every session on every device, including this one.</p>
+    <section aria-labelledby="sessions-heading" className="flex flex-col gap-4 rounded-3xl bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div className="flex items-center gap-3">
+        <IconCircle icon={MonitorSmartphone} />
+        <div className="space-y-0.5">
+          <h3 id="sessions-heading" className="text-lg font-semibold tracking-tight">
+            Sign out everywhere
+          </h3>
+          <p className="text-sm text-muted-foreground">Ends every session on every device, including this one.</p>
+        </div>
       </div>
       <ConfirmAction
         trigger={

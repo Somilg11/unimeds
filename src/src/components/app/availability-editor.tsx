@@ -59,12 +59,12 @@ export function AvailabilityEditor({
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">All times are in the clinic&apos;s timezone ({timezone}).</p>
-      <div className="divide-y rounded-xl border">
+      <div className="divide-y rounded-3xl bg-card">
         {ORDER.map((day) => {
           const indexed = blocks.map((b, i) => ({ b, i })).filter(({ b }) => b.dayOfWeek === day);
           const on = indexed.length > 0;
           return (
-            <div key={day} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start">
+            <div key={day} className="flex flex-col gap-3 px-3 py-4 sm:flex-row sm:items-start sm:p-4">
               <label className="flex w-40 items-center gap-3 pt-1.5 text-sm font-medium">
                 <Switch
                   checked={on}
@@ -77,9 +77,9 @@ export function AvailabilityEditor({
                 {!on && <p className="pt-1.5 text-sm text-muted-foreground">Unavailable</p>}
                 {indexed.map(({ b, i }) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Input type="time" value={b.startTime} onChange={(e) => update(i, { startTime: e.target.value })} className="w-32" aria-label="Start time" />
+                    <Input type="time" value={b.startTime} onChange={(e) => update(i, { startTime: e.target.value })} className="min-w-0 flex-1 px-3 text-center tabular-nums sm:w-32 sm:flex-none sm:text-left max-sm:[&::-webkit-calendar-picker-indicator]:hidden" aria-label="Start time" />
                     <span className="text-muted-foreground">–</span>
-                    <Input type="time" value={b.endTime} onChange={(e) => update(i, { endTime: e.target.value })} className="w-32" aria-label="End time" />
+                    <Input type="time" value={b.endTime} onChange={(e) => update(i, { endTime: e.target.value })} className="min-w-0 flex-1 px-3 text-center tabular-nums sm:w-32 sm:flex-none sm:text-left max-sm:[&::-webkit-calendar-picker-indicator]:hidden" aria-label="End time" />
                     <Button type="button" variant="ghost" size="icon-sm" onClick={() => remove(i)} aria-label="Remove block">
                       <Trash2 />
                     </Button>

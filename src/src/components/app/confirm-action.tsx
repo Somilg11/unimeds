@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Slot } from 'radix-ui';
+import { ResponsiveDialog } from '@/components/app/responsive-dialog';
 
 /**
  * Confirmation dialog for consequential actions, optionally collecting a reason.
@@ -50,13 +51,10 @@ export function ConfirmAction({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
+    <>
+      <Slot.Root onClick={() => setOpen(true)}>{trigger}</Slot.Root>
+      <ResponsiveDialog open={open} onOpenChange={(v) => !busy && setOpen(v)} title={title} description={description}>
+        <div className="space-y-4">
         {confirmPhrase && (
           <div className="space-y-1.5">
             <Label htmlFor="confirm-phrase">
@@ -71,7 +69,7 @@ export function ConfirmAction({
             <Textarea id="confirm-reason" value={text} onChange={(e) => setText(e.target.value)} placeholder={reason.placeholder} maxLength={500} />
           </div>
         )}
-        <DialogFooter>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
             Back
           </Button>
@@ -79,8 +77,9 @@ export function ConfirmAction({
             {busy && <Loader2 className="animate-spin" />}
             {confirmLabel}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+        </div>
+      </ResponsiveDialog>
+    </>
   );
 }

@@ -6,13 +6,13 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, CalendarDays, FileText } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
-import { formatDate, initials } from '@/lib/format';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDate } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState, ListSkeleton } from '@/components/app/common';
 import { AppointmentRow } from '../../_components/appointment-row';
 import { AppointmentSheet } from '../../_components/appointment-sheet';
 import { RecordRow } from '../../_components/record-row';
+import { CountChip, Panel, PersonAvatar } from '../../_components/panel';
 import type { ClinicPatientDetail } from '../../_components/types';
 
 export default function ClinicPatientPage() {
@@ -53,66 +53,70 @@ export default function ClinicPatientPage() {
   return (
     <>
       {back}
-      <div className="mb-8 flex flex-col gap-4 rounded-xl border bg-card p-5 sm:flex-row sm:items-center">
-        <Avatar className="size-14">
-          {p?.avatarUrl && <AvatarImage src={p.avatarUrl} alt="" />}
-          <AvatarFallback className="text-lg">{initials(p?.name)}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1 space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{p?.name ?? 'Patient'}</h1>
-          <p className="text-sm text-muted-foreground">{p?.email}</p>
+      <div className="mb-6 flex flex-col gap-5 rounded-3xl bg-card p-5 sm:p-6 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
+          <PersonAvatar name={p?.name} src={p?.avatarUrl} className="size-16 text-xl" />
+          <div className="min-w-0 space-y-0.5">
+            <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">{p?.name ?? 'Patient'}</h1>
+            <p className="truncate text-sm text-muted-foreground">{p?.email}</p>
+          </div>
         </div>
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4">
-          <div>
-            <dt className="text-xs text-muted-foreground">Phone</dt>
-            <dd>{p?.phone || '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Date of birth</dt>
-            <dd>{p?.dateOfBirth ? formatDate(`${p.dateOfBirth}T12:00:00Z`, 'UTC') : '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Gender</dt>
-            <dd className="capitalize">{p?.gender || '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Completed visits</dt>
-            <dd>{completed}</dd>
-          </div>
+        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            ['Phone', p?.phone || '—'],
+            ['Date of birth', p?.dateOfBirth ? formatDate(`${p.dateOfBirth}T12:00:00Z`, 'UTC') : '—'],
+            ['Gender', p?.gender || '—'],
+            ['Completed visits', String(completed)],
+          ].map(([label, value]) => (
+            <div key={label} className="min-w-32 rounded-2xl bg-muted/60 px-4 py-3">
+              <dt className="text-xs text-muted-foreground">{label}</dt>
+              <dd className="truncate text-sm font-semibold capitalize tabular-nums">{value}</dd>
+            </div>
+          ))}
         </dl>
       </div>
 
-      <div className="grid gap-10 xl:grid-cols-[3fr_2fr]">
-        <section aria-labelledby="appts-heading" className="space-y-4">
-          <h2 id="appts-heading" className="text-lg font-semibold">
-            Appointments at this clinic <span className="text-sm font-normal text-muted-foreground">({data.appointments.length})</span>
-          </h2>
-          {upcoming.length > 0 && <p className="text-sm text-muted-foreground">{upcoming.length} upcoming</p>}
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <Panel
+          id="appts-heading"
+          title={
+            <>
+              Appointments at this clinic
+              <CountChip>{data.appointments.length}</CountChip>
+            </>
+          }
+          description={upcoming.length > 0 ? `${upcoming.length} upcoming` : undefined}
+        >
           {data.appointments.length === 0 ? (
             <EmptyState icon={CalendarDays} title="No appointments" />
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y">
               {data.appointments.map((a) => (
                 <AppointmentRow key={a.id} appointment={a} onOpen={setOpenId} actions={false} />
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
 
-        <section aria-labelledby="records-heading" className="space-y-4">
-          <h2 id="records-heading" className="text-lg font-semibold">
-            Clinic records <span className="text-sm font-normal text-muted-foreground">({data.records.length})</span>
-          </h2>
+        <Panel
+          id="records-heading"
+          title={
+            <>
+              Clinic records
+              <CountChip>{data.records.length}</CountChip>
+            </>
+          }
+        >
           {data.records.length === 0 ? (
             <EmptyState icon={FileText} title="No records" description="Only documents shared with this clinic appear here." />
           ) : (
-            <ul className="divide-y rounded-xl border bg-card">
+            <ul className="divide-y">
               {data.records.map((r) => (
                 <RecordRow key={r.id} record={r} showPatient={false} />
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
       </div>
 
       <AppointmentSheet id={openId} onClose={() => setOpenId(null)} />

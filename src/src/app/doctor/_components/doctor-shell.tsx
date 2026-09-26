@@ -10,24 +10,26 @@ import { Button } from '@/components/ui/button';
 import { useDoctorClinics } from './hooks';
 
 const NAV: NavItem[] = [
-  { href: '/doctor', label: 'Today', icon: Stethoscope, exact: true },
-  { href: '/doctor/appointments', label: 'Appointments', icon: CalendarDays },
-  { href: '/doctor/patients', label: 'Patients', icon: Users },
+  { href: '/doctor', label: 'Today', icon: Stethoscope, exact: true, tab: true },
+  { href: '/doctor/appointments', label: 'Visits', icon: CalendarDays, tab: true },
+  { href: '/doctor/patients', label: 'Patients', icon: Users, tab: true },
   { href: '/doctor/records', label: 'Records', icon: FileText },
-  { href: '/doctor/schedule', label: 'Schedule', icon: CalendarClock },
+  { href: '/doctor/schedule', label: 'Schedule', icon: CalendarClock, tab: true },
   { href: '/doctor/profile', label: 'Profile', icon: UserRound },
 ];
 
 function NotActive() {
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center rounded-xl border border-dashed px-6 py-14 text-center">
-      <Building2 className="mb-3 size-8 text-muted-foreground" />
+    <div className="mx-auto flex max-w-md flex-col items-center rounded-3xl bg-card px-6 py-14 text-center">
+      <span className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <Building2 className="size-5" />
+      </span>
       <h1 className="text-lg font-semibold">You&apos;re not active at any clinic yet</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Once a clinic admin invites you (or re-activates your membership), your appointments, patients and schedule will appear here. You can still
         update your profile in the meantime.
       </p>
-      <Button variant="outline" className="mt-6" onClick={() => signOut({ redirectTo: '/login' })}>
+      <Button variant="outline" size="lg" className="mt-6" onClick={() => signOut({ redirectTo: '/login' })}>
         Sign out
       </Button>
     </div>
@@ -56,7 +58,7 @@ export function DoctorShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppShell nav={NAV} settingsHref="/doctor/profile" context={context}>
+    <AppShell nav={NAV} settingsHref="/doctor/profile" context={context} mobile="tabs">
       {body}
     </AppShell>
   );

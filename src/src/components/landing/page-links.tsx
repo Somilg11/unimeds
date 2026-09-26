@@ -29,30 +29,30 @@ export function PageLinks({
     return s ? `${basePath}?${s}` : basePath;
   };
   return (
-    <nav aria-label="Pagination" className="mt-8 flex items-center justify-between text-sm">
-      <p className="text-muted-foreground">
+    <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm">
+      <p className="text-muted-foreground tabular-nums">
         Page {page} of {totalPages} · {total} total
       </p>
       <div className="flex gap-2">
         {page > 1 ? (
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="lg">
             <Link href={href(page - 1)}>
               <ChevronLeft /> Previous
             </Link>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="lg" disabled>
             <ChevronLeft /> Previous
           </Button>
         )}
         {page < totalPages ? (
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="lg">
             <Link href={href(page + 1)}>
               Next <ChevronRight />
             </Link>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="lg" disabled>
             Next <ChevronRight />
           </Button>
         )}

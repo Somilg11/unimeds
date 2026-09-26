@@ -1,4 +1,5 @@
-import { CalendarCheck, FileLock2, Search, Bell } from 'lucide-react';
+import { Bell, CalendarCheck, FileLock2, Search } from 'lucide-react';
+import { IconCircle, SplitHeading } from '@/components/landing/section';
 
 const features = [
   {
@@ -25,23 +26,27 @@ const features = [
 
 export function WhyChooseMe() {
   return (
-    <section aria-labelledby="why-h" className="border-t bg-muted/30">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h2 id="why-h" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Why patients use Unimeds
-        </h2>
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((f) => (
-            <div key={f.title} className="rounded-xl border bg-card p-6">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <f.icon className="size-5" />
-              </span>
-              <h3 className="mt-4 font-semibold">{f.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{f.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+    <section aria-labelledby="why-h" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+      <SplitHeading
+        id="why-h"
+        eyebrow="Why Unimeds"
+        title={
+          <>
+            Booking a doctor should
+            <br className="hidden sm:block" /> feel this simple
+          </>
+        }
+        description="Unimeds connects you with doctors at real clinics. You see their actual open times, book in a few taps and keep every report in one place — without phone calls or paperwork."
+      />
+      <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {features.map((f) => (
+          <li key={f.title} className="flex flex-col rounded-3xl bg-card p-6">
+            <IconCircle icon={f.icon} />
+            <h3 className="mt-6 text-base font-semibold">{f.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.description}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

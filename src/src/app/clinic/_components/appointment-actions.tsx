@@ -111,20 +111,30 @@ function ProposeDialog({ appointment, open, onOpenChange }: { appointment: Appoi
 }
 
 /** Status-aware action buttons for one appointment. */
-export function AppointmentActions({ appointment: a, size = 'sm' }: { appointment: Appointment; size?: 'sm' | 'xs' }) {
+export function AppointmentActions({
+  appointment: a,
+  size = 'sm',
+  mode = 'full',
+}: {
+  appointment: Appointment;
+  size?: 'sm' | 'xs' | 'default';
+  /** 'decision' shows only Confirm / Decline (cancel), for the awaiting-confirmation queue */
+  mode?: 'full' | 'decision';
+}) {
   const m = useAppointmentMutations();
   const [proposeOpen, setProposeOpen] = useState(false);
   // eslint-disable-next-line react-hooks/purity -- a render-time clock is fine for toggling the no-show button
   const started = new Date(a.startsAt).getTime() <= Date.now();
   const canConfirm = a.status === 'pending';
-  const canPropose = (a.status === 'pending' || a.status === 'confirmed') && !started;
-  const canNoShow = (a.status === 'pending' || a.status === 'confirmed') && started;
+  const full = mode === 'full';
+  const canPropose = full && (a.status === 'pending' || a.status === 'confirmed') && !started;
+  const canNoShow = full && (a.status === 'pending' || a.status === 'confirmed') && started;
   const canCancel = a.status === 'pending' || a.status === 'confirmed' || a.status === 'reschedule_proposed';
 
   if (!canConfirm && !canPropose && !canNoShow && !canCancel) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {canConfirm && (
         <Button size={size} onClick={() => m.confirm.mutate(a.id)} disabled={m.confirm.isPending}>
           {m.confirm.isPending ? <Loader2 className="animate-spin" /> : <Check />}
@@ -155,13 +165,13 @@ export function AppointmentActions({ appointment: a, size = 'sm' }: { appointmen
       {canCancel && (
         <ConfirmAction
           trigger={
-            <Button size={size} variant="ghost" className="text-destructive hover:text-destructive">
-              <X /> Cancel
+            <Button size={size} variant={full ? 'ghost' : 'outline'} className="text-destructive hover:text-destructive">
+              <X /> {full ? 'Cancel' : 'Decline'}
             </Button>
           }
-          title="Cancel this appointment?"
+          title={full ? 'Cancel this appointment?' : 'Decline this booking request?'}
           description={`${a.patient.name} with ${a.doctor.name}, ${formatDateTime(a.startsAt, a.clinic.timezone)}. The patient and doctor will be notified.`}
-          confirmLabel="Cancel appointment"
+          confirmLabel={full ? 'Cancel appointment' : 'Decline request'}
           destructive
           reason={{ label: 'Reason (shared with the patient)', placeholder: 'e.g. The doctor is unavailable' }}
           onConfirm={(reason) => m.cancel.mutateAsync({ id: a.id, reason })}

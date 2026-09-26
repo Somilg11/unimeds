@@ -22,8 +22,10 @@ const NAV: NavItem[] = [
 function ClinicInactive() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md space-y-5 rounded-2xl border bg-card p-8 text-center">
-        <ShieldAlert className="mx-auto size-10 text-muted-foreground" aria-hidden />
+      <div className="w-full max-w-md space-y-5 rounded-3xl bg-card p-8 text-center">
+        <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <ShieldAlert className="size-5" aria-hidden />
+        </span>
         <div className="space-y-2">
           <h1 className="text-xl font-semibold tracking-tight">Your clinic isn&apos;t active</h1>
           <p className="text-sm text-muted-foreground">

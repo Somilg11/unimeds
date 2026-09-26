@@ -1,95 +1,110 @@
 'use client';
 
 import Link from 'next/link';
-import { Droplet, Phone, TriangleAlert, UserRound } from 'lucide-react';
-import { initials } from '@/lib/format';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ChevronRight, Droplet, Phone, ShieldAlert, TriangleAlert, UserRound } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PersonAvatar } from './bits';
 import { ageFrom, useNow, type ClinicalPatient } from './hooks';
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm">{children || <span className="text-muted-foreground">—</span>}</dd>
-    </div>
-  );
+function Chip({ children }: { children: React.ReactNode }) {
+  return <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-xs font-medium">{children}</span>;
 }
 
-export function PatientCard({ patient, linkToChart }: { patient: ClinicalPatient; linkToChart?: boolean }) {
+/** Patient header card: identity, vitals chips, allergies, contact and emergency contact. */
+export function PatientCard({ patient, linkToChart, headingLevel = 2 }: { patient: ClinicalPatient; linkToChart?: boolean; headingLevel?: 1 | 2 }) {
   const now = useNow(60 * 60_000);
   const age = ageFrom(patient.dateOfBirth, now);
   const ec = patient.emergencyContact;
   const hasEc = Boolean(ec && (ec.name || ec.phone));
+  const Heading = headingLevel === 1 ? 'h1' : 'h2';
 
   return (
-    <section className="rounded-xl border bg-card p-5" aria-labelledby="patient-card-title">
+    <section className="rounded-3xl bg-card p-5" aria-labelledby="patient-card-title">
       <div className="flex items-center gap-3">
-        <Avatar className="size-11">
-          {patient.avatarUrl && <AvatarImage src={patient.avatarUrl} alt="" />}
-          <AvatarFallback>{initials(patient.name)}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0">
-          <h2 id="patient-card-title" className="truncate font-semibold">
+        <PersonAvatar name={patient.name} src={patient.avatarUrl} className="size-14" />
+        <div className="min-w-0 flex-1">
+          <Heading id="patient-card-title" className={headingLevel === 1 ? 'truncate text-2xl font-bold tracking-tight' : 'truncate text-lg font-semibold'}>
             {patient.name}
-          </h2>
-          <p className="truncate text-xs text-muted-foreground">{patient.email}</p>
+          </Heading>
+          <p className="truncate text-sm text-muted-foreground">{patient.email}</p>
         </div>
-      </div>
-
-      {patient.allergies ? (
-        <div className="mt-4 flex gap-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-900 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200" role="note">
-          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-          <div>
-            <p className="font-medium">Allergies</p>
-            <p>{patient.allergies}</p>
-          </div>
-        </div>
-      ) : (
-        <p className="mt-4 text-xs text-muted-foreground">No known allergies recorded.</p>
-      )}
-
-      <dl className="mt-4 grid grid-cols-2 gap-4">
-        <Field label="Age">{age !== null ? `${age} yrs` : null}</Field>
-        <Field label="Gender">{patient.gender ? <span className="capitalize">{patient.gender}</span> : null}</Field>
-        <Field label="Blood type">
-          {patient.bloodType ? (
-            <span className="inline-flex items-center gap-1">
-              <Droplet className="size-3.5 text-rose-600" /> {patient.bloodType}
-            </span>
-          ) : null}
-        </Field>
-        <Field label="Phone">
-          {patient.phone ? (
-            <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 hover:underline">
-              <Phone className="size-3.5" /> {patient.phone}
+        {patient.phone && (
+          <Button variant="outline" size="icon-lg" asChild className="size-11">
+            <a href={`tel:${patient.phone}`} aria-label={`Call ${patient.name}`}>
+              <Phone />
             </a>
-          ) : null}
-        </Field>
-      </dl>
-
-      <div className="mt-4 border-t pt-4">
-        <p className="text-xs text-muted-foreground">Emergency contact</p>
-        {hasEc ? (
-          <p className="mt-0.5 text-sm">
-            {ec?.name}
-            {ec?.relation && <span className="text-muted-foreground"> ({ec.relation})</span>}
-            {ec?.phone && (
-              <>
-                {' · '}
-                <a href={`tel:${ec.phone}`} className="hover:underline">
-                  {ec.phone}
-                </a>
-              </>
-            )}
-          </p>
-        ) : (
-          <p className="mt-0.5 text-sm text-muted-foreground">Not provided</p>
+          </Button>
         )}
       </div>
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Chip>{age !== null ? `${age} yrs` : 'Age —'}</Chip>
+        <Chip>{patient.gender ? <span className="capitalize">{patient.gender}</span> : 'Gender —'}</Chip>
+        <Chip>
+          <Droplet className="size-3.5 text-primary" /> {patient.bloodType ?? '—'}
+        </Chip>
+        {patient.allergies ? (
+          <span role="note" className="inline-flex max-w-full items-start gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive">
+            <TriangleAlert className="mt-px size-3.5 shrink-0" />
+            <span className="min-w-0 break-words">Allergies: {patient.allergies}</span>
+          </span>
+        ) : (
+          <Chip>
+            <span className="text-muted-foreground">No known allergies</span>
+          </Chip>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Phone className="size-4" />
+          </span>
+          <div className="min-w-0 leading-tight">
+            <p className="text-xs text-muted-foreground">Phone</p>
+            {patient.phone ? (
+              <a href={`tel:${patient.phone}`} className="text-sm font-medium hover:underline">
+                {patient.phone}
+              </a>
+            ) : (
+              <p className="text-sm text-muted-foreground">Not provided</p>
+            )}
+          </div>
+        </div>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <ShieldAlert className="size-4" />
+          </span>
+          <div className="min-w-0 leading-tight">
+            <p className="text-xs text-muted-foreground">Emergency contact</p>
+            {hasEc ? (
+              <p className="truncate text-sm font-medium">
+                {ec?.name}
+                {ec?.relation && <span className="font-normal text-muted-foreground"> ({ec.relation})</span>}
+                {ec?.phone && (
+                  <>
+                    {ec?.name ? ' · ' : ''}
+                    <a href={`tel:${ec.phone}`} className="hover:underline">
+                      {ec.phone}
+                    </a>
+                  </>
+                )}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Not provided</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {linkToChart && (
-        <Link href={`/doctor/patients/${patient.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-          <UserRound className="size-4" /> Open patient chart
+        <Link
+          href={`/doctor/patients/${patient.id}`}
+          className="mt-4 flex h-11 items-center gap-2 rounded-full bg-muted px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          <UserRound className="size-4" />
+          <span className="flex-1">Open patient chart</span>
+          <ChevronRight className="size-4" />
         </Link>
       )}
     </section>

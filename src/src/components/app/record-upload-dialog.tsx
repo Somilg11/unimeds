@@ -9,7 +9,8 @@ import { RECORD_TYPES, type RecordItem, type RecordType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Slot } from 'radix-ui';
+import { ResponsiveDialog } from '@/components/app/responsive-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Props = {
@@ -61,27 +62,24 @@ export function RecordUploadDialog({ base, patientId, appointments, defaultAppoi
 
   const busy = progress !== null;
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (busy) return;
-        setOpen(v);
-        if (!v) reset();
-      }}
-    >
-      <DialogTrigger asChild>
+    <>
+      <Slot.Root onClick={() => setOpen(true)}>
         {trigger ?? (
           <Button>
             <FileUp /> Upload document
           </Button>
         )}
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Upload document</DialogTitle>
-          <DialogDescription>PDF or image, up to 15 MB. Files are stored privately.</DialogDescription>
-        </DialogHeader>
-
+      </Slot.Root>
+      <ResponsiveDialog
+        open={open}
+        onOpenChange={(v) => {
+          if (busy) return;
+          setOpen(v);
+          if (!v) reset();
+        }}
+        title="Upload document"
+        description="PDF or image, up to 15 MB. Files are stored privately."
+      >
         <div className="space-y-4">
           <button
             type="button"
@@ -92,7 +90,7 @@ export function RecordUploadDialog({ base, patientId, appointments, defaultAppoi
               const f = e.dataTransfer.files?.[0];
               if (f) setFile(f);
             }}
-            className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-8 text-sm hover:bg-muted/50"
+            className="flex w-full flex-col items-center gap-2 rounded-3xl border-2 border-dashed px-4 py-8 text-sm hover:bg-muted/50"
           >
             <FileUp className="size-6 text-muted-foreground" />
             {file ? <span className="font-medium">{file.name}</span> : <span className="text-muted-foreground">Drop a file here or click to browse</span>}
@@ -153,13 +151,13 @@ export function RecordUploadDialog({ base, patientId, appointments, defaultAppoi
           )}
         </div>
 
-        <DialogFooter>
-          <Button disabled={!file || busy} onClick={submit}>
+        <div className="mt-6 flex justify-end">
+          <Button disabled={!file || busy} onClick={submit} className="w-full sm:w-auto" size="lg">
             {busy && <Loader2 className="animate-spin" />}
             {busy ? `Uploading ${progress}%` : 'Upload'}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </ResponsiveDialog>
+    </>
   );
 }

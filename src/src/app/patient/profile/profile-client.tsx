@@ -4,19 +4,19 @@ import { useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Download, KeyRound, Loader2, LogOut, Trash2 } from 'lucide-react';
+import { CalendarDays, Database, Download, HeartPulse, KeyRound, Loader2, LogOut, ShieldCheck, Siren, Trash2, UserRound, type LucideIcon } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import type { Me, UserProfile } from '@/lib/types';
-import { ErrorState, ListSkeleton, PageHeader } from '@/components/app/common';
+import { ErrorState, ListSkeleton } from '@/components/app/common';
 import { ConfirmAction } from '@/components/app/confirm-action';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { IconCircle, Panel, PersonAvatar } from '../_components/bits';
 import { PK, useMe } from '../_components/shared';
 
 const GENDERS = [
@@ -93,100 +93,122 @@ function ProfileForm({ user }: { user: Me }) {
   });
 
   return (
-    <Card>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          save.mutate();
-        }}
-        className="contents"
-      >
-        <CardHeader>
-          <CardTitle>
-            <h2>Personal details</h2>
-          </CardTitle>
-          <CardDescription>Shared with the clinics you book with, to help them care for you.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="p-name" label="Full name">
-              <Input id="p-name" value={form.name} onChange={set('name')} minLength={2} maxLength={120} required autoComplete="name" />
-            </Field>
-            <Field id="p-email" label="Email">
-              <Input id="p-email" value={user.email} readOnly disabled aria-describedby="p-email-hint" />
-              <p id="p-email-hint" className="text-xs text-muted-foreground">
-                Email can’t be changed.
-              </p>
-            </Field>
-            <Field id="p-phone" label="Phone">
-              <Input id="p-phone" type="tel" value={form.phone} onChange={set('phone')} maxLength={30} autoComplete="tel" />
-            </Field>
-            <Field id="p-dob" label="Date of birth">
-              <Input id="p-dob" type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} max={today} />
-            </Field>
-            <Field id="p-gender" label="Gender">
-              <Select value={form.gender} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
-                <SelectTrigger id="p-gender" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={UNSET}>Not specified</SelectItem>
-                  {GENDERS.map((g) => (
-                    <SelectItem key={g.value} value={g.value}>
-                      {g.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field id="p-blood" label="Blood type">
-              <Select value={form.bloodType} onValueChange={(v) => setForm((f) => ({ ...f, bloodType: v }))}>
-                <SelectTrigger id="p-blood" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={UNSET}>Not specified</SelectItem>
-                  {BLOOD_TYPES.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      {b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field id="p-allergies" label="Allergies" className="space-y-1.5 sm:col-span-2">
-              <Textarea id="p-allergies" value={form.allergies} onChange={set('allergies')} maxLength={1000} placeholder="e.g. Penicillin, peanuts" />
-            </Field>
-            <Field id="p-address" label="Address" className="space-y-1.5 sm:col-span-2">
-              <Textarea id="p-address" value={form.address} onChange={set('address')} maxLength={300} autoComplete="street-address" />
-            </Field>
-          </div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate();
+      }}
+      className="space-y-4"
+    >
+      <Panel title="Personal info" icon={UserRound} id="personal" description="Shared with the clinics you book with.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id="p-name" label="Full name">
+            <Input id="p-name" value={form.name} onChange={set('name')} minLength={2} maxLength={120} required autoComplete="name" />
+          </Field>
+          <Field id="p-email" label="Email">
+            <Input id="p-email" value={user.email} readOnly disabled aria-describedby="p-email-hint" />
+            <p id="p-email-hint" className="text-xs text-muted-foreground">
+              Email can’t be changed.
+            </p>
+          </Field>
+          <Field id="p-phone" label="Phone">
+            <Input id="p-phone" type="tel" value={form.phone} onChange={set('phone')} maxLength={30} autoComplete="tel" />
+          </Field>
+          <Field id="p-dob" label="Date of birth">
+            <Input id="p-dob" type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} max={today} />
+          </Field>
+          <Field id="p-gender" label="Gender">
+            <Select value={form.gender} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
+              <SelectTrigger id="p-gender" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={UNSET}>Not specified</SelectItem>
+                {GENDERS.map((g) => (
+                  <SelectItem key={g.value} value={g.value}>
+                    {g.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field id="p-address" label="Address" className="space-y-1.5 sm:col-span-2">
+            <Textarea id="p-address" value={form.address} onChange={set('address')} maxLength={300} autoComplete="street-address" />
+          </Field>
+        </div>
+      </Panel>
 
-          <Separator />
+      <Panel title="Medical info" icon={HeartPulse} id="medical" description="Helps your doctor treat you safely.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id="p-blood" label="Blood type">
+            <Select value={form.bloodType} onValueChange={(v) => setForm((f) => ({ ...f, bloodType: v }))}>
+              <SelectTrigger id="p-blood" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={UNSET}>Not specified</SelectItem>
+                {BLOOD_TYPES.map((b) => (
+                  <SelectItem key={b} value={b}>
+                    {b}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field id="p-allergies" label="Allergies" className="space-y-1.5 sm:col-span-2">
+            <Textarea id="p-allergies" value={form.allergies} onChange={set('allergies')} maxLength={1000} placeholder="e.g. Penicillin, peanuts" />
+          </Field>
+        </div>
+      </Panel>
 
-          <fieldset className="space-y-4">
-            <legend className="mb-4 text-sm font-medium">Emergency contact</legend>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field id="p-ec-name" label="Name">
-                <Input id="p-ec-name" value={form.ecName} onChange={set('ecName')} maxLength={120} />
-              </Field>
-              <Field id="p-ec-phone" label="Phone">
-                <Input id="p-ec-phone" type="tel" value={form.ecPhone} onChange={set('ecPhone')} maxLength={30} />
-              </Field>
-              <Field id="p-ec-relation" label="Relation">
-                <Input id="p-ec-relation" value={form.ecRelation} onChange={set('ecRelation')} maxLength={60} placeholder="e.g. Spouse" />
-              </Field>
-            </div>
-          </fieldset>
-        </CardContent>
-        <CardFooter className="justify-end">
-          <Button type="submit" disabled={save.isPending || form.name.trim().length < 2}>
-            {save.isPending && <Loader2 className="animate-spin" />}
-            Save changes
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+      <Panel title="Emergency contact" icon={Siren} id="emergency" description="Who the clinic should call if needed.">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field id="p-ec-name" label="Name">
+            <Input id="p-ec-name" value={form.ecName} onChange={set('ecName')} maxLength={120} autoComplete="off" />
+          </Field>
+          <Field id="p-ec-phone" label="Phone">
+            <Input id="p-ec-phone" type="tel" value={form.ecPhone} onChange={set('ecPhone')} maxLength={30} autoComplete="off" />
+          </Field>
+          <Field id="p-ec-relation" label="Relation">
+            <Input id="p-ec-relation" value={form.ecRelation} onChange={set('ecRelation')} maxLength={60} placeholder="e.g. Spouse" />
+          </Field>
+        </div>
+      </Panel>
+
+      <div className="sticky bottom-24 z-20 lg:bottom-6 lg:flex lg:justify-end">
+        <Button type="submit" size="lg" className="h-13 w-full text-base lg:w-auto lg:px-8" disabled={save.isPending || form.name.trim().length < 2}>
+          {save.isPending && <Loader2 className="animate-spin" />}
+          Save changes
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function SettingRow({
+  icon,
+  title,
+  description,
+  action,
+  destructive,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action: React.ReactNode;
+  destructive?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <IconCircle icon={icon} tone="muted" className={destructive ? 'bg-destructive/10 text-destructive' : undefined} />
+        <div className="min-w-0">
+          <h3 className={destructive ? 'text-sm font-semibold text-destructive' : 'text-sm font-semibold'}>{title}</h3>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      <div className="[&>button]:h-12 [&>button]:w-full sm:[&>button]:h-10 sm:[&>button]:w-auto">{action}</div>
+    </div>
   );
 }
 
@@ -218,13 +240,14 @@ function PasswordCard({ hasPassword }: { hasPassword: boolean }) {
         if (canSubmit) change.mutate();
       }}
     >
-      <div>
-        <h3 className="flex items-center gap-2 text-sm font-medium">
-          <KeyRound className="size-4" /> {hasPassword ? 'Change password' : 'Set a password'}
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          {hasPassword ? 'You’ll be signed out everywhere and asked to sign in again.' : 'You sign in with Google. Add a password to sign in with email too.'}
-        </p>
+      <div className="flex items-start gap-3">
+        <IconCircle icon={KeyRound} tone="muted" />
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold">{hasPassword ? 'Change password' : 'Set a password'}</h3>
+          <p className="text-xs text-muted-foreground">
+            {hasPassword ? 'You’ll be signed out everywhere and asked to sign in again.' : 'You sign in with Google. Add a password to sign in with email too.'}
+          </p>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         {hasPassword && (
@@ -260,7 +283,7 @@ function PasswordCard({ hasPassword }: { hasPassword: boolean }) {
         {mismatch ? 'Passwords don’t match.' : 'At least 10 characters, with a letter and a number.'}
       </p>
       <div className="flex justify-end">
-        <Button type="submit" disabled={!canSubmit}>
+        <Button type="submit" variant="secondary" size="lg" className="h-12 w-full sm:h-10 sm:w-auto" disabled={!canSubmit}>
           {change.isPending && <Loader2 className="animate-spin" />}
           {hasPassword ? 'Change password' : 'Set password'}
         </Button>
@@ -322,87 +345,88 @@ export function ProfileClient() {
 
   return (
     <>
-      <PageHeader title="Profile" description="Manage your details, security and data." />
+      <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">Profile</h1>
       {isLoading ? (
         <ListSkeleton rows={5} />
       ) : isError || !user ? (
         <ErrorState message={errorMessage(error)} onRetry={() => void refetch()} />
       ) : (
-        <div className="space-y-6">
-          <ProfileForm key={user.id} user={user} />
+        <div className="grid gap-4 lg:grid-cols-[320px_1fr] lg:items-start lg:gap-6">
+          <section aria-label="Account" className="rounded-3xl bg-card p-6 text-center lg:sticky lg:top-6">
+            <PersonAvatar name={user.name} src={user.avatarUrl} className="mx-auto size-24 [&_[data-slot=avatar-fallback]]:text-2xl" />
+            <h2 className="mt-4 truncate text-xl font-bold tracking-tight">{user.name}</h2>
+            <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+              <CalendarDays className="size-3.5" /> Member since {formatDate(user.createdAt)}
+            </p>
+          </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <h2>Security</h2>
-              </CardTitle>
-              <CardDescription>Member since {formatDate(user.createdAt)}.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <PasswordCard hasPassword={user.hasPassword} />
-              <Separator />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-medium">Sign out of all devices</h3>
-                  <p className="text-xs text-muted-foreground">Ends every session, including this one.</p>
-                </div>
-                <ConfirmAction
-                  trigger={
-                    <Button variant="outline">
-                      <LogOut /> Sign out everywhere
-                    </Button>
+          <div className="min-w-0 space-y-4">
+            <ProfileForm key={user.id} user={user} />
+
+            <Panel title="Security" icon={ShieldCheck} id="security" description="Password and sessions.">
+              <div className="space-y-5">
+                <PasswordCard hasPassword={user.hasPassword} />
+                <Separator />
+                <SettingRow
+                  icon={LogOut}
+                  title="Sign out of all devices"
+                  description="Ends every session, including this one."
+                  action={
+                    <ConfirmAction
+                      trigger={
+                        <Button variant="outline" size="lg">
+                          <LogOut /> Sign out everywhere
+                        </Button>
+                      }
+                      title="Sign out of all devices?"
+                      description="You’ll need to sign in again on every device, including this one."
+                      confirmLabel="Sign out everywhere"
+                      onConfirm={logoutAll}
+                    />
                   }
-                  title="Sign out of all devices?"
-                  description="You’ll need to sign in again on every device, including this one."
-                  confirmLabel="Sign out everywhere"
-                  onConfirm={logoutAll}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </Panel>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <h2>Your data</h2>
-              </CardTitle>
-              <CardDescription>Download a copy of everything we hold about you, or delete your account.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-medium">Export my data</h3>
-                  <p className="text-xs text-muted-foreground">Profile, appointments, document list and notifications as JSON.</p>
-                </div>
-                <Button variant="outline" onClick={exportData} disabled={exporting}>
-                  {exporting ? <Loader2 className="animate-spin" /> : <Download />}
-                  Export
-                </Button>
-              </div>
-              <Separator />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-destructive">Delete account</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Permanently deletes your account and documents. Cancel upcoming visits first.
-                  </p>
-                </div>
-                <ConfirmAction
-                  trigger={
-                    <Button variant="destructive">
-                      <Trash2 /> Delete account
+            <Panel title="Your data" icon={Database} id="data" description="Download a copy of everything we hold, or delete your account.">
+              <div className="space-y-5">
+                <SettingRow
+                  icon={Download}
+                  title="Export my data"
+                  description="Profile, appointments, document list and notifications as JSON."
+                  action={
+                    <Button variant="outline" size="lg" onClick={exportData} disabled={exporting}>
+                      {exporting ? <Loader2 className="animate-spin" /> : <Download />}
+                      Export
                     </Button>
                   }
-                  title="Delete your account?"
-                  description="This permanently deletes your profile and uploaded documents. It can’t be undone."
-                  confirmLabel="Delete my account"
+                />
+                <Separator />
+                <SettingRow
+                  icon={Trash2}
                   destructive
-                  confirmPhrase="DELETE"
-                  onConfirm={deleteAccount}
+                  title="Delete account"
+                  description="Permanently deletes your account and documents. Cancel upcoming visits first."
+                  action={
+                    <ConfirmAction
+                      trigger={
+                        <Button variant="destructive" size="lg">
+                          <Trash2 /> Delete account
+                        </Button>
+                      }
+                      title="Delete your account?"
+                      description="This permanently deletes your profile and uploaded documents. It can’t be undone."
+                      confirmLabel="Delete my account"
+                      destructive
+                      confirmPhrase="DELETE"
+                      onConfirm={deleteAccount}
+                    />
+                  }
                 />
               </div>
-            </CardContent>
-          </Card>
+            </Panel>
+          </div>
         </div>
       )}
     </>

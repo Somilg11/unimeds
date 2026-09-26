@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { isBrowserZone, isoDateInZone, zoneLabel } from '@/lib/format';
 import type { Slot } from '@/lib/types';
@@ -41,8 +42,9 @@ export function SlotPicker({ doctorId, clinicId, timezone, value, onChange, days
   };
 
   return (
-    <div className="space-y-4">
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+    // min-w-0: inside grid/flex parents (dialogs, sheets) the date strip must scroll, not stretch the parent
+    <div className="w-full min-w-0 space-y-4">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
         {dates.map((d) => {
           const f = fmtDay(d);
           const active = d === date;
@@ -55,12 +57,12 @@ export function SlotPicker({ doctorId, clinicId, timezone, value, onChange, days
                 onChange(null);
               }}
               className={cn(
-                'flex w-16 shrink-0 flex-col items-center rounded-xl border px-2 py-2 text-xs transition-colors',
-                active ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-muted'
+                'flex w-[4.25rem] shrink-0 flex-col items-center rounded-2xl bg-card px-2 py-3 text-xs ring-1 ring-border transition-colors',
+                active ? 'bg-primary text-primary-foreground ring-primary' : 'hover:ring-foreground/20'
               )}
             >
               <span className={cn(!active && 'text-muted-foreground')}>{f.weekday}</span>
-              <span className="text-lg font-semibold leading-tight">{f.day}</span>
+              <span className="text-xl leading-tight font-bold">{f.day}</span>
               <span className={cn(!active && 'text-muted-foreground')}>{f.month}</span>
             </button>
           );
@@ -81,8 +83,8 @@ export function SlotPicker({ doctorId, clinicId, timezone, value, onChange, days
               type="button"
               onClick={() => onChange(s)}
               className={cn(
-                'rounded-lg border px-2 py-2 text-sm font-medium transition-colors',
-                value === s.startsAt ? 'border-primary bg-primary text-primary-foreground' : 'hover:border-primary/50 hover:bg-muted'
+                'min-h-11 rounded-full border bg-card px-2 py-2.5 text-sm font-medium tabular-nums transition-colors',
+                value === s.startsAt ? 'border-primary bg-primary text-primary-foreground' : 'hover:border-primary/60'
               )}
             >
               {s.label}
@@ -90,7 +92,22 @@ export function SlotPicker({ doctorId, clinicId, timezone, value, onChange, days
           ))}
         </div>
       ) : (
-        <p className="rounded-lg bg-muted/50 py-6 text-center text-sm text-muted-foreground">No free times on this day.</p>
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-card py-6 text-center text-sm text-muted-foreground">
+          No free times on this day.
+          {dates.indexOf(date) < dates.length - 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setDate(dates[dates.indexOf(date) + 1]!);
+                onChange(null);
+              }}
+            >
+              Next day <ChevronRight />
+            </Button>
+          )}
+        </div>
       )}
 
       {!isBrowserZone(timezone) && (

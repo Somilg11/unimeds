@@ -136,7 +136,7 @@ export type PublicDoctor = {
   specialization: string | null;
   bio: string | null;
   yearsOfExperience: number | null;
-  clinics: Array<{ id: string; name: string; city: string | null; address: string | null; timezone: string; distanceKm?: number | null }>;
+  clinics: Array<{ id: string; name: string; slug?: string; city: string | null; address: string | null; timezone: string; distanceKm?: number | null }>;
 };
 
 export type UploadTicket = { uploadUrl: string; fields: Record<string, string | number>; publicId: string; maxBytes: number };

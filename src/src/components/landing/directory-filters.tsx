@@ -79,7 +79,7 @@ export function DirectoryFilters({
   return (
     <form
       role="search"
-      className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[1fr_180px_200px_auto]"
+      className="grid gap-3 rounded-3xl bg-card p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[1fr_200px_220px_auto]"
       onSubmit={(e) => {
         e.preventDefault();
         push({ q: q.trim() || null, city: city.trim() || null });
@@ -88,13 +88,13 @@ export function DirectoryFilters({
       <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
         <Label htmlFor="dir-q">{searchLabel}</Label>
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input id="dir-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} className="pl-9" />
+          <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input id="dir-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} className="h-11 rounded-full pl-10" />
         </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="dir-city">City</Label>
-        <Input id="dir-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Any city" />
+        <Input id="dir-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Any city" className="h-11 rounded-full px-4" />
       </div>
       {specializations ? (
         <div className="space-y-1.5">
@@ -103,7 +103,7 @@ export function DirectoryFilters({
             value={values.specialization || ALL}
             onValueChange={(v) => push({ specialization: v === ALL ? null : v })}
           >
-            <SelectTrigger id="dir-spec" className="w-full">
+            <SelectTrigger id="dir-spec" className="w-full rounded-full px-4 data-[size=default]:h-11">
               <SelectValue placeholder="All specializations" />
             </SelectTrigger>
             <SelectContent>
@@ -120,15 +120,17 @@ export function DirectoryFilters({
         <div className="hidden lg:block" />
       )}
       <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-1">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" size="lg" className="h-11 flex-1 sm:flex-none" disabled={pending}>
           {pending ? <Loader2 className="animate-spin" /> : <Search />} Search
         </Button>
-        <Button type="button" variant={values.near ? 'secondary' : 'outline'} onClick={nearMe} disabled={locating} aria-pressed={values.near}>
+        <Button type="button" size="lg" className="h-11" variant={values.near ? 'secondary' : 'outline'} onClick={nearMe} disabled={locating} aria-pressed={values.near}>
           {locating ? <Loader2 className="animate-spin" /> : <LocateFixed />} Near me
         </Button>
         {hasFilters && (
           <Button
             type="button"
+            size="lg"
+            className="h-11"
             variant="ghost"
             onClick={() => {
               setQ('');

@@ -139,7 +139,7 @@ router.get('/doctors', async (req, res) => {
           name: users.name,
           avatarUrl: users.avatarUrl,
           profile: users.profile,
-          clinic: { id: clinics.id, name: clinics.name, city: clinics.city, address: clinics.address, timezone: clinics.timezone },
+          clinic: { id: clinics.id, name: clinics.name, slug: clinics.slug, city: clinics.city, address: clinics.address, timezone: clinics.timezone },
           distanceKm: dist ?? sql<null>`null`,
         })
         .from(users)

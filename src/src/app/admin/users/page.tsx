@@ -11,9 +11,9 @@ import type { Paged, Role } from '@/lib/types';
 import { ConfirmAction } from '@/components/app/confirm-action';
 import { EmptyState, ErrorState, ListSkeleton, PageHeader, Pagination } from '@/components/app/common';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ActiveBadge } from '../_components/bits';
+import { ActiveBadge, Identity, Panel, RolePill, TABLE_HEAD_ROW } from '../_components/bits';
 import { SearchInput, useUrlState } from '../_components/url-state';
 import type { AdminUserRow } from '../_components/types';
 
@@ -32,34 +32,36 @@ export default function UsersPage() {
 
 function UsersList() {
   const { get, set, page } = useUrlState();
+  const pageSize = Number(get('size')) || 20;
   const q = get('q');
   const role = get('role');
   const { data: session } = useSession();
   const myId = session?.user?.id;
 
-  const { data, isPending, error, refetch } = useQuery({
-    queryKey: ['admin', 'users', { q, role, page }],
-    queryFn: () => api.get<Paged<AdminUserRow>>('/admin/users', { q, role, page, pageSize: 20 }),
+  const { data, isPending, isFetching, error, refetch } = useQuery({
+    queryKey: ['admin', 'users', { q, role, page, pageSize }],
+    queryFn: () => api.get<Paged<AdminUserRow>>('/admin/users', { q, role, page, pageSize }),
     placeholderData: keepPreviousData,
   });
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <Tabs value={role || 'all'} onValueChange={(v) => set({ role: v === 'all' ? null : v })}>
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+            <TabsList className="h-10 bg-card" aria-label="Filter by role">
+              <TabsTrigger value="all" className="px-4">
+                All
+              </TabsTrigger>
+              {ROLES.map((r) => (
+                <TabsTrigger key={r} value={r} className="px-4">
+                  {ROLE_LABEL[r]}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        </Tabs>
         <SearchInput label="Search users" placeholder="Name or email" value={q} onSearch={(v) => set({ q: v })} />
-        <Select value={role || 'all'} onValueChange={(v) => set({ role: v === 'all' ? null : v })}>
-          <SelectTrigger className="w-full sm:w-44" aria-label="Filter by role">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All roles</SelectItem>
-            {ROLES.map((r) => (
-              <SelectItem key={r} value={r}>
-                {ROLE_LABEL[r]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {isPending ? (
@@ -70,16 +72,16 @@ function UsersList() {
         <EmptyState icon={Users} title="No users found" description={q || role ? 'Try a different search or role.' : undefined} />
       ) : (
         <>
-          <div className="rounded-xl border bg-card">
+          <Panel flush title="Accounts" description={`${data.total} ${data.total === 1 ? 'user' : 'users'}`} className={isFetching ? 'opacity-70 transition-opacity' : 'transition-opacity'}>
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className={TABLE_HEAD_ROW}>
                   <TableHead>Name</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Clinics</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last login</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead className="hidden 2xl:table-cell">Created</TableHead>
                   <TableHead className="text-right">
                     <span className="sr-only">Actions</span>
                   </TableHead>
@@ -91,8 +93,8 @@ function UsersList() {
                 ))}
               </TableBody>
             </Table>
-          </div>
-          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} onPage={(p) => set({ page: p })} />
+          </Panel>
+          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} pageSize={data.pageSize} onPage={(p) => set({ page: p })} onPageSize={(n) => set({ size: n === 20 ? null : n })} />
         </>
       )}
     </div>
@@ -112,14 +114,15 @@ function UserRow({ user, isSelf }: { user: AdminUserRow; isSelf: boolean }) {
 
   return (
     <TableRow>
-      <TableCell>
-        <div className="font-medium">
+      <TableCell className="py-3.5">
+        <Identity name={user.name} sub={user.email}>
           {user.name}
-          {isSelf && <span className="ml-2 text-xs font-normal text-muted-foreground">(you)</span>}
-        </div>
-        <div className="text-xs text-muted-foreground">{user.email}</div>
+          {isSelf && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(you)</span>}
+        </Identity>
       </TableCell>
-      <TableCell>{ROLE_LABEL[user.role]}</TableCell>
+      <TableCell>
+        <RolePill role={user.role} />
+      </TableCell>
       <TableCell className="max-w-56 truncate" title={user.clinics.join(', ')}>
         {user.clinics.length ? user.clinics.join(', ') : <span className="text-muted-foreground">—</span>}
       </TableCell>
@@ -129,13 +132,13 @@ function UserRow({ user, isSelf }: { user: AdminUserRow; isSelf: boolean }) {
       <TableCell className="text-muted-foreground" title={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : undefined}>
         {user.lastLoginAt ? relativeTime(user.lastLoginAt) : 'Never'}
       </TableCell>
-      <TableCell className="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+      <TableCell className="hidden text-muted-foreground 2xl:table-cell">{formatDate(user.createdAt)}</TableCell>
       <TableCell className="text-right">
         {!isSelf &&
           (user.isActive ? (
             <ConfirmAction
               trigger={
-                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
                   Deactivate
                 </Button>
               }
@@ -148,7 +151,7 @@ function UserRow({ user, isSelf }: { user: AdminUserRow; isSelf: boolean }) {
           ) : (
             <ConfirmAction
               trigger={
-                <Button variant="ghost" size="sm">
+                <Button variant="outline" size="sm">
                   Activate
                 </Button>
               }

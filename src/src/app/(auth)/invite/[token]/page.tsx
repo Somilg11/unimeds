@@ -5,6 +5,8 @@ import { publicApi } from '@/lib/server-api';
 import { ROLE_LABEL } from '@/lib/format';
 import type { Role } from '@/lib/types';
 import { InviteForm } from './invite-form';
+import { AuthHeader, FormNotice } from '@/components/auth/form-bits';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = { title: 'Accept invitation · Unimeds' };
 
@@ -16,12 +18,14 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
 
   if (!invite) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Invitation unavailable</h1>
-        <p className="text-sm text-muted-foreground">
-          This link is invalid, has expired, or was already used. Ask your clinic administrator to send a new one.
-        </p>
-        <Link href="/login" className="text-sm underline">Go to sign in</Link>
+      <div className="space-y-6">
+        <AuthHeader
+          title="Invitation unavailable"
+          description="This link is invalid, has expired, or was already used. Ask your clinic administrator to send a new one."
+        />
+        <Button asChild variant="outline" size="lg" className="h-12 w-full">
+          <Link href="/login">Go to sign in</Link>
+        </Button>
       </div>
     );
   }
@@ -31,28 +35,25 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   const mode = !invite.accountExists ? 'create' : signedInAs === invite.email ? 'confirm' : 'sign-in';
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Invitation</p>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Join {invite.clinicName ?? 'Unimeds'} as {ROLE_LABEL[invite.role].toLowerCase()}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          For <span className="font-medium text-foreground">{invite.email}</span>
-        </p>
-      </div>
+    <div className="space-y-6">
+      <AuthHeader
+        eyebrow="Invitation"
+        title={`Join ${invite.clinicName ?? 'Unimeds'} as ${ROLE_LABEL[invite.role].toLowerCase()}`}
+        description={
+          <>
+            For <span className="font-medium text-foreground">{invite.email}</span>
+          </>
+        }
+      />
       {mode === 'sign-in' ? (
-        <div className="space-y-4 text-sm">
-          <p>
+        <div className="space-y-4">
+          <FormNotice>
             An account for this email already exists.{' '}
             {signedInAs ? `You're signed in as ${signedInAs}. ` : ''}Sign in as {invite.email} to accept.
-          </p>
-          <Link
-            href={`/login?next=${encodeURIComponent(`/invite/${token}`)}`}
-            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 font-medium text-primary-foreground"
-          >
-            Sign in to accept
-          </Link>
+          </FormNotice>
+          <Button asChild size="lg" className="h-12 w-full">
+            <Link href={`/login?next=${encodeURIComponent(`/invite/${token}`)}`}>Sign in to accept</Link>
+          </Button>
         </div>
       ) : (
         <InviteForm token={token} create={mode === 'create'} />

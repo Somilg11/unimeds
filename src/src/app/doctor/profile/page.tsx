@@ -3,29 +3,47 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { signOut, useSession } from 'next-auth/react';
-import { KeyRound, Loader2, LogOut } from 'lucide-react';
+import { BriefcaseMedical, KeyRound, Loader2, LogOut, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, errorMessage } from '@/lib/api';
 import type { Me } from '@/lib/types';
-import { ErrorState, ListSkeleton, PageHeader } from '@/components/app/common';
+import { ErrorState, ListSkeleton } from '@/components/app/common';
 import { ConfirmAction } from '@/components/app/confirm-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { IconCircle, PersonAvatar } from '../_components/bits';
 
 type ProfileUser = Omit<Me, 'memberships'>;
 
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+function Section({ title, description, icon, children }: { title: string; description?: string; icon: LucideIcon; children: React.ReactNode }) {
   const id = title.toLowerCase().replace(/\W+/g, '-');
   return (
-    <section className="rounded-xl border bg-card p-5 sm:p-6" aria-labelledby={id}>
-      <h2 id={id} className="font-semibold">
-        {title}
-      </h2>
-      {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
+    <section className="rounded-3xl bg-card p-5 sm:p-6" aria-labelledby={id}>
+      <div className="flex items-center gap-3">
+        <IconCircle icon={icon} />
+        <div className="min-w-0">
+          <h2 id={id} className="text-lg font-semibold tracking-tight">
+            {title}
+          </h2>
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        </div>
+      </div>
       <div className="mt-5">{children}</div>
     </section>
+  );
+}
+
+function SubGroup({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-4 rounded-2xl bg-background p-4 sm:p-5">
+      <div>
+        <h3 className="font-semibold">{title}</h3>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -107,10 +125,10 @@ function ProfileForm({ user }: { user: ProfileUser }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="pf-bio">Bio</Label>
-        <Textarea id="pf-bio" {...field('bio')} rows={5} maxLength={2000} placeholder="Shown to patients on your public profile." />
+        <Textarea id="pf-bio" {...field('bio')} rows={5} className="rounded-2xl" maxLength={2000} placeholder="Shown to patients on your public profile." />
       </div>
       <div className="flex justify-end">
-        <Button type="submit" disabled={save.isPending || nameInvalid || yearsInvalid}>
+        <Button type="submit" size="lg" className="h-12 w-full sm:h-10 sm:w-auto" disabled={save.isPending || nameInvalid || yearsInvalid}>
           {save.isPending && <Loader2 className="animate-spin" />}
           Save profile
         </Button>
@@ -166,7 +184,7 @@ function PasswordForm({ hasPassword }: { hasPassword: boolean }) {
       </div>
       <p className="text-xs text-muted-foreground">Changing your password signs you out on every device, including this one.</p>
       <div className="flex justify-end">
-        <Button type="submit" disabled={!ready || change.isPending}>
+        <Button type="submit" size="lg" variant="secondary" className="h-12 w-full sm:h-10 sm:w-auto" disabled={!ready || change.isPending}>
           {change.isPending ? <Loader2 className="animate-spin" /> : <KeyRound />}
           {hasPassword ? 'Change password' : 'Set password'}
         </Button>
@@ -181,46 +199,61 @@ export default function DoctorProfilePage() {
     queryFn: () => api.get<{ user: ProfileUser }>('/doctor/profile'),
   });
 
+  const user = data?.user;
   return (
-    <>
-      <PageHeader title="Profile" description="How you appear to patients, and your account security." />
+    <div className="max-w-4xl space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Profile</h1>
       {error ? (
         <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
-      ) : isLoading || !data ? (
+      ) : isLoading || !user ? (
         <ListSkeleton rows={4} />
       ) : (
-        <div className="max-w-3xl space-y-8">
-          <Section title="Professional profile" description="Your name, specialization and bio are visible to patients.">
-            <ProfileForm key={data.user.id} user={data.user} />
+        <>
+          <div className="flex items-center gap-4 rounded-3xl bg-card p-5">
+            <PersonAvatar name={user.name} src={user.avatarUrl} className="size-16 text-lg" />
+            <div className="min-w-0">
+              <p className="truncate text-xl font-semibold">{user.name}</p>
+              <p className="truncate text-sm text-muted-foreground">{user.profile?.specialization || 'Doctor'}</p>
+              <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            </div>
+          </div>
+
+          <Section title="Professional info" description="Your name, specialization and bio are visible to patients." icon={BriefcaseMedical}>
+            <ProfileForm key={user.id} user={user} />
           </Section>
-          <Section title="Password" description={data.user.hasPassword ? undefined : 'You sign in with Google. Set a password to also sign in with email.'}>
-            <PasswordForm hasPassword={data.user.hasPassword} />
+
+          <Section title="Security" description="Password and signed-in devices." icon={ShieldCheck}>
+            <div className="space-y-3">
+              <SubGroup title="Password" description={user.hasPassword ? undefined : 'You sign in with Google. Set a password to also sign in with email.'}>
+                <PasswordForm hasPassword={user.hasPassword} />
+              </SubGroup>
+              <SubGroup title="Sessions" description="Signed in on a shared or lost device? End every session at once.">
+                <ConfirmAction
+                  trigger={
+                    <Button variant="outline" size="lg" className="h-12 w-full sm:h-10 sm:w-auto">
+                      <LogOut /> Sign out everywhere
+                    </Button>
+                  }
+                  title="Sign out on all devices?"
+                  description="You'll be signed out everywhere, including here, and will need to sign in again."
+                  confirmLabel="Sign out everywhere"
+                  destructive
+                  onConfirm={async () => {
+                    try {
+                      await api.post('/auth/logout-all');
+                    } catch (err) {
+                      toast.error(errorMessage(err));
+                      throw err;
+                    }
+                    toast.success('Signed out on all devices');
+                    await signOut({ redirectTo: '/login' });
+                  }}
+                />
+              </SubGroup>
+            </div>
           </Section>
-          <Section title="Sessions" description="Signed in on a shared or lost device? End every session at once.">
-            <ConfirmAction
-              trigger={
-                <Button variant="outline">
-                  <LogOut /> Sign out everywhere
-                </Button>
-              }
-              title="Sign out on all devices?"
-              description="You'll be signed out everywhere, including here, and will need to sign in again."
-              confirmLabel="Sign out everywhere"
-              destructive
-              onConfirm={async () => {
-                try {
-                  await api.post('/auth/logout-all');
-                } catch (err) {
-                  toast.error(errorMessage(err));
-                  throw err;
-                }
-                toast.success('Signed out on all devices');
-                await signOut({ redirectTo: '/login' });
-              }}
-            />
-          </Section>
-        </div>
+        </>
       )}
-    </>
+    </div>
   );
 }

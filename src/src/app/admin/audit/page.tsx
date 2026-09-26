@@ -3,7 +3,7 @@
 import { Fragment, Suspense, useState } from 'react';
 import Link from 'next/link';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronRight, Download, ScrollText, X } from 'lucide-react';
+import { ChevronRight, Cpu, Download, ScrollText, X } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import { formatDateTime, ROLE_LABEL } from '@/lib/format';
 import type { Paged } from '@/lib/types';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FILTER_CONTROL, IconCircle, Identity, Panel, TABLE_HEAD_ROW } from '../_components/bits';
 import { useUrlState } from '../_components/url-state';
 import { humanizeAction, type AuditEntry } from '../_components/types';
 
@@ -39,6 +40,7 @@ export default function AuditPage() {
 
 function AuditLog() {
   const { get, set, page } = useUrlState();
+  const pageSize = Number(get('size')) || 50;
   const action = get('action');
   const clinicId = get('clinicId');
   const from = get('from');
@@ -46,7 +48,7 @@ function AuditLog() {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   const { data, isPending, isFetching, error, refetch } = useQuery({
-    queryKey: ['admin', 'audit', { action, clinicId, from, to, page }],
+    queryKey: ['admin', 'audit', { action, clinicId, from, to, page, pageSize }],
     queryFn: () =>
       api.get<AuditResponse>('/admin/audit-logs', {
         action,
@@ -55,7 +57,7 @@ function AuditLog() {
         from: from ? dayStartIso(from) : undefined,
         to: to ? dayStartIso(to, 1) : undefined,
         page,
-        pageSize: 50,
+        pageSize,
       }),
     placeholderData: keepPreviousData,
   });
@@ -75,9 +77,11 @@ function AuditLog() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
         <div className="space-y-1.5">
-          <Label htmlFor="audit-action">Action</Label>
+          <Label htmlFor="audit-action" className="px-1 text-xs text-muted-foreground">
+            Action
+          </Label>
           <Select value={action || 'all'} onValueChange={(v) => set({ action: v === 'all' ? null : v })}>
-            <SelectTrigger id="audit-action" className="w-full md:w-64">
+            <SelectTrigger id="audit-action" className={`${FILTER_CONTROL} w-full px-4 md:w-64`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-72">
@@ -92,39 +96,42 @@ function AuditLog() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="audit-from">From</Label>
-            <Input id="audit-from" type="date" value={from} max={to || undefined} onChange={(e) => set({ from: e.target.value })} className="md:w-40" />
+            <Label htmlFor="audit-from" className="px-1 text-xs text-muted-foreground">
+              From
+            </Label>
+            <Input id="audit-from" type="date" value={from} max={to || undefined} onChange={(e) => set({ from: e.target.value })} className={`${FILTER_CONTROL} px-4 md:w-44`} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="audit-to">To</Label>
-            <Input id="audit-to" type="date" value={to} min={from || undefined} onChange={(e) => set({ to: e.target.value })} className="md:w-40" />
+            <Label htmlFor="audit-to" className="px-1 text-xs text-muted-foreground">
+              To
+            </Label>
+            <Input id="audit-to" type="date" value={to} min={from || undefined} onChange={(e) => set({ to: e.target.value })} className={`${FILTER_CONTROL} px-4 md:w-44`} />
           </div>
         </div>
+        {clinicId && (
+          <div className="space-y-1.5">
+            <span className="block px-1 text-xs text-muted-foreground">Clinic</span>
+            <span className="inline-flex h-10 items-center gap-1 rounded-full bg-accent pr-1 pl-4 text-sm font-medium text-accent-foreground">
+              <Link href={`/admin/clinics/${clinicId}`} className="max-w-48 truncate hover:underline">
+                {clinicName ?? `${clinicId.slice(0, 8)}…`}
+              </Link>
+              <Button variant="ghost" size="icon-sm" className="rounded-full hover:bg-card" aria-label="Remove clinic filter" onClick={() => set({ clinicId: null })}>
+                <X className="size-3.5" />
+              </Button>
+            </span>
+          </div>
+        )}
         <div className="flex flex-wrap gap-2 md:ml-auto">
           {filtered && (
-            <Button variant="ghost" onClick={() => set({ action: null, clinicId: null, from: null, to: null })}>
+            <Button variant="ghost" size="lg" onClick={() => set({ action: null, clinicId: null, from: null, to: null })}>
               Clear filters
             </Button>
           )}
-          <Button variant="outline" disabled={!data?.items.length} onClick={() => data && exportCsv(data.items, page)}>
+          <Button variant="secondary" size="lg" disabled={!data?.items.length} onClick={() => data && exportCsv(data.items, page)}>
             <Download /> Export page (CSV)
           </Button>
         </div>
       </div>
-
-      {clinicId && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Clinic:</span>
-          <span className="inline-flex items-center gap-1 rounded-full border bg-card py-0.5 pr-1 pl-3">
-            <Link href={`/admin/clinics/${clinicId}`} className="hover:underline">
-              {clinicName ?? `${clinicId.slice(0, 8)}…`}
-            </Link>
-            <Button variant="ghost" size="icon" className="size-6 rounded-full" aria-label="Remove clinic filter" onClick={() => set({ clinicId: null })}>
-              <X className="size-3" />
-            </Button>
-          </span>
-        </div>
-      )}
 
       {isPending ? (
         <ListSkeleton rows={8} />
@@ -134,11 +141,16 @@ function AuditLog() {
         <EmptyState icon={ScrollText} title="No audit entries" description={filtered ? 'Nothing matches these filters.' : undefined} />
       ) : (
         <>
-          <div className={`rounded-xl border bg-card transition-opacity ${isFetching ? 'opacity-70' : ''}`}>
+          <Panel
+            flush
+            title="Events"
+            description={`${data.total.toLocaleString('en-IN')} ${data.total === 1 ? 'entry' : 'entries'} · read-only`}
+            className={isFetching ? 'opacity-70 transition-opacity' : 'transition-opacity'}
+          >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8">
+                <TableRow className={TABLE_HEAD_ROW}>
+                  <TableHead className="w-10">
                     <span className="sr-only">Details</span>
                   </TableHead>
                   <TableHead>Time</TableHead>
@@ -155,37 +167,40 @@ function AuditLog() {
                   const hasMeta = e.metadata && Object.keys(e.metadata).length > 0;
                   return (
                     <Fragment key={e.id}>
-                      <TableRow>
+                      <TableRow className={open ? 'border-b-0 bg-muted/50' : undefined}>
                         <TableCell>
                           {hasMeta && (
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="size-7"
+                              size="icon-sm"
+                              className="rounded-full bg-muted"
                               aria-expanded={open}
                               aria-controls={`meta-${e.id}`}
                               aria-label={open ? 'Hide details' : 'Show details'}
                               onClick={() => toggle(e.id)}
                             >
-                              {open ? <ChevronDown /> : <ChevronRight />}
+                              <ChevronRight className={`transition-transform ${open ? 'rotate-90' : ''}`} />
                             </Button>
                           )}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(e.createdAt, undefined, { timeStyle: 'medium' })}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-muted-foreground tabular-nums">{formatDateTime(e.createdAt, undefined, { timeStyle: 'medium' })}</TableCell>
+                        <TableCell className="py-3">
                           {e.actor ? (
-                            <>
-                              <div className="font-medium">{e.actor.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {e.actor.email} · {ROLE_LABEL[e.actor.role]}
-                              </div>
-                            </>
+                            <Identity name={e.actor.name} sub={`${e.actor.email} · ${ROLE_LABEL[e.actor.role]}`} size="size-8" />
                           ) : (
-                            <span className="text-muted-foreground">System</span>
+                            <div className="flex items-center gap-3">
+                              <IconCircle icon={Cpu} tone="muted" className="size-8" />
+                              <span className="font-semibold text-muted-foreground">System</span>
+                            </div>
                           )}
                         </TableCell>
                         <TableCell>
-                          <button type="button" className="text-left hover:underline" onClick={() => set({ action: e.action })} title={`Filter by ${e.action}`}>
+                          <button
+                            type="button"
+                            className="rounded-full bg-muted px-2.5 py-1 text-left text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                            onClick={() => set({ action: e.action })}
+                            title={`Filter by ${e.action}`}
+                          >
                             {humanizeAction(e.action)}
                           </button>
                         </TableCell>
@@ -194,7 +209,7 @@ function AuditLog() {
                         </TableCell>
                         <TableCell>
                           {e.clinic ? (
-                            <Link href={`/admin/clinics/${e.clinic.id}`} className="hover:underline">
+                            <Link href={`/admin/clinics/${e.clinic.id}`} className="font-medium hover:underline">
                               {e.clinic.name}
                             </Link>
                           ) : (
@@ -204,10 +219,10 @@ function AuditLog() {
                         <TableCell className="font-mono text-xs text-muted-foreground">{e.ipAddress ?? '—'}</TableCell>
                       </TableRow>
                       {open && hasMeta && (
-                        <TableRow id={`meta-${e.id}`} className="bg-muted/40 hover:bg-muted/40">
+                        <TableRow id={`meta-${e.id}`} className="bg-muted/50 hover:bg-muted/50">
                           <TableCell />
-                          <TableCell colSpan={6}>
-                            <pre className="max-h-72 overflow-auto rounded-md bg-background p-3 font-mono text-xs whitespace-pre-wrap">{JSON.stringify(e.metadata, null, 2)}</pre>
+                          <TableCell colSpan={6} className="pt-0 pb-4">
+                            <pre className="max-h-72 overflow-auto rounded-2xl bg-card p-4 font-mono text-xs whitespace-pre-wrap">{JSON.stringify(e.metadata, null, 2)}</pre>
                           </TableCell>
                         </TableRow>
                       )}
@@ -216,8 +231,8 @@ function AuditLog() {
                 })}
               </TableBody>
             </Table>
-          </div>
-          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} onPage={(p) => set({ page: p })} />
+          </Panel>
+          <Pagination page={data.page} totalPages={data.totalPages} total={data.total} pageSize={data.pageSize} onPage={(p) => set({ page: p })} onPageSize={(n) => set({ size: n === 50 ? null : n })} />
         </>
       )}
     </div>
