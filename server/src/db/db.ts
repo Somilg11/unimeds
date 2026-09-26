@@ -1,13 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import * as schema from './schema.js';
+import { env } from '../lib/env.js';
 
-const { Pool } = pg;
+export const pool = new pg.Pool({ connectionString: env.databaseUrl, max: 10 });
 
-// Create a connection pool
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-// Create Drizzle instance
 export const db = drizzle(pool, { schema });
+
+export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type DbOrTx = typeof db | Tx;

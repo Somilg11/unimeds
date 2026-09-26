@@ -16,9 +16,22 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const description =
+  "Find doctors, book appointments at clinics near you, and keep your medical records in one place. Unimeds also helps clinics run online booking, schedules and records.";
+
 export const metadata: Metadata = {
-  title: "UniMeds",
-  description: "Modern healthcare management platform",
+  metadataBase: process.env.AUTH_URL ? new URL(process.env.AUTH_URL) : undefined,
+  title: { default: "Unimeds — book doctors and clinics online", template: "%s · Unimeds" },
+  description,
+  applicationName: "Unimeds",
+  openGraph: {
+    type: "website",
+    siteName: "Unimeds",
+    title: "Unimeds — book doctors and clinics online",
+    description,
+    locale: "en_IN",
+  },
+  twitter: { card: "summary", title: "Unimeds", description },
 };
 
 export default function RootLayout({

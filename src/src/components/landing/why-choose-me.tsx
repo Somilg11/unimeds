@@ -1,59 +1,43 @@
-'use client';
-
-import { HandHeart, ShieldCheck, Navigation, HeartPulse } from 'lucide-react';
+import { CalendarCheck, FileLock2, Search, Bell } from 'lucide-react';
 
 const features = [
   {
-    title: 'Patient-Focused Care',
-    description:
-      'Every patient receives personalized attention with treatment plans tailored to their specific health needs.',
-    icon: HandHeart,
+    title: 'Real availability',
+    description: 'See the times a doctor is actually free at each clinic and pick one that suits you.',
+    icon: CalendarCheck,
   },
   {
-    title: 'Clinical Accuracy',
-    description:
-      'All diagnoses and treatments follow modern medical guidelines and proven clinical practices.',
-    icon: ShieldCheck,
+    title: 'Search that fits you',
+    description: 'Look up doctors by name, specialization or city, or find clinics close to where you are.',
+    icon: Search,
   },
   {
-    title: 'Clear Guidance',
-    description:
-      'Medical conditions and treatment options are explained in a simple, clear, and understandable way.',
-    icon: Navigation,
+    title: 'Stay informed',
+    description: 'Get notified when your visit is confirmed, moved or cancelled, and respond in a tap.',
+    icon: Bell,
   },
   {
-    title: 'Compassionate Care',
-    description:
-      'Patients are treated with respect, empathy, and genuine concern for their long-term well-being.',
-    icon: HeartPulse,
+    title: 'Your records, your control',
+    description: 'Keep reports and prescriptions in one place and choose which visit to share them with.',
+    icon: FileLock2,
   },
 ];
 
 export function WhyChooseMe() {
   return (
-    <section className="bg-background px-6 py-24 sm:px-12 lg:px-20 border-t border-muted/30">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Why Choose Us
-          </h2>
-          <p className="max-w-sm text-base leading-relaxed text-muted-foreground">
-            Trusted medical care focused on accuracy, compassion, and your long-term health.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group flex flex-col rounded-[2rem] bg-white border border-gray-100 p-8 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:bg-primary"
-            >
-              <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-gray-100 transition-transform duration-300 group-hover:scale-105 shadow-sm">
-                <feature.icon className="h-5 w-5 text-primary" strokeWidth={1.5} />
-              </div>
-
-              <h3 className="mb-3 text-lg font-bold tracking-tight text-foreground group-hover:text-white transition-colors">{feature.title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground group-hover:text-white/80 transition-colors">{feature.description}</p>
+    <section aria-labelledby="why-h" className="border-t bg-muted/30">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <h2 id="why-h" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          Why patients use Unimeds
+        </h2>
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((f) => (
+            <div key={f.title} className="rounded-xl border bg-card p-6">
+              <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <f.icon className="size-5" />
+              </span>
+              <h3 className="mt-4 font-semibold">{f.title}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{f.description}</p>
             </div>
           ))}
         </div>

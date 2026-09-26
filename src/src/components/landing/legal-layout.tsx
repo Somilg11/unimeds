@@ -1,5 +1,4 @@
-import { LandingFooter } from '@/components/landing/landing-footer';
-import { LandingNav } from '@/components/landing/landing-nav';
+import { SiteShell } from '@/components/landing/site-shell';
 
 interface LegalLayoutProps {
   children: React.ReactNode;
@@ -9,27 +8,18 @@ interface LegalLayoutProps {
 
 export function LegalLayout({ children, title, lastUpdated }: LegalLayoutProps) {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <LandingNav />
-
-      <main className="pt-28 flex-1">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-          <p className="text-[11px] font-mono uppercase text-neutral-400 tracking-wider mb-4">
-            Legal
-          </p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-neutral-900 mb-3">
-            {title}
-          </h1>
-          <p className="text-[13px] text-neutral-400 mb-12">
-            Last updated: {lastUpdated}
-          </p>
-          <div className="prose prose-neutral prose-sm max-w-none [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-neutral-900 [&_h2]:mt-10 [&_h2]:mb-4 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-neutral-900 [&_h3]:mt-8 [&_h3]:mb-3 [&_p]:text-[14px] [&_p]:text-neutral-600 [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:text-[14px] [&_ul]:text-neutral-600 [&_ul]:mb-4 [&_ul]:space-y-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:leading-relaxed">
-            {children}
-          </div>
+    <SiteShell>
+      <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:py-20">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Legal</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
+        <p className="mt-4 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          Draft — to be reviewed by counsel. This page describes how the product works today and is not yet a final legal document.
+        </p>
+        <div className="mt-10 max-w-none text-sm leading-relaxed text-muted-foreground [&_a]:text-primary [&_a]:underline-offset-4 hover:[&_a]:underline [&_h2]:mb-3 [&_h2]:mt-10 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:leading-relaxed [&_p]:mb-4 [&_strong]:text-foreground [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5">
+          {children}
         </div>
-      </main>
-
-      <LandingFooter />
-    </div>
+      </div>
+    </SiteShell>
   );
 }

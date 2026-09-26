@@ -1,125 +1,169 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowRight, Shield } from 'lucide-react';
-import { PortalLandingLayout } from '@/components/landing/portal-landing-layout';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { CalendarCheck, CalendarDays, CircleCheck, Clock, Inbox, Users } from 'lucide-react';
+import { api, errorMessage } from '@/lib/api';
+import { formatDateTime, formatTime, formatWeekday, relativeTime } from '@/lib/format';
+import type { Appointment } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { EmptyState, ErrorState, ListSkeleton, PageHeader, StatCard, StatusBadge } from '@/components/app/common';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { availableActions, CancelButton, CompleteDialog, ConfirmButton, NoShowButton } from './_components/appointment-actions';
+import { ZoneHint } from './_components/bits';
+import { useNow } from './_components/hooks';
 
-export default function DoctorLoginPage() {
-  const router = useRouter();
-  const [authId, setAuthId] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+type Overview = {
+  clinics: Array<{ id: string; name: string; timezone: string }>;
+  timezone: string;
+  today: Appointment[];
+  needsAction: Appointment[];
+  stats: { pending: number; upcomingWeek: number; completedMonth: number; patients: number };
+};
 
-  useEffect(() => {
-    const token = localStorage.getItem('doctor_token');
-    if (token) {
-      router.push('/doctor/dashboard');
-    }
-  }, [router]);
+export default function DoctorTodayPage() {
+  const now = useNow();
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['doctor', 'overview'],
+    queryFn: () => api.get<Overview>('/doctor/overview'),
+    refetchInterval: 60_000,
+  });
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    if (!authId.trim()) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const res = await fetch('/api/doctor/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ authId: authId.trim() }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Login failed');
-      }
-
-      const data = await res.json();
-      localStorage.setItem('doctor_token', data.token);
-      localStorage.setItem('doctor_user', JSON.stringify(data.user));
-      router.push('/doctor/dashboard');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const multiClinic = (data?.clinics.length ?? 0) > 1;
 
   return (
-    <PortalLandingLayout
-      title="Doctor Portal"
-      rightPanel={
-        <>
-          <img src="/unimeds_logo.png" alt="UniMeds" className="w-14 h-14 object-contain mb-8 brightness-0 invert" />
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 tracking-tight">
-            Clinical Excellence,{' '}
-            <span className="text-white/70">Streamlined.</span>
-          </h2>
-          <p className="text-white/60 text-[15px] leading-relaxed max-w-sm text-center">
-            Manage appointments, access patient records, and set your availability — all from one dashboard.
-          </p>
-        </>
-      }
-    >
-      <div className="w-full max-w-[400px] text-left">
-        {/* Mobile branding header */}
-        <div className="lg:hidden mb-8 -mt-2">
-          <img src="/unimeds_logo.png" alt="UniMeds" className="w-12 h-12 object-contain mb-4" />
-          <h1 className="text-[24px] font-bold tracking-tight text-gray-900 mb-1">Doctor Portal</h1>
-          <p className="text-[13px] text-gray-500">
-            Sign in with your Auth ID to access clinical tools.
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title="Today"
+        description={data ? formatWeekday(new Date(now), data.timezone) : undefined}
+        actions={
+          <Button variant="outline" asChild>
+            <Link href="/doctor/appointments">
+              <CalendarDays /> All appointments
+            </Link>
+          </Button>
+        }
+      />
 
-        {/* Desktop heading */}
-        <div className="hidden lg:block">
-          <h1 className="text-[26px] font-bold tracking-tight text-gray-900 mb-2">Welcome back!</h1>
-          <p className="text-[14px] text-gray-500 mb-8">
-            Sign in with your Auth ID to access your dashboard.
-          </p>
-        </div>
+      {error ? (
+        <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
+      ) : (
+        <div className="space-y-10">
+          <section aria-label="Summary" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {isLoading || !data ? (
+              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
+            ) : (
+              <>
+                <StatCard label="Awaiting confirmation" value={data.stats.pending} icon={Inbox} />
+                <StatCard label="Next 7 days" value={data.stats.upcomingWeek} icon={CalendarCheck} />
+                <StatCard label="Completed (30 days)" value={data.stats.completedMonth} icon={CircleCheck} />
+                <StatCard label="Patients" value={data.stats.patients} icon={Users} />
+              </>
+            )}
+          </section>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-red-600">
-              {error}
-            </div>
-          )}
-          <div className="space-y-1.5">
-            <label className="text-[13px] font-medium text-gray-700">Auth ID</label>
-            <input
-              type="text"
-              placeholder="Enter your Auth ID"
-              value={authId}
-              onChange={(e) => setAuthId(e.target.value)}
-              className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-[#36565F]/30 focus:ring-4 focus:ring-[#36565F]/10 transition-all"
-              autoFocus
-            />
-            <p className="text-[11px] text-gray-400 pt-0.5">
-              Provided by your clinic administrator.
+          <div className="grid gap-10 xl:grid-cols-5">
+            <section className="xl:col-span-3" aria-labelledby="agenda-title">
+              <h2 id="agenda-title" className="mb-4 text-lg font-semibold">
+                Today&apos;s agenda
+              </h2>
+              {isLoading || !data ? (
+                <ListSkeleton />
+              ) : data.today.length === 0 ? (
+                <EmptyState icon={Clock} title="No visits today" description="Enjoy the quiet — new bookings will show up here." />
+              ) : (
+                <ol className="relative space-y-3 border-l pl-6">
+                  {data.today.map((a) => (
+                    <AgendaItem key={a.id} appt={a} now={now} showClinic={multiClinic} />
+                  ))}
+                </ol>
+              )}
+            </section>
+
+            <section className="xl:col-span-2" aria-labelledby="needs-title">
+              <h2 id="needs-title" className="mb-4 text-lg font-semibold">
+                Needs confirmation
+              </h2>
+              {isLoading || !data ? (
+                <ListSkeleton rows={3} />
+              ) : data.needsAction.length === 0 ? (
+                <EmptyState icon={Inbox} title="All caught up" description="No booking requests are waiting for you." />
+              ) : (
+                <ul className="space-y-3">
+                  {data.needsAction.map((a) => (
+                    <li key={a.id} className="rounded-xl border bg-card p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <Link href={`/doctor/appointments/${a.id}`} className="font-medium hover:underline">
+                            {a.patient.name}
+                          </Link>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDateTime(a.startsAt, a.clinic.timezone)}
+                            <ZoneHint timezone={a.clinic.timezone} />
+                            {multiClinic && ` · ${a.clinic.name}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Requested {relativeTime(a.createdAt)}</p>
+                        </div>
+                      </div>
+                      {a.reason && <p className="mt-2 line-clamp-2 text-sm">&ldquo;{a.reason}&rdquo;</p>}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <ConfirmButton appt={a} />
+                        <CancelButton appt={a} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AgendaItem({ appt: a, now, showClinic }: { appt: Appointment; now: number; showClinic: boolean }) {
+  const acts = availableActions(a, now);
+  const start = new Date(a.startsAt).getTime();
+  const end = new Date(a.endsAt).getTime();
+  const current = now >= start && now < end && (a.status === 'confirmed' || a.status === 'pending');
+  const done = a.status === 'completed' || a.status === 'no_show';
+
+  return (
+    <li className="relative">
+      <span
+        aria-hidden
+        className={cn(
+          'absolute top-5 -left-[31px] size-3 rounded-full border-2 border-background',
+          current ? 'bg-primary ring-4 ring-primary/20' : done ? 'bg-muted-foreground/40' : 'bg-primary/60'
+        )}
+      />
+      <div className={cn('rounded-xl border bg-card p-4', current && 'border-primary/50', done && 'opacity-80')}>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-medium tabular-nums">
+              {formatTime(a.startsAt, a.clinic.timezone)} – {formatTime(a.endsAt, a.clinic.timezone)}
+              <ZoneHint timezone={a.clinic.timezone} />
+              {current && <span className="ml-2 text-xs font-semibold text-primary">Now</span>}
             </p>
+            <Link href={`/doctor/appointments/${a.id}`} className="font-semibold hover:underline">
+              {a.patient.name}
+            </Link>
+            {showClinic && <p className="text-xs text-muted-foreground">{a.clinic.name}</p>}
           </div>
-          <button
-            type="submit"
-            disabled={loading || !authId.trim()}
-            className="w-full h-12 bg-[#36565F] hover:bg-[#2a4550] text-white text-[14px] font-medium rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-            {!loading && <ArrowRight className="w-4 h-4" />}
-          </button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-gray-100">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-green-600" />
-            <span className="text-[12px] text-gray-600 font-medium">Encrypted &middot; HIPAA Compliant</span>
-          </div>
+          <StatusBadge status={a.status} />
+        </div>
+        {a.reason && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{a.reason}</p>}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link href={`/doctor/appointments/${a.id}`}>Open</Link>
+          </Button>
+          {acts.confirm && <ConfirmButton appt={a} />}
+          {acts.complete && <CompleteDialog appt={a} tooEarly={acts.completeTooEarly} />}
+          {acts.noShow && <NoShowButton appt={a} />}
         </div>
       </div>
-    </PortalLandingLayout>
+    </li>
   );
 }

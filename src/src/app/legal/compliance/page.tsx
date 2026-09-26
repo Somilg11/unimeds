@@ -1,66 +1,39 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
 import { LegalLayout } from '@/components/landing/legal-layout';
+
+export const metadata: Metadata = { title: 'Compliance', description: 'Where Unimeds stands on healthcare and data-protection compliance.' };
 
 export default function Compliance() {
   return (
-    <LegalLayout title="Compliance" lastUpdated="June 12, 2026">
-      <h2>Regulatory Compliance</h2>
+    <LegalLayout title="Compliance" lastUpdated="September 27, 2026">
+      <h2>Where we are today</h2>
       <p>
-        UniMeds is designed to help healthcare organizations meet their regulatory obligations. We maintain compliance with key healthcare and data protection standards.
+        Unimeds has not yet completed any third-party certification or audit (for example SOC 2,
+        ISO 27001 or HITRUST), and we do not currently sign Business Associate Agreements. We will update this page if that changes.
+      </p>
+      <p>
+        Clinics using Unimeds remain responsible for meeting the healthcare and data-protection rules that apply to their practice in
+        their jurisdiction.
       </p>
 
-      <h2>HIPAA</h2>
-      <p>
-        UniMeds is fully HIPAA compliant. We sign Business Associate Agreements (BAAs) with covered entities and implement all required administrative, physical, and technical safeguards to protect Protected Health Information (PHI).
-      </p>
+      <h2>Controls in place</h2>
+      <p>The product includes controls that support good data-protection practice:</p>
       <ul>
-        <li>Administrative safeguards including workforce training and security management</li>
-        <li>Physical safeguards for data center and device security</li>
-        <li>Technical safeguards including access controls, audit controls, and encryption</li>
-        <li>Breach notification procedures within required timeframes</li>
+        <li>Encryption in transit (HTTPS) for all traffic.</li>
+        <li>Medical files stored privately and served only to authorized users after an access check.</li>
+        <li>Role-based access, enforced on the server.</li>
+        <li>An append-only audit log of important actions, visible to clinic administrators for their clinic.</li>
+        <li>Password hashing and rate-limited sign-in.</li>
+        <li>Self-service data export and account deletion for patients.</li>
       </ul>
-
-      <h2>GDPR</h2>
       <p>
-        For users in the European Economic Area, we comply with the General Data Protection Regulation (GDPR). This includes:
-      </p>
-      <ul>
-        <li>Lawful basis for processing personal data</li>
-        <li>Data Protection Impact Assessments for high-risk processing</li>
-        <li>Appointment of Data Protection Officer</li>
-        <li>Cross-border data transfer mechanisms (Standard Contractual Clauses)</li>
-        <li>Data subject rights implementation</li>
-      </ul>
-
-      <h2>SOC 2</h2>
-      <p>
-        UniMeds maintains SOC 2 Type II compliance, demonstrating our commitment to security, availability, processing integrity, confidentiality, and privacy. Audit reports are available upon request for enterprise customers.
+        See <Link href="/legal/security">Security</Link> and the <Link href="/legal/privacy">Privacy Policy</Link> for details.
       </p>
 
-      <h2>HITRUST</h2>
+      <h2>Questions</h2>
       <p>
-        We are pursuing HITRUST CSF certification to further demonstrate our commitment to healthcare information security. This certification provides a comprehensive, prescriptive framework for managing risk.
-      </p>
-
-      <h2>State Regulations</h2>
-      <p>
-        UniMeds complies with applicable state-level healthcare privacy regulations, including CCPA (California), CMIA (California), and other state-specific health data protection laws.
-      </p>
-
-      <h2>Compliance Documentation</h2>
-      <p>
-        Enterprise customers can request the following compliance documentation:
-      </p>
-      <ul>
-        <li>SOC 2 Type II audit report</li>
-        <li>HIPAA BAA template</li>
-        <li>Security questionnaire responses</li>
-        <li>Data Processing Agreement (DPA)</li>
-        <li>Penetration test summary report</li>
-      </ul>
-
-      <h2>Contact</h2>
-      <p>
-        For compliance-related inquiries, including BAA requests and security documentation, contact compliance@unimeds.com.
+        For compliance questions, email <a href="mailto:support@unimeds.app?subject=Compliance%20question">support@unimeds.app</a>.
       </p>
     </LegalLayout>
   );

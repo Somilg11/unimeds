@@ -1,182 +1,312 @@
-import { pgTable, uuid, text, timestamp, jsonb, pgEnum, boolean, integer, real } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  jsonb,
+  pgEnum,
+  boolean,
+  integer,
+  real,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
-// User roles enum
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
 export const userRoleEnum = pgEnum('user_role', ['patient', 'doctor', 'clinic_admin', 'super_admin']);
 
-// Appointment status enum
-export const appointmentStatusEnum = pgEnum('appointment_status', ['pending', 'confirmed', 'cancelled', 'reschedule_proposed', 'completed']);
+export const clinicStatusEnum = pgEnum('clinic_status', ['invited', 'active', 'suspended']);
 
-// Notification types enum
-export const notificationTypeEnum = pgEnum('notification_type', ['appointment_reminder', 'appointment_booked', 'appointment_cancelled', 'appointment_completed', 'record_uploaded', 'lab_result_ready', 'general']);
+// Role a user holds inside a specific clinic (tenant membership)
+export const memberRoleEnum = pgEnum('member_role', ['clinic_admin', 'doctor']);
 
-// Users table - manages platform identities across all supported roles
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  authId: text('auth_id').unique().notNull(), // NextAuth user identifier
-  role: userRoleEnum('role').notNull().default('patient'),
-  profileData: jsonb('profile_data').$type<{
-    name?: string;
-    email?: string;
-    phone?: string;
-    dateOfBirth?: string;
-    gender?: string;
-    address?: string;
-    medicalIdentifier?: string;
-    specialization?: string;
-    licenseNumber?: string;
-    picture?: string;
-    clinicId?: string;
-  }>(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const appointmentStatusEnum = pgEnum('appointment_status', [
+  'pending',
+  'confirmed',
+  'reschedule_proposed',
+  'cancelled',
+  'completed',
+  'no_show',
+]);
 
-// Clinics table - primary tenant ledger responsible for organizational configuration
-export const clinics = pgTable('clinics', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull(),
-  email: text('email'), // Gmail account of clinic admin (used for Google OAuth login)
-  address: text('address'),
-  city: text('city'),
-  state: text('state'),
-  zipCode: text('zip_code'),
-  latitude: real('latitude'),
-  longitude: real('longitude'),
-  isActive: boolean('is_active').default(false), // Whether clinic has been activated via invitation
-  activationToken: text('activation_token'), // Token sent via email for activation
-  activatedAt: timestamp('activated_at'), // When the clinic activated their account
-  n8nWebhookUrls: jsonb('n8n_webhook_urls').$type<{
-    appointmentBooked?: string;
-    appointmentCancelled?: string;
-    recordUploaded?: string;
-    notificationBase?: string;
-  }>(),
-  settings: jsonb('settings').$type<{
-    timezone?: string;
-    bookingWindowDays?: number;
-    cancellationHours?: number;
-    features?: {
-      voiceReminders?: boolean;
-      emailNotifications?: boolean;
-      whatsappNotifications?: boolean;
-    };
-  }>(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const authTokenPurposeEnum = pgEnum('auth_token_purpose', ['invite', 'password_reset']);
 
-// Clinic Doctors junction table - manages doctor-clinic relationships
-export const clinicDoctors = pgTable('clinic_doctors', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
-  doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  isActive: boolean('is_active').default(true),
-  joinedAt: timestamp('joined_at').defaultNow().notNull(),
-  invitedBy: uuid('invited_by').references(() => users.id, { onDelete: 'set null' }),
-});
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'appointment_booked',
+  'appointment_confirmed',
+  'appointment_cancelled',
+  'appointment_completed',
+  'appointment_reschedule',
+  'appointment_reminder',
+  'record_uploaded',
+  'membership',
+  'general',
+]);
 
-// Notifications table - system-wide notification management
-export const notifications = pgTable('notifications', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  clinicId: uuid('clinic_id').references(() => clinics.id, { onDelete: 'cascade' }),
-  type: notificationTypeEnum('type').notNull(),
-  title: text('title').notNull(),
-  message: text('message').notNull(),
-  data: jsonb('data').$type<Record<string, unknown>>(),
-  isRead: boolean('is_read').default(false),
-  readAt: timestamp('read_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+// ---------------------------------------------------------------------------
+// Profile shapes
+// ---------------------------------------------------------------------------
 
-// Appointments table - transaction-heavy scheduling engine
-export const appointments = pgTable('appointments', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  patientId: uuid('patient_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
-  slotTime: timestamp('slot_time').notNull(),
-  status: appointmentStatusEnum('status').notNull().default('pending'),
-  notes: text('notes'), // Consultation notes added by doctor
-  proposedTime: timestamp('proposed_time'),
-  proposedBy: uuid('proposed_by').references(() => users.id, { onDelete: 'set null' }),
-  rescheduleReason: text('reschedule_reason'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export type EmergencyContact = { name?: string; phone?: string; relation?: string };
 
-// Records table - secure metadata vault connected to Cloudinary asset storage
-export const records = pgTable('records', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  patientId: uuid('patient_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
-  fileUrl: text('file_url').notNull(), // Cloudinary asset URL
-  recordType: text('record_type').notNull(), // Document category (e.g., 'prescription', 'lab_report', 'imaging')
-  ocrData: jsonb('ocr_data').$type<{
-    extractedText?: string;
-    doctorName?: string;
-    date?: string;
-    medications?: string[];
-    diagnoses?: string[];
-    summary?: string;
-    processingStatus?: 'pending' | 'processing' | 'completed' | 'failed';
-    processedAt?: string;
-  }>(),
-  fileName: text('file_name').notNull(),
-  fileSize: text('file_size'), // File size in bytes
-  mimeType: text('mime_type'), // e.g., 'application/pdf', 'image/jpeg'
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export type UserProfile = {
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  bloodType?: string;
+  allergies?: string;
+  address?: string;
+  emergencyContact?: EmergencyContact;
+  // doctor-only
+  specialization?: string;
+  licenseNumber?: string;
+  bio?: string;
+  yearsOfExperience?: number | null;
+};
 
-// Audit logs table - immutable append-only compliance ledger
-export const auditLogs = pgTable('audit_logs', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
-  action: text('action').notNull(), // e.g., 'LOGIN', 'RECORD_UPLOAD', 'APPOINTMENT_BOOK'
-  targetResource: text('target_resource').notNull(), // e.g., 'records:uuid', 'appointments:uuid'
-  metadata: jsonb('metadata').$type<{
-    ipAddress?: string;
-    userAgent?: string;
-    changes?: { [key: string]: any };
-    previousState?: { [key: string]: any };
-    newState?: { [key: string]: any };
-  }>(),
-  timestamp: timestamp('timestamp').defaultNow().notNull(),
-});
+export type ClinicSettings = {
+  slotDurationMinutes: number;
+  bookingWindowDays: number;
+  cancellationHours: number;
+  autoConfirm: boolean;
+};
 
-// Doctor availability table - weekly recurring schedule for doctors
-export const doctorAvailability = pgTable('doctor_availability', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
-  dayOfWeek: integer('day_of_week').notNull(), // 0=Sunday, 1=Monday, ..., 6=Saturday
-  startTime: text('start_time').notNull(), // "09:00"
-  endTime: text('end_time').notNull(), // "17:00"
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const DEFAULT_CLINIC_SETTINGS: ClinicSettings = {
+  slotDurationMinutes: 30,
+  bookingWindowDays: 30,
+  cancellationHours: 4,
+  autoConfirm: false,
+};
 
-// Type exports for TypeScript
+// ---------------------------------------------------------------------------
+// Tables
+// ---------------------------------------------------------------------------
+
+export const users = pgTable(
+  'users',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: text('email').notNull(), // always stored lower-cased
+    name: text('name').notNull().default(''),
+    role: userRoleEnum('role').notNull().default('patient'),
+    passwordHash: text('password_hash'),
+    googleSub: text('google_sub'),
+    avatarUrl: text('avatar_url'),
+    profile: jsonb('profile').$type<UserProfile>().notNull().default({}),
+    isActive: boolean('is_active').notNull().default(true),
+    // Bumped on password change / "sign out everywhere" to revoke issued JWTs
+    tokenVersion: integer('token_version').notNull().default(0),
+    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+    lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex('users_email_uq').on(t.email),
+    uniqueIndex('users_google_sub_uq').on(t.googleSub),
+    index('users_role_idx').on(t.role),
+  ]
+);
+
+export const clinics = pgTable(
+  'clinics',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    email: text('email').notNull(), // primary admin / contact email
+    phone: text('phone'),
+    description: text('description'),
+    logoUrl: text('logo_url'),
+    address: text('address'),
+    city: text('city'),
+    state: text('state'),
+    zipCode: text('zip_code'),
+    latitude: real('latitude'),
+    longitude: real('longitude'),
+    timezone: text('timezone').notNull().default('Asia/Kolkata'),
+    status: clinicStatusEnum('status').notNull().default('invited'),
+    plan: text('plan').notNull().default('starter'),
+    settings: jsonb('settings').$type<ClinicSettings>().notNull().default(DEFAULT_CLINIC_SETTINGS),
+    activatedAt: timestamp('activated_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex('clinics_slug_uq').on(t.slug),
+    uniqueIndex('clinics_email_uq').on(t.email),
+    index('clinics_status_idx').on(t.status),
+  ]
+);
+
+// Tenant membership: which users belong to which clinic, and as what
+export const clinicMembers = pgTable(
+  'clinic_members',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    role: memberRoleEnum('role').notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    invitedBy: uuid('invited_by').references(() => users.id, { onDelete: 'set null' }),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex('clinic_members_uq').on(t.clinicId, t.userId, t.role),
+    index('clinic_members_user_idx').on(t.userId),
+  ]
+);
+
+// One-time tokens: staff invites and password resets. Only the SHA-256 hash is stored.
+export const authTokens = pgTable(
+  'auth_tokens',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    purpose: authTokenPurposeEnum('purpose').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    email: text('email').notNull(),
+    role: userRoleEnum('role'),
+    clinicId: uuid('clinic_id').references(() => clinics.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex('auth_tokens_hash_uq').on(t.tokenHash), index('auth_tokens_email_idx').on(t.email)]
+);
+
+// Weekly recurring schedule. Times are wall-clock "HH:MM" in the clinic's timezone.
+export const doctorAvailability = pgTable(
+  'doctor_availability',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
+    dayOfWeek: integer('day_of_week').notNull(), // 0=Sunday … 6=Saturday
+    startTime: text('start_time').notNull(),
+    endTime: text('end_time').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('availability_doctor_clinic_idx').on(t.doctorId, t.clinicId)]
+);
+
+export const appointments = pgTable(
+  'appointments',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    patientId: uuid('patient_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    doctorId: uuid('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    clinicId: uuid('clinic_id').notNull().references(() => clinics.id, { onDelete: 'cascade' }),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+    status: appointmentStatusEnum('status').notNull().default('pending'),
+    reason: text('reason'), // patient-provided
+    clinicalNotes: text('clinical_notes'), // doctor-provided
+    proposedStartsAt: timestamp('proposed_starts_at', { withTimezone: true }),
+    proposedBy: uuid('proposed_by').references(() => users.id, { onDelete: 'set null' }),
+    rescheduleReason: text('reschedule_reason'),
+    cancelledBy: uuid('cancelled_by').references(() => users.id, { onDelete: 'set null' }),
+    cancellationReason: text('cancellation_reason'),
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    // Hard guarantee against double booking of a doctor's slot
+    uniqueIndex('appointments_doctor_slot_active_uq')
+      .on(t.doctorId, t.startsAt)
+      .where(sql`status in ('pending', 'confirmed', 'reschedule_proposed')`),
+    index('appointments_patient_idx').on(t.patientId, t.startsAt),
+    index('appointments_doctor_idx').on(t.doctorId, t.startsAt),
+    index('appointments_clinic_idx').on(t.clinicId, t.startsAt),
+  ]
+);
+
+export const records = pgTable(
+  'records',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    patientId: uuid('patient_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
+    clinicId: uuid('clinic_id').references(() => clinics.id, { onDelete: 'set null' }),
+    appointmentId: uuid('appointment_id').references(() => appointments.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    recordType: text('record_type').notNull().default('general'),
+    fileName: text('file_name').notNull(),
+    mimeType: text('mime_type'),
+    fileSize: integer('file_size'),
+    storagePublicId: text('storage_public_id').notNull(),
+    storageResourceType: text('storage_resource_type').notNull(), // image | raw | video
+    storageFormat: text('storage_format'),
+    // Reserved for the AI engine (OCR / structured extraction)
+    ocrData: jsonb('ocr_data').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex('records_public_id_uq').on(t.storagePublicId),
+    index('records_patient_idx').on(t.patientId, t.createdAt),
+    index('records_clinic_idx').on(t.clinicId),
+  ]
+);
+
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    clinicId: uuid('clinic_id').references(() => clinics.id, { onDelete: 'cascade' }),
+    type: notificationTypeEnum('type').notNull(),
+    title: text('title').notNull(),
+    message: text('message').notNull(),
+    link: text('link'),
+    data: jsonb('data').$type<Record<string, unknown>>(),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('notifications_user_idx').on(t.userId, t.createdAt)]
+);
+
+// Append-only compliance ledger. No API deletes from this table.
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    actorRole: text('actor_role'),
+    clinicId: uuid('clinic_id').references(() => clinics.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    targetType: text('target_type').notNull(),
+    targetId: text('target_id'),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('audit_logs_created_idx').on(t.createdAt),
+    index('audit_logs_clinic_idx').on(t.clinicId, t.createdAt),
+    index('audit_logs_action_idx').on(t.action),
+  ]
+);
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
-
 export type Clinic = typeof clinics.$inferSelect;
-export type NewClinic = typeof clinics.$inferInsert;
-
+export type ClinicMember = typeof clinicMembers.$inferSelect;
 export type Appointment = typeof appointments.$inferSelect;
-export type NewAppointment = typeof appointments.$inferInsert;
-
 export type MedicalRecord = typeof records.$inferSelect;
-export type NewMedicalRecord = typeof records.$inferInsert;
-
-export type AuditLog = typeof auditLogs.$inferSelect;
-export type NewAuditLog = typeof auditLogs.$inferInsert;
-
-export type ClinicDoctor = typeof clinicDoctors.$inferSelect;
-export type NewClinicDoctor = typeof clinicDoctors.$inferInsert;
-
 export type Notification = typeof notifications.$inferSelect;
-export type NewNotification = typeof notifications.$inferInsert;
-
+export type AuditLog = typeof auditLogs.$inferSelect;
 export type DoctorAvailability = typeof doctorAvailability.$inferSelect;
-export type NewDoctorAvailability = typeof doctorAvailability.$inferInsert;
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+export type AppointmentStatus = (typeof appointmentStatusEnum.enumValues)[number];

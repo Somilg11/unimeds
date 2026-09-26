@@ -1,98 +1,104 @@
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { and, asc, eq } from 'drizzle-orm';
 import { db } from '../db/db.js';
-import { users } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { users, clinicMembers, clinics, type UserRole } from '../db/schema.js';
+import { verifyAccessToken, safeEqual } from '../lib/tokens.js';
+import { env } from '../lib/env.js';
+import { forbidden, unauthorized } from '../lib/http.js';
 
-// Extend Request type to include user
+export type AuthUser = { id: string; role: UserRole; email: string; name: string };
+
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: string;
-        role: string;
-        authId: string;
-      };
+      user?: AuthUser;
+      clinicId?: string;
     }
   }
 }
 
-export const authenticate = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export function authUser(req: Request): AuthUser {
+  if (!req.user) throw unauthorized();
+  return req.user;
+}
+
+export function scopedClinicId(req: Request): string {
+  if (!req.clinicId) throw forbidden('No active clinic for this account');
+  return req.clinicId;
+}
+
+export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
+  const header = req.headers.authorization;
+  const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token) return next(unauthorized());
+
+  let payload;
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    const token = authHeader.substring(7);
-
-    if (!token || token === 'undefined' || token === 'null') {
-      return res.status(401).json({ error: 'Empty token' });
-    }
-
-    // Verify JWT token using Auth.js secret
-    const decoded = jwt.verify(token, process.env.AUTH_SECRET || 'dev-secret') as any;
-
-    if (!decoded) {
-      return res.status(401).json({ error: 'Invalid token payload' });
-    }
-
-    const lookupAuthId = decoded.sub || decoded.authId;
-
-    if (!lookupAuthId) {
-      console.error('[Auth] JWT decoded but no sub/authId found:', decoded);
-      return res.status(401).json({ error: 'Invalid token: missing identity' });
-    }
-
-    // Fetch user from database to get latest role and data
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.authId, lookupAuthId));
-
-    if (!user) {
-      console.error('[Auth] No user found for authId:', lookupAuthId);
-      return res.status(401).json({ error: 'User not found' });
-    }
-
-    req.user = {
-      id: user.id,
-      role: user.role,
-      authId: user.authId
-    };
-
-    next();
-  } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
-    }
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    console.error('[Auth] Unexpected error:', error);
-    return res.status(401).json({ error: 'Authentication failed' });
+    payload = verifyAccessToken(token);
+  } catch (err) {
+    const expired = (err as { name?: string }).name === 'TokenExpiredError';
+    return next(unauthorized(expired ? 'Session expired, please sign in again' : 'Invalid session'));
   }
+
+  const [user] = await db
+    .select({
+      id: users.id,
+      role: users.role,
+      email: users.email,
+      name: users.name,
+      isActive: users.isActive,
+      tokenVersion: users.tokenVersion,
+    })
+    .from(users)
+    .where(eq(users.id, payload.sub))
+    .limit(1);
+
+  // Deactivated users and revoked sessions (password change, sign-out-everywhere) are rejected
+  if (!user || !user.isActive || user.tokenVersion !== payload.ver) {
+    return next(unauthorized('Session is no longer valid, please sign in again'));
+  }
+
+  req.user = { id: user.id, role: user.role, email: user.email, name: user.name };
+  next();
 };
 
-export const authorize = (...allowedRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        error: 'Insufficient permissions',
-        required: allowedRoles,
-        current: req.user.role,
-      });
-    }
-
+export const authorize =
+  (...roles: UserRole[]) =>
+  (req: Request, _res: Response, next: NextFunction) => {
+    if (!req.user) return next(unauthorized());
+    if (!roles.includes(req.user.role)) return next(forbidden());
     next();
   };
+
+// Resolves the clinic a clinic admin is operating on. Admins with several
+// clinics pick one via the X-Clinic-Id header; otherwise the oldest membership wins.
+export const resolveAdminClinic = async (req: Request, _res: Response, next: NextFunction) => {
+  const user = authUser(req);
+  const requested = req.header('x-clinic-id');
+
+  const memberships = await db
+    .select({ clinicId: clinicMembers.clinicId })
+    .from(clinicMembers)
+    .innerJoin(clinics, eq(clinics.id, clinicMembers.clinicId))
+    .where(
+      and(
+        eq(clinicMembers.userId, user.id),
+        eq(clinicMembers.role, 'clinic_admin'),
+        eq(clinicMembers.isActive, true),
+        eq(clinics.status, 'active')
+      )
+    )
+    .orderBy(asc(clinicMembers.joinedAt));
+
+  const match = requested ? memberships.find((m) => m.clinicId === requested) : memberships[0];
+  if (!match) return next(forbidden('Your clinic is not active or you are not a member of it'));
+  req.clinicId = match.clinicId;
+  next();
+};
+
+// Server-to-server calls from the Next.js backend (e.g. Google identity exchange)
+export const requireInternalKey = (req: Request, _res: Response, next: NextFunction) => {
+  const key = req.header('x-internal-key') || '';
+  if (!key || !safeEqual(key, env.internalApiKey)) return next(forbidden('Internal endpoint'));
+  next();
 };

@@ -1,45 +1,37 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function Error({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }) {
   useEffect(() => {
-    console.error('Application error:', error);
+    console.error(error);
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-4">
-        <div className="border border-red-200 bg-red-50 p-6">
-          <h2 className="text-xl font-semibold text-red-900 mb-2">
-            Something went wrong
-          </h2>
-          <p className="text-red-700 mb-4">
-            {error.message || 'An unexpected error occurred'}
-          </p>
-          {error.digest && (
-            <p className="text-xs text-red-600 mb-4">
-              Error ID: {error.digest}
-            </p>
-          )}
-          <Button
-            onClick={reset}
-            variant="outline"
-            className="w-full"
-          >
-            Try again
-          </Button>
-        </div>
-        <p className="text-center text-sm text-zinc-500">
-          If this problem persists, please contact support.
-        </p>
+    <div className="flex min-h-[60vh] flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+      <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
+      <p className="mt-2 max-w-md text-muted-foreground">
+        We hit an unexpected problem loading this page. Please try again — if it keeps happening, contact support.
+      </p>
+      {error.digest && (
+        <p className="mt-3 font-mono text-xs text-muted-foreground">Reference: {error.digest}</p>
+      )}
+      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+        <Button onClick={() => unstable_retry()}>Try again</Button>
+        <Button asChild variant="outline">
+          <Link href="/">Go home</Link>
+        </Button>
+        <Button asChild variant="ghost">
+          <Link href="/support">Contact support</Link>
+        </Button>
       </div>
     </div>
   );

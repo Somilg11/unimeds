@@ -1,60 +1,58 @@
+import type { Metadata } from 'next';
 import { LegalLayout } from '@/components/landing/legal-layout';
+
+export const metadata: Metadata = { title: 'Security', description: 'How Unimeds protects your account and medical data.' };
 
 export default function Security() {
   return (
-    <LegalLayout title="Security" lastUpdated="June 12, 2026">
-      <h2>Our Commitment</h2>
+    <LegalLayout title="Security" lastUpdated="September 27, 2026">
       <p>
-        Security is foundational to UniMeds. We protect patient health information and clinical data with enterprise-grade security measures designed to meet HIPAA, GDPR, and SOC 2 requirements.
+        Unimeds handles appointment and medical information, so we build access control into every part of the product. This page
+        describes the safeguards that are in place today.
       </p>
 
-      <h2>Encryption</h2>
+      <h2>Encryption in transit</h2>
+      <p>All traffic between your browser and Unimeds is served over HTTPS, so data is encrypted while it travels over the network.</p>
+
+      <h2>Medical files</h2>
       <ul>
-        <li><strong>In transit:</strong> All data is encrypted using TLS 1.3 between clients and our servers</li>
-        <li><strong>At rest:</strong> Patient records and sensitive data are encrypted using AES-256</li>
-        <li><strong>End-to-end:</strong> Critical health records are encrypted before they leave your device</li>
+        <li>Uploaded records (PDFs and images) are stored as private files. They have no public link.</li>
+        <li>
+          Each time a file is opened, our server first checks that you are allowed to see it — the patient who owns it, or a doctor or
+          clinic the record has been shared with — and only then issues a short-lived link.
+        </li>
+        <li>Uploads are limited to common document and image formats and a maximum file size.</li>
       </ul>
 
-      <h2>Access Controls</h2>
+      <h2>Accounts and access</h2>
       <ul>
-        <li>Role-based access control (RBAC) ensures users only access data relevant to their role</li>
-        <li>Multi-factor authentication (MFA) support for all accounts</li>
-        <li>Session management with automatic timeout and concurrent session limits</li>
-        <li>IP-based access restrictions available for clinic administrators</li>
+        <li>Passwords are never stored in plain text; they are stored as salted hashes.</li>
+        <li>
+          Access is role-based. Patients, doctors, clinic administrators and platform administrators each see only what their role and
+          clinic membership allow, and these checks are enforced on the server for every request.
+        </li>
+        <li>Your session token is kept in an encrypted, HTTP-only cookie that page scripts cannot read.</li>
+        <li>Changing your password signs out your other sessions. You can also sign out of all devices at once.</li>
+        <li>Sign-in and password-reset requests are rate limited.</li>
       </ul>
 
-      <h2>Infrastructure</h2>
-      <ul>
-        <li>Hosted on SOC 2 Type II compliant cloud infrastructure</li>
-        <li>Automated security scanning and vulnerability assessments</li>
-        <li>Regular penetration testing by independent security firms</li>
-        <li>DDoS protection and Web Application Firewall (WAF)</li>
-      </ul>
-
-      <h2>Audit &amp; Compliance</h2>
-      <ul>
-        <li>Comprehensive audit logging for all data access and modifications</li>
-        <li>Immutable audit trails for compliance reporting</li>
-        <li>Regular third-party security audits</li>
-        <li>HIPAA Business Associate Agreement (BAA) available</li>
-      </ul>
-
-      <h2>Data Backup &amp; Recovery</h2>
-      <ul>
-        <li>Automated daily backups with 30-day retention</li>
-        <li>Geographic redundancy across multiple data centers</li>
-        <li>Disaster recovery plan with &lt;4 hour RPO and &lt;1 hour RTO</li>
-        <li>Regular backup restoration testing</li>
-      </ul>
-
-      <h2>Incident Response</h2>
+      <h2>Audit log</h2>
       <p>
-        We maintain a comprehensive incident response plan. In the event of a security incident, we will notify affected users within 72 hours in accordance with applicable regulations.
+        Important actions — such as bookings, cancellations, record uploads and team changes — are recorded in an append-only audit
+        log. Clinic administrators can review the entries for their clinic.
       </p>
 
-      <h2>Reporting Vulnerabilities</h2>
+      <h2>Your data</h2>
       <p>
-        We welcome responsible disclosure of security vulnerabilities. If you discover a security issue, please report it to security@unimeds.com. We will acknowledge receipt within 24 hours and provide regular updates on the resolution.
+        Patients can download a copy of their data at any time and can delete their account from their profile settings (once they have
+        no upcoming appointments).
+      </p>
+
+      <h2>Reporting a vulnerability</h2>
+      <p>
+        If you believe you have found a security issue, please email{' '}
+        <a href="mailto:support@unimeds.app?subject=Security%20report">support@unimeds.app</a> with the details. Please don&apos;t
+        access other people&apos;s data or disrupt the service while testing.
       </p>
     </LegalLayout>
   );
