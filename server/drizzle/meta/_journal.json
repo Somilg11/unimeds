@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781032010745,
-      "tag": "0000_abnormal_garia",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781194090506,
-      "tag": "0001_damp_nova",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1782208104483,
-      "tag": "0002_slimy_hobgoblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1783187979654,
-      "tag": "0003_amusing_robin_chapel",
+      "when": 1790449545099,
+      "tag": "0000_baseline",
       "breakpoints": true
     }
   ]

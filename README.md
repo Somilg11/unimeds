@@ -1,333 +1,98 @@
-# Unimeds - Premium AI-Powered Healthcare SaaS Platform
+# Unimeds
 
-A next-generation, premium AI-powered patient engagement and healthcare management platform that transforms fragmented healthcare interactions into a unified, high-end ecosystem.
+Book doctors at clinics near you, keep your medical records in one private place, and give clinics a calm way to run bookings, schedules and their team.
 
-## 🏗️ Architecture
+Unimeds is a multi-tenant healthcare SaaS with four roles.
 
-Unimeds utilizes a hybrid monolithic topology split into two decoupled systems:
+| Role | What they get |
+|---|---|
+| **Patient** | Find doctors by name, specialty or location; book real open times; reschedule, cancel or answer a proposed new time; upload and share records per visit; export or delete their data |
+| **Doctor** | Mobile-first day view, confirm / complete / no-show, propose new times, clinical notes, patient charts, weekly hours per clinic |
+| **Clinic admin** | Overview and approval queue, front-desk booking, team invites and doctor schedules, patients and records, analytics, activity log, booking rules |
+| **Super admin** | Onboard, suspend and reactivate clinics, manage users, platform activity, read-only audit log |
 
-```
-┌─────────────────────────────────┐
-│      Next.js Frontend           │
-│    (App Router + TypeScript)    │
-└──────────────┬──────────────────┘
-               │ Auth.js Session
-               ↓
-┌─────────────────────────────────┐
-│    Node.js Gateway (Express)    │
-│  - API Gateway & BFF           │
-│  - Drizzle ORM (NeonDB)        │
-└──────┬──────────────┬───────────┘
-       │              │
-   Drizzle ORM    Internal REST
-       ↓              ↓
-┌──────────────┐ ┌──────────────┐
-│   NeonDB     │ │  FastAPI AI  │
-│ PostgreSQL  │ │   Engine     │
-└──────────────┘ └──────┬───────┘
-                      │
-            Groq API / PaddleOCR / Pipecat
-```
+![Landing page](docs/screenshots/landing.png)
 
-## 🛠️ Tech Stack
+## Screenshots
 
-### Frontend
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript (strict mode)
-- **Styling:** Tailwind CSS 4
-- **State Management:** Zustand (client), React Query (server)
-- **Authentication:** Auth.js (NextAuth)
-- **Components:** Radix UI primitives
+**Patient and doctor: mobile-first**
 
-### Backend
-- **API Gateway:** Node.js + Express
-- **Database:** PostgreSQL (NeonDB Serverless)
-- **ORM:** Drizzle ORM
-- **AI Engine:** FastAPI (Python 3.11)
-- **OCR:** PaddleOCR / Tesseract
-- **LLM:** Groq API (Llama 3)
-- **Voice:** Pipecat (WebRTC)
-- **Storage:** Cloudinary
-- **Automation:** n8n (self-hosted)
+| Patient home | Booking | Doctor · today | Doctor · dark |
+|---|---|---|---|
+| ![Patient home](docs/screenshots/patient-home-mobile.png) | ![Booking](docs/screenshots/patient-booking-mobile.png) | ![Doctor today](docs/screenshots/doctor-today-mobile.png) | ![Doctor today, dark theme](docs/screenshots/doctor-today-mobile-dark.png) |
 
-## 📁 Project Structure
+**Clinic and platform: desktop**
+
+| Clinic overview | Team |
+|---|---|
+| ![Clinic overview](docs/screenshots/clinic-overview.png) | ![Clinic team](docs/screenshots/clinic-team.png) |
+
+| Clinic analytics | Platform overview |
+|---|---|
+| ![Clinic analytics](docs/screenshots/clinic-analytics.png) | ![Admin overview](docs/screenshots/admin-overview.png) |
+
+| Find a doctor | Sign in |
+|---|---|
+| ![Doctor directory](docs/screenshots/doctor-directory.png) | ![Sign in](docs/screenshots/sign-in.png) |
+
+## Architecture
 
 ```
-unimeds-mono/
-├── src/                    # Next.js Frontend
-│   ├── app/               # App Router pages
-│   ├── components/        # React components
-│   ├── lib/               # Utilities (API client, Cloudinary, DB)
-│   ├── hooks/             # Custom React hooks
-│   ├── store/             # Zustand state slices
-│   └── types/             # TypeScript type definitions
-│
-├── server/                # Node.js Gateway
-│   ├── src/
-│   │   ├── controllers/   # Route handlers
-│   │   ├── middleware/    # Auth & RBAC middleware
-│   │   ├── db/            # Drizzle schemas & migrations
-│   │   └── index.ts       # Gateway entry point
-│   └── package.json
-│
-├── ai_engine/             # FastAPI AI Engine
-│   ├── app/
-│   │   ├── agents/        # LangGraph agents
-│   │   ├── services/      # OCR, Voice, LLM integrations
-│   │   ├── api/           # Internal FastAPI routes
-│   │   └── main.py        # FastAPI entry point
-│   ├── requirements.txt
-│   └── venv/              # Python virtual environment
-│
-├── docs/                  # Documentation
-│   ├── phase.md           # Phase tracking
-│   ├── architecture-context.md
-│   ├── api.md             # API documentation
-│   ├── frontend-plan.md
-│   ├── backend-plan.md
-│   └── postman.md         # API collection
-│
-└── .env                   # Environment variables
+Browser ──► Next.js 16 (src/) ──/api/backend/*──► Express API (server/) ──► Postgres (Neon)
+              NextAuth: Google + email/password                  ├──► Cloudinary (private medical files)
+              API token kept in an httpOnly session cookie       └──► SMTP (invites, resets, booking emails)
 ```
 
-## 🚀 Getting Started
+- **Frontend (`src/`):** Next.js 16 App Router, React 19, Tailwind v4, shadcn/ui, TanStack Query.
+  - Light theme by default; dark theme via toggle.
+  - Patient and doctor screens are mobile-first; clinic and admin screens are desktop-first.
+- **API (`server/`):** Express 5, Drizzle ORM, Zod validation, rate limiting, append-only audit log.
+- **Security:**
+  - The browser never holds the API token.
+  - Every request is authorised per role and per clinic.
+  - Medical files are private Cloudinary assets, streamed only after an access check.
+  - Deactivating a user or changing a password revokes their sessions immediately.
+- **Scheduling:**
+  - Slots are computed in each clinic's timezone.
+  - A database constraint prevents double-booking.
+  - Booking-window and cancellation rules are enforced server-side.
+- **SEO:** sitemap (including every public doctor and clinic page), `robots.txt`, share images, a web manifest, and structured data (Organization, Physician, MedicalClinic). Private areas are sent with `noindex`.
+- **Not wired in yet:** `ai_engine/` (FastAPI OCR / LLM).
 
-### Prerequisites
+## Local setup
 
-- Node.js 20+
-- Python 3.11+
-- PostgreSQL (NeonDB account)
-- Cloudinary account
-- Groq API key
-
-### Environment Setup
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd unimeds-mono
-```
-
-2. **Install root dependencies**
-```bash
-# No root dependencies - each service manages its own
-```
-
-3. **Configure environment variables**
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your credentials:
-
-```env
-# System & Database
-PORT=8080
-NODE_ENV=development
-NEXT_PUBLIC_API_URL=http://localhost:8080
-FASTAPI_SERVICE_URL=http://localhost:8000
-DATABASE_URL=postgresql://username:password@ep-xxx.region.aws.neon.tech/unimeds?sslmode=require
-
-# Authentication (Auth.js)
-AUTH_SECRET=your_generated_auth_secret_key
-AUTH_GOOGLE_ID=your_google_oauth_client_id
-AUTH_GOOGLE_SECRET=your_google_oauth_secret
-
-# Storage (Cloudinary)
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-CLOUDINARY_UPLOAD_PRESET=your_upload_preset
-
-# AI Services (Groq API)
-GROQ_API_KEY=gsk_your_free_groq_api_key
-
-# Automation (n8n)
-N8N_WEBHOOK_BASE_URL=https://n8n.yourdomain.com/webhook/trigger
-
-# Email (Nodemailer)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_USER=your_dev_email@gmail.com
-SMTP_PASS=your_gmail_app_password
-```
-
-### Frontend Setup (Next.js)
+Requirements: Node 20+, a Postgres database (Neon works), and optionally Cloudinary and SMTP.
 
 ```bash
-cd src
+# API
+cd server
+cp .env.example .env          # DATABASE_URL, JWT_SECRET, INTERNAL_API_KEY, Cloudinary, SMTP
 npm install
-npm run dev
-```
+npm run db:migrate
+SUPER_ADMIN_EMAIL=you@company.com SUPER_ADMIN_PASSWORD='a-long-password' npm run seed:admin
+npm run dev                    # http://localhost:8080
 
-Frontend runs on: `http://localhost:3000`
-
-### Backend Setup (Node.js Gateway)
-
-```bash
-cd server
+# Web
+cd ../src
+cp .env.example .env           # API_URL, same INTERNAL_API_KEY, AUTH_SECRET, Google OAuth
 npm install
-npm run dev
+npm run dev                    # http://localhost:3000
 ```
 
-Backend runs on: `http://localhost:8080`
+Without SMTP, invite and reset links are logged by the API and shown in the app so you can copy them.
 
-### AI Engine Setup (FastAPI)
+## Getting started in the app
 
-```bash
-cd ai_engine
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+1. As super admin, open **Clinics → Onboard clinic**. The clinic owner gets an invite link.
+2. The owner accepts it at `/invite/<token>` and sets a password. This activates the clinic.
+3. The clinic admin invites doctors from **Team**. Doctors accept, then set their weekly hours in **Schedule**.
+4. Patients sign up (email or Google) and book from **Find a doctor** or the patient app.
 
-AI Engine runs on: `http://localhost:8000`
+## Docs
 
-## 🗄️ Database Setup
+- [`docs/api.md`](docs/api.md): API contract.
+- [`docs/frontend-conventions.md`](docs/frontend-conventions.md): frontend architecture and shared components.
+- [`docs/design-guide.md`](docs/design-guide.md): visual design system.
+- [`docs/gap-audit.md`](docs/gap-audit.md): the audit behind this rebuild, and what's still deferred.
 
-### Running Migrations
-
-```bash
-cd server
-npx drizzle-kit generate
-npx drizzle-kit push
-```
-
-### Database Schema
-
-The platform uses Drizzle ORM with the following tables:
-
-- **users** - Platform identities with RBAC roles (patient, doctor, clinic_admin, super_admin)
-- **clinics** - Multi-tenant configuration with n8n webhook URLs
-- **appointments** - Scheduling engine with status tracking
-- **records** - Medical document metadata with Cloudinary URLs and OCR data
-- **audit_logs** - Immutable compliance ledger
-
-## 🔐 Authentication & RBAC
-
-### Supported Roles
-
-- **patient** - Access to personal health timeline, record uploads, appointment booking
-- **doctor** - Access to patient search, clinical context, consultation notes
-- **clinic_admin** - Access to clinic analytics, appointment queues, operational metrics
-- **super_admin** - Access to tenant onboarding, audit logs, global platform settings
-
-### Auth.js Configuration
-
-Authentication is handled by Auth.js (NextAuth) with Google OAuth provider. Session tokens include user role for RBAC enforcement.
-
-## 📝 Development Commands
-
-### Frontend (Next.js)
-
-```bash
-cd src
-
-# Development
-npm run dev
-
-# Build
-npm run build
-
-# Start production
-npm run start
-
-# Lint
-npm run lint
-```
-
-### Backend (Node.js Gateway)
-
-```bash
-cd server
-
-# Development (with tsx)
-npx tsx src/index.ts
-
-# Build
-npx tsc
-
-# Generate migrations
-npx drizzle-kit generate
-
-# Push migrations
-npx drizzle-kit push
-
-# Studio (database UI)
-npx drizzle-kit studio
-```
-
-### AI Engine (FastAPI)
-
-```bash
-cd ai_engine
-
-# Development
-uvicorn app.main:app --reload
-
-# Production
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
-## 🎨 Design System
-
-### Color Palette
-- Primary: Royal Blues (`#0a2540`, `#003366`)
-- Structural: Zinc scale (`zinc-50` through `zinc-900`)
-- **Standard grays are strictly prohibited**
-
-### Typography
-- Font: Geist sans-serif exclusively
-- Wide letter-spacing on subheadings
-- Heavy weight contrasts for hierarchy
-
-### Layout
-- Bento Grid Architecture for dashboards
-- Dashed borders (`border-dashed`) for empty states and dropzones
-- Glassmorphism for floating elements (`bg-white/80 backdrop-blur-md`)
-
-## 📚 Documentation
-
-- **[Phase Tracking](docs/phase.md)** - Development phase progress
-- **[Architecture Context](docs/architecture-context.md)** - System topology and data modeling
-- **[API Documentation](docs/api.md)** - REST API endpoints and examples
-- **[Frontend Plan](docs/frontend-plan.md)** - Frontend implementation details
-- **[Backend Plan](docs/backend-plan.md)** - Backend implementation details
-- **[Postman Collection](docs/postman.md)** - API request/response examples
-
-## 🔒 Security
-
-- All database connections enforce SSL (`?sslmode=require`)
-- Cloudinary uses signed URLs and secure upload presets
-- RBAC enforced at multiple layers (middleware, backend, database)
-- Audit logs are append-only (UPDATE/DELETE prohibited)
-- Rate limiting: 100 requests/minute/IP (planned)
-
-## 🚧 Current Status
-
-### Phase 1: Foundation & Data Layer ✅
-- ✅ Monorepo Setup
-- ✅ Database Schema (Drizzle ORM)
-- ✅ Authentication (Auth.js + RBAC)
-- ✅ Storage Infrastructure (Cloudinary)
-- ✅ CI/CD (GitHub Actions - deferred)
-
-### Phase 2: Core Healthcare Workflows (Next)
-- ⏳ Patient Portal
-- ⏳ Health Timeline
-- ⏳ Appointment Engine
-- ⏳ Doctor Dashboard
-- ⏳ Clinic Dashboard
-
-## 🤝 Contributing
-
-This is a premium healthcare SaaS platform. Please follow the coding standards and architectural constraints outlined in the documentation.
-
-## 📄 License
-
-ISC
-
-## 🆘 Support
-
-For technical questions or issues, refer to the documentation in the `docs/` directory.
+Regenerate the favicon, app icons and manifest icons from `src/src/app/icon.svg` with `node src/scripts/generate-icons.mjs`.

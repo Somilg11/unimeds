@@ -1,66 +1,69 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
 import { LegalLayout } from '@/components/landing/legal-layout';
+
+export const metadata: Metadata = { title: 'Terms of Service', description: 'The terms that apply when you use Unimeds.' };
 
 export default function TermsOfService() {
   return (
-    <LegalLayout title="Terms of Service" lastUpdated="June 12, 2026">
-      <h2>1. Acceptance of Terms</h2>
+    <LegalLayout title="Terms of Service" lastUpdated="September 27, 2026">
+      <h2>1. Using Unimeds</h2>
+      <p>By creating an account or using Unimeds (&quot;the platform&quot;), you agree to these terms. If you don&apos;t agree, please don&apos;t use the platform.</p>
+
+      <h2>2. What Unimeds does</h2>
       <p>
-        By accessing or using UniMeds (&quot;the Platform&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the Platform.
+        Unimeds helps patients find doctors and book appointments at clinics, helps clinics manage their schedules and teams, and lets
+        patients and their care providers share medical records.
       </p>
 
-      <h2>2. Description of Service</h2>
+      <h2>3. Not medical advice</h2>
       <p>
-        UniMeds is a healthcare management platform that provides tools for patient record management, appointment scheduling, clinical workflows, and clinic administration. The Platform is designed for use by healthcare professionals, clinics, and patients.
+        Unimeds is a booking and records tool. It does not provide medical advice, diagnosis or treatment. Care decisions are made by
+        qualified healthcare professionals. In an emergency, contact your local emergency services — don&apos;t wait for an online booking.
       </p>
 
-      <h2>3. User Accounts</h2>
+      <h2>4. Your account</h2>
       <p>
-        You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account. We are not liable for any loss arising from unauthorized use of your credentials.
+        Keep your password private and let us know if you think someone else has accessed your account. You are responsible for activity
+        on your account.
       </p>
 
-      <h2>4. Acceptable Use</h2>
-      <p>You agree not to:</p>
+      <h2>5. Appointments</h2>
+      <p>
+        Each clinic sets its own booking policy, including how far ahead you can book and how late you can cancel online. These are shown
+        on the clinic&apos;s page. The clinic may confirm, reschedule or cancel appointments.
+      </p>
+
+      <h2>6. Acceptable use</h2>
       <ul>
-        <li>Use the Platform for any unlawful purpose</li>
-        <li>Attempt to gain unauthorized access to any part of the Platform</li>
-        <li>Interfere with or disrupt the Platform or servers</li>
-        <li>Share your account credentials with unauthorized parties</li>
-        <li>Upload malicious code or harmful content</li>
+        <li>Don&apos;t use the platform for anything unlawful.</li>
+        <li>Don&apos;t try to access data you aren&apos;t authorized to see.</li>
+        <li>Don&apos;t upload malicious files or interfere with the service.</li>
+        <li>Only upload records you have the right to share.</li>
       </ul>
 
-      <h2>5. Intellectual Property</h2>
+      <h2>7. Your data</h2>
       <p>
-        All content, features, and functionality of the Platform are owned by UniMeds and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+        How we handle your information is described in our <Link href="/legal/privacy">Privacy Policy</Link>.
       </p>
 
-      <h2>6. Healthcare Disclaimer</h2>
+      <h2>8. Liability</h2>
       <p>
-        UniMeds is a management tool and does not provide medical advice, diagnosis, or treatment. Healthcare decisions remain the sole responsibility of qualified healthcare professionals using the Platform.
+        To the extent permitted by law, Unimeds is not liable for indirect or consequential losses arising from your use of the platform.
       </p>
 
-      <h2>7. Data Protection</h2>
+      <h2>9. Ending your use</h2>
       <p>
-        We handle all patient health information in accordance with HIPAA and applicable data protection laws. Our data handling practices are detailed in our Privacy Policy.
+        You can stop using Unimeds at any time, and patients can delete their account from their settings. We may suspend accounts that
+        break these terms.
       </p>
 
-      <h2>8. Limitation of Liability</h2>
-      <p>
-        To the maximum extent permitted by law, UniMeds shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Platform.
-      </p>
-
-      <h2>9. Termination</h2>
-      <p>
-        We reserve the right to suspend or terminate your access to the Platform at any time, with or without notice, for conduct that we believe violates these Terms or is harmful to other users or the Platform.
-      </p>
-
-      <h2>10. Changes to Terms</h2>
-      <p>
-        We may update these Terms from time to time. We will notify you of material changes by posting the updated Terms on this page and updating the &quot;Last updated&quot; date.
-      </p>
+      <h2>10. Changes</h2>
+      <p>If we change these terms, we will post the new version here and update the date above.</p>
 
       <h2>11. Contact</h2>
       <p>
-        If you have questions about these Terms, please contact us at legal@unimeds.com.
+        Questions? Email <a href="mailto:support@unimeds.app?subject=Terms%20question">support@unimeds.app</a>.
       </p>
     </LegalLayout>
   );

@@ -1,182 +1,256 @@
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, User } from 'lucide-react';
-import { LandingNav } from '@/components/landing/landing-nav';
-import { LandingFooter } from '@/components/landing/landing-footer';
+import Form from 'next/form';
+import { ArrowRight, BarChart3, CalendarCheck, Check, FileText, MapPin, Search, UserPlus, Users } from 'lucide-react';
+import { SiteShell } from '@/components/landing/site-shell';
 import { SpecialityMenu } from '@/components/landing/speciality-menu';
 import { WhyChooseMe } from '@/components/landing/why-choose-me';
+import { Faq } from '@/components/landing/faq';
+import { FAQ_ITEMS } from '@/components/landing/faq-items';
+import { Eyebrow, IconCircle, ON_BRAND_OUTLINE, ON_BRAND_SOLID, SplitHeading } from '@/components/landing/section';
+import { tryPublic, type PublicStats, type Specialization } from '@/components/landing/public-data';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { JsonLd } from '@/components/seo/json-ld';
+import { absoluteUrl, SITE_NAME, SITE_URL } from '@/lib/site';
 
-export default function Home() {
+const STEPS = [
+  { icon: Search, title: 'Find a doctor', body: 'Search by name, specialization or city, or look for clinics near you.' },
+  { icon: CalendarCheck, title: 'Pick a time', body: 'Choose from the doctor’s open slots at the clinic you prefer.' },
+  { icon: UserPlus, title: 'Confirm and go', body: 'Sign in to confirm. You’ll be notified when the clinic confirms or suggests a new time.' },
+];
+
+const CLINIC_POINTS = [
+  { icon: CalendarCheck, label: 'Online booking with your own rules' },
+  { icon: Users, label: 'Weekly schedules for every doctor' },
+  { icon: FileText, label: 'Records shared per visit, privately' },
+  { icon: BarChart3, label: 'Analytics and an audit trail' },
+];
+
+const noun = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+function HeroSearch({ specs }: { specs: Specialization[] }) {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      <LandingNav />
-
-      {/* ── HERO SECTION ── */}
-      <section className="relative w-full min-h-[100dvh] flex flex-col lg:flex-row lg:items-center bg-background pt-28 lg:pt-0">
-
-        {/* ── Split Background (Desktop Only) ── */}
-        <div className="hidden lg:flex absolute inset-0 z-0">
-          <div className="w-[55%] h-full bg-background"></div>
-          <div className="w-[45%] h-full bg-secondary"></div>
+    <div className="rounded-3xl bg-card p-5 text-card-foreground sm:p-6">
+      <h2 className="text-lg font-semibold tracking-tight">Find a doctor</h2>
+      <p className="mt-1 text-sm text-muted-foreground">See real open times and book online.</p>
+      <Form action="/doctors" role="search" className="mt-5 space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="hero-q">Name or specialization</Label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input id="hero-q" name="q" placeholder="e.g. Rao, heart, skin" className="h-12 rounded-full pl-10" />
+          </div>
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="hero-city">City</Label>
+          <div className="relative">
+            <MapPin className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input id="hero-city" name="city" placeholder="Any city" className="h-12 rounded-full pl-10" />
+          </div>
+        </div>
+        <Button type="submit" variant="secondary" size="lg" className="h-12 w-full">
+          <Search /> Search doctors
+        </Button>
+      </Form>
+      {specs.length > 0 && (
+        <div className="mt-5 border-t pt-4">
+          <p className="text-xs font-medium text-muted-foreground">Popular specialties</p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {specs.slice(0, 4).map((s) => (
+              <li key={s.name}>
+                <Link
+                  href={`/doctors?specialization=${encodeURIComponent(s.name)}`}
+                  className="inline-flex items-center rounded-full bg-muted px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  {s.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
-        {/* ── Main Content Container ── */}
-        <div className="relative z-20 w-full max-w-[1500px] mx-auto h-full flex flex-col lg:flex-row justify-between pointer-events-none">
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
-          {/* ── LEFT SIDE (White Background Area) ── */}
-          <div className="w-full lg:w-[50%] flex flex-col justify-center px-6 sm:px-10 lg:pl-16 lg:pr-8 pt-4 lg:pt-16 pb-8 lg:pb-0 pointer-events-auto order-1 lg:order-none z-20">
-            <div className="mb-8 lg:mb-10 text-center lg:text-left">
-              <h1 className="text-[clamp(3.5rem,10vw,5.5rem)] font-black text-foreground leading-[1.05] tracking-tight mb-4">
-                Advanced<br />
-                Healthcare
-              </h1>
-              <p className="text-[14px] lg:text-[13px] text-muted-foreground font-medium leading-[1.6] max-w-[300px] lg:max-w-[220px] tracking-wide normal-case mx-auto lg:mx-0">
-                Providing <span className="font-bold text-foreground">world-class</span> medical expertise with a personal touch for your everyday well-being.
-              </p>
-            </div>
+// Organization + sitelinks search box for Google
+const SITE_JSON_LD = [
+  { '@context': 'https://schema.org', '@type': 'Organization', name: SITE_NAME, url: SITE_URL, logo: absoluteUrl('/icon-512.png') },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/doctors?q={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+];
 
-            <div className="flex flex-col items-center lg:items-start w-full">
-              <Link
-                href="/user"
-                className="inline-flex items-center justify-between bg-primary hover:bg-primary/90 text-white rounded-full w-[170px] p-1.5 pl-6 transition-colors duration-200 mb-10 lg:mb-16 shadow-apple hover-lift"
-              >
-                <span className="text-[13px] font-semibold">Find Doctor</span>
-                <div className="bg-white rounded-full w-9 h-9 flex items-center justify-center shrink-0">
-                  <User className="w-[18px] h-[18px] text-primary" />
-                </div>
+export default async function Home() {
+  const [stats, specs] = await Promise.all([
+    tryPublic<PublicStats>('/public/stats'),
+    tryPublic<{ items: Specialization[] }>('/public/specializations'),
+  ]);
+  const showStats = stats && stats.doctors > 0;
+  const specItems = specs?.items ?? [];
+
+  const hero = (
+    <div className="mx-auto max-w-6xl px-4 sm:px-8">
+      <div className="grid gap-10 pt-12 pb-10 sm:pt-16 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-14 lg:pt-20 lg:pb-14">
+        <div>
+          <Eyebrow inverted>Doctors and clinics, in one place</Eyebrow>
+          <h1 className="mt-6 text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            Your health, handled with care
+          </h1>
+          <p className="mt-5 max-w-lg text-base text-brand-foreground/80 sm:text-lg">
+            Find the right doctor, see their real availability and book a visit at a clinic near you. Keep your reports together and share
+            them with the clinics you visit.
+          </p>
+          <div className="mt-8 flex flex-col gap-2 sm:flex-row">
+            <Button asChild size="lg" className={ON_BRAND_SOLID}>
+              <Link href="/doctors">
+                Find a doctor <ArrowRight />
               </Link>
-
-              <div className="bg-card/90 backdrop-blur-xl rounded-[1.5rem] p-5 lg:pr-10 shadow-apple flex items-stretch border border-border/50 w-full sm:w-fit hover-lift mx-auto lg:mx-0">
-                <div className="py-1 w-full text-center sm:text-left">
-                  <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Results we are proud of</p>
-                    <div className="w-6 h-1.5 bg-primary rounded-full opacity-80"></div>
-                  </div>
-                  <div className="flex flex-wrap sm:flex-nowrap justify-center gap-6 sm:gap-8">
-                    <div>
-                      <p className="text-[28px] font-black text-foreground leading-none mb-1">10+</p>
-                      <p className="text-[9px] font-semibold text-muted-foreground uppercase leading-snug">years of<br />experience</p>
-                    </div>
-                    <div>
-                      <p className="text-[28px] font-black text-foreground leading-none mb-1">20+</p>
-                      <p className="text-[9px] font-semibold text-muted-foreground uppercase leading-snug">highly qualified<br />doctors</p>
-                    </div>
-                    <div>
-                      <p className="text-[28px] font-black text-foreground leading-none mb-1">100%</p>
-                      <p className="text-[9px] font-semibold text-muted-foreground uppercase leading-snug">digital<br />diagnostics</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Doctor Image ── */}
-          <div className="relative lg:absolute lg:inset-x-0 lg:-bottom-22 z-10 flex justify-center items-end pointer-events-none lg:translate-x-[5%] order-2 lg:order-none h-[40vh] sm:h-[50vh] lg:h-full mt-8 lg:mt-0">
-            <div className="relative w-full max-w-[400px] lg:max-w-[1100px] h-full lg:h-[100%]">
-              <img
-                src="/images/hero-doctor.png"
-                alt="Healthcare professional"
-                className="w-full h-full object-contain object-bottom"
-              />
-            </div>
-          </div>
-
-          {/* ── RIGHT SIDE (Blue Background Area) ── */}
-          <div className="w-full lg:w-[35%] flex flex-col justify-between bg-secondary lg:bg-transparent text-white px-6 sm:px-10 lg:px-0 lg:pl-24 py-12 lg:py-16 pointer-events-auto order-3 lg:order-none rounded-t-[2.5rem] lg:rounded-none -mt-6 lg:mt-0 z-20 relative">
-            <div className="lg:pt-24 text-center lg:text-left">
-              <h2 className="text-[2rem] sm:text-[2.5rem] font-light leading-[1.1] mb-4 sm:mb-5">
-                With Advanced<br />
-                <span className="font-semibold">Technologies</span>
-              </h2>
-              <p className="text-[14px] lg:text-[13px] text-white/80 max-w-[320px] mx-auto lg:mx-0 leading-relaxed">
-                The latest <span className="font-semibold text-white">generation equipment</span>, digital diagnostics, advanced techniques — all of this works for your health.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between mt-12 lg:mt-0 pb-4 lg:pb-6 lg:pl-4 gap-6 sm:gap-0">
-              <p className="text-[12px] lg:text-[11px] text-white/80 max-w-[200px] lg:max-w-[180px] leading-relaxed text-center sm:text-left">
-                We appreciate every feedback, because it inspires us to become better.
-              </p>
-              <div className="flex items-center gap-4">
-                <button className="w-10 h-10 lg:w-8 lg:h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/20 transition-colors">
-                  <ArrowRight className="w-4 h-4 lg:w-3.5 lg:h-3.5 text-white" />
-                </button>
-                <div className="flex -space-x-2">
-                  {['A', 'R', 'K'].map((ch, i) => (
-                    <div
-                      key={ch}
-                      className="w-10 h-10 lg:w-8 lg:h-8 rounded-full bg-white text-secondary border-2 border-secondary flex items-center justify-center text-[11px] lg:text-[10px] font-bold shadow-sm"
-                      style={{ zIndex: 3 - i }}
-                    >
-                      {ch}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            </Button>
+            <Button asChild size="lg" variant="outline" className={ON_BRAND_OUTLINE}>
+              <Link href="/clinics">Browse clinics</Link>
+            </Button>
           </div>
         </div>
+        <HeroSearch specs={specItems} />
+      </div>
 
-        {/* ── FLOATING PILLS (Hidden entirely on Mobile/Tablet) ── */}
-        <div className="hidden lg:flex absolute top-[56%] left-[32%] z-30 items-center gap-2 pointer-events-none">
-          <div className="bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full text-[13px] font-semibold text-foreground shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-gray-100">
-            Reliability
-          </div>
-          <div className="w-10 h-px bg-foreground/20"></div>
-          <div className="w-2 h-2 rounded-full border-[2px] border-foreground/30 bg-transparent"></div>
-        </div>
+      {showStats && (
+        <dl className="grid grid-cols-3 gap-4 border-t border-white/20 py-8">
+          {[
+            { label: noun(stats.doctors, 'Doctor', 'Doctors'), value: stats.doctors },
+            { label: noun(stats.clinics, 'Clinic', 'Clinics'), value: stats.clinics },
+            { label: noun(stats.cities, 'City', 'Cities'), value: stats.cities },
+          ].map((s) => (
+            <div key={s.label} className="flex flex-col-reverse gap-1">
+              <dt className="text-sm text-brand-foreground/75">{s.label}</dt>
+              <dd className="text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">{s.value.toLocaleString('en-IN')}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+  );
 
-        <div className="hidden lg:flex absolute top-[60%] right-[20%] z-30 items-center gap-2 flex-row-reverse pointer-events-none">
-          <div className="bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full text-[13px] font-semibold text-foreground shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-gray-100">
-            Experience
-          </div>
-          <div className="w-10 h-px bg-white/40"></div>
-          <div className="w-2 h-2 rounded-full border-[2px] border-white/60 bg-transparent"></div>
-        </div>
-
-        <div className="hidden lg:flex absolute top-[80%] right-[18%] z-30 items-center gap-2 flex-row-reverse pointer-events-none">
-          <div className="bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-full text-[13px] font-semibold text-foreground shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-gray-100">
-            Professional
-          </div>
-          <div className="w-10 h-px bg-white/40"></div>
-          <div className="w-2 h-2 rounded-full border-[2px] border-white/60 bg-transparent"></div>
-        </div>
-      </section>
-
-      {/* ── SECTIONS ── */}
-      <SpecialityMenu />
+  return (
+    <SiteShell hero={hero}>
+      <JsonLd data={SITE_JSON_LD} />
       <WhyChooseMe />
 
-      {/* ── CTA / BOOKING SECTION ── */}
-      <section className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10 py-16 relative z-10 bg-background">
-        <div className="relative overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] text-white px-6 py-16 lg:py-24 text-center flex flex-col items-center justify-center shadow-lg border border-border/20 bg-primary bg-cover bg-center">
-          <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-          <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold tracking-wide mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              Join us
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-6">
-              Your Health, Our Priority
-            </h2>
-            <p className="text-[13px] sm:text-sm text-white/90 max-w-md leading-relaxed mb-8 px-4">
-              Experience world-class healthcare with experienced doctors, modern facilities, and patient-centered treatment designed for your well-being.
-            </p>
-            <Link
-              href="/user"
-              className="inline-flex items-center gap-3 bg-white text-primary hover:bg-neutral-50 px-6 py-3 lg:py-2.5 rounded-full text-[13px] font-bold shadow-md hover-lift transition-all"
-            >
-              <span>Book an appointment</span>
-              <div className="w-7 h-7 lg:w-6 lg:h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0">
-                <ArrowRight className="w-3.5 h-3.5 lg:w-3 lg:h-3 rotate-[-45deg]" />
+      <SpecialityMenu items={specItems} />
+
+      {/* How it works */}
+      <section aria-labelledby="how-h" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+        <SplitHeading
+          id="how-h"
+          eyebrow="How it works"
+          title="Book a visit in three steps"
+          description="No phone queues. Pick the doctor and clinic that suit you, choose a free time and you’re done."
+        />
+        <ol className="mt-10 grid gap-3 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="flex flex-col rounded-3xl bg-card p-6">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex size-11 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground tabular-nums">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <IconCircle icon={s.icon} />
               </div>
-            </Link>
+              <h3 className="mt-6 text-base font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* For clinics */}
+      <section aria-labelledby="clinics-h" className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <div className="grid gap-8 rounded-[2rem] bg-card p-6 sm:p-10 lg:grid-cols-2 lg:items-center lg:gap-12">
+          <div>
+            <Eyebrow className="bg-muted">For clinics</Eyebrow>
+            <h2 id="clinics-h" className="mt-4 text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+              Run your practice on Unimeds
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Online booking, doctor schedules, shared records and a clear view of how your clinic is doing — in one place.
+            </p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <Button asChild size="lg" variant="secondary" className="h-12 px-6">
+                <Link href="/for-clinics">
+                  Learn more <ArrowRight />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-12 px-6">
+                <Link href="/contact">Talk to us</Link>
+              </Button>
+            </div>
           </div>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+            {CLINIC_POINTS.map((p) => (
+              <li key={p.label} className="flex items-center gap-3 rounded-3xl bg-muted p-3 pr-4 text-sm font-medium">
+                <IconCircle icon={p.icon} className="size-10 bg-card text-foreground" />
+                <span className="flex-1">{p.label}</span>
+                <Check className="size-4 text-primary" aria-hidden />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <LandingFooter />
-    </div>
+      {/* FAQ */}
+      <section aria-labelledby="faq-h" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:gap-12">
+          <div className="space-y-4">
+            <Eyebrow>FAQ</Eyebrow>
+            <h2 id="faq-h" className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+              Questions, answered
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              The basics of booking, accounts and your records. Can’t find what you need? Our support page has more.
+            </p>
+            <Button asChild variant="secondary" size="lg" className="h-12 px-6">
+              <Link href="/support">
+                Visit support <ArrowRight />
+              </Link>
+            </Button>
+          </div>
+          <Faq items={FAQ_ITEMS.slice(0, 5)} tone="card" />
+        </div>
+      </section>
+
+      {/* CTA band */}
+      <section aria-labelledby="cta-h" className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:pb-20">
+        <div className="flex flex-col gap-8 rounded-[2rem] bg-brand px-6 py-12 text-brand-foreground sm:px-12 sm:py-14 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-xl">
+            <h2 id="cta-h" className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+              Start your health journey today
+            </h2>
+            <p className="mt-3 text-brand-foreground/80">
+              Create a free patient account to book appointments and keep your records together.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild size="lg" className={ON_BRAND_SOLID}>
+              <Link href="/signup">Create an account</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className={ON_BRAND_OUTLINE}>
+              <Link href="/doctors">Find a doctor</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </SiteShell>
   );
 }

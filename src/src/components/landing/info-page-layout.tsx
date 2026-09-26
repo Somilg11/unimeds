@@ -1,29 +1,24 @@
-import { LandingFooter } from '@/components/landing/landing-footer';
-import { LandingNav } from '@/components/landing/landing-nav';
+import { SiteShell } from '@/components/landing/site-shell';
+import { Eyebrow } from '@/components/landing/section';
 
 interface InfoPageLayoutProps {
   children: React.ReactNode;
   title: string;
+  description?: string;
+  eyebrow?: string;
 }
 
-export function InfoPageLayout({ children, title }: InfoPageLayoutProps) {
+export function InfoPageLayout({ children, title, description, eyebrow }: InfoPageLayoutProps) {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <LandingNav />
-
-      <main className="pt-28 flex-1">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-          <p className="text-[11px] font-mono uppercase text-neutral-400 tracking-wider mb-4">
-            {title}
-          </p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-neutral-900 mb-12">
-            {title}
-          </h1>
-          {children}
-        </div>
-      </main>
-
-      <LandingFooter />
-    </div>
+    <SiteShell>
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-20">
+        <header className="space-y-4">
+          {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+          <h1 className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">{title}</h1>
+          {description && <p className="text-muted-foreground">{description}</p>}
+        </header>
+        <div className="mt-10">{children}</div>
+      </div>
+    </SiteShell>
   );
 }
